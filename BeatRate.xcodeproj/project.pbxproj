@@ -31,22 +31,9 @@
 		8BED08592DE0DDF200838DD7 /* BeatRate Development.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "BeatRate Development.entitlements"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		8BED08472DE0DBFB00838DD7 /* Exceptions for "BeatRate" folder in "BeatRate Development" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Assets.xcassets,
-			);
-			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		8BED07F02DE0D68300838DD7 /* BeatRate */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				8BED08472DE0DBFB00838DD7 /* Exceptions for "BeatRate" folder in "BeatRate Development" target */,
-			);
 			path = BeatRate;
 			sourceTree = "<group>";
 		};
@@ -596,6 +583,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = "BeatRate Development.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
@@ -632,6 +620,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = "BeatRate Development.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
