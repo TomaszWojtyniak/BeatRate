@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8BED088B2DE100BC00838DD7 /* TabBar in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED088A2DE100BC00838DD7 /* TabBar */; };
+		8BED088D2DE1031900838DD7 /* Login in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED088C2DE1031900838DD7 /* Login */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		8BED07FC2DE0D68500838DD7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -28,23 +33,156 @@
 		8BED07FB2DE0D68500838DD7 /* BeatRateTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BeatRateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BED08052DE0D68500838DD7 /* BeatRateUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BeatRateUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BED08462DE0DBFB00838DD7 /* BeatRate Development.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "BeatRate Development.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		8BED08592DE0DDF200838DD7 /* BeatRate Development.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "BeatRate Development.entitlements"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		8BED086B2DE0F71D00838DD7 /* Exceptions for "App" folder in "BeatRate" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				BeatRateTests/BeatRateTests.swift,
+				BeatRateUITests/BeatRateUITests.swift,
+				BeatRateUITests/BeatRateUITestsLaunchTests.swift,
+			);
+			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
+		};
+		8BED086C2DE0F71D00838DD7 /* Exceptions for "App" folder in "BeatRate Development" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				BeatRateTests/BeatRateTests.swift,
+				BeatRateUITests/BeatRateUITests.swift,
+				BeatRateUITests/BeatRateUITestsLaunchTests.swift,
+			);
+			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
+		};
+		8BED086D2DE0F71D00838DD7 /* Exceptions for "App" folder in "BeatRateTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				BeatRateTests/BeatRateTests.swift,
+			);
+			target = 8BED07FA2DE0D68500838DD7 /* BeatRateTests */;
+		};
+		8BED086E2DE0F71D00838DD7 /* Exceptions for "App" folder in "BeatRateUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				BeatRateUITests/BeatRateUITests.swift,
+				BeatRateUITests/BeatRateUITestsLaunchTests.swift,
+			);
+			target = 8BED08042DE0D68500838DD7 /* BeatRateUITests */;
+		};
+		8BED08732DE0F93F00838DD7 /* Exceptions for "Presentation" folder in "BeatRate" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Home,
+				Login,
+				Search,
+				Settings,
+				TabBar,
+			);
+			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
+		};
+		8BED08742DE0F93F00838DD7 /* Exceptions for "Presentation" folder in "BeatRate Development" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Home,
+				Login,
+				Search,
+				Settings,
+				TabBar,
+			);
+			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
+		};
+		8BED087E2DE0FCCF00838DD7 /* Exceptions for "Data" folder in "BeatRate" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models,
+				Repositories/LoginRepository,
+			);
+			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
+		};
+		8BED087F2DE0FCCF00838DD7 /* Exceptions for "Data" folder in "BeatRate Development" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models,
+				Repositories/LoginRepository,
+			);
+			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
+		};
+		8BED08822DE0FD1600838DD7 /* Exceptions for "Domain" folder in "BeatRate" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				LoginUseCases,
+			);
+			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
+		};
+		8BED08832DE0FD1600838DD7 /* Exceptions for "Domain" folder in "BeatRate Development" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				LoginUseCases,
+			);
+			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
+		};
+		8BED08872DE0FE2400838DD7 /* Exceptions for "Core" folder in "BeatRate" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Navigation,
+			);
+			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
+		};
+		8BED08882DE0FE2400838DD7 /* Exceptions for "Core" folder in "BeatRate Development" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Navigation,
+			);
+			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		8BED07F02DE0D68300838DD7 /* BeatRate */ = {
+		8BED07F02DE0D68300838DD7 /* App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = BeatRate;
+			exceptions = (
+				8BED086B2DE0F71D00838DD7 /* Exceptions for "App" folder in "BeatRate" target */,
+				8BED086C2DE0F71D00838DD7 /* Exceptions for "App" folder in "BeatRate Development" target */,
+				8BED086D2DE0F71D00838DD7 /* Exceptions for "App" folder in "BeatRateTests" target */,
+				8BED086E2DE0F71D00838DD7 /* Exceptions for "App" folder in "BeatRateUITests" target */,
+			);
+			path = App;
 			sourceTree = "<group>";
 		};
-		8BED07FE2DE0D68500838DD7 /* BeatRateTests */ = {
+		8BED085D2DE0F6B500838DD7 /* Core */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = BeatRateTests;
+			exceptions = (
+				8BED08872DE0FE2400838DD7 /* Exceptions for "Core" folder in "BeatRate" target */,
+				8BED08882DE0FE2400838DD7 /* Exceptions for "Core" folder in "BeatRate Development" target */,
+			);
+			path = Core;
 			sourceTree = "<group>";
 		};
-		8BED08082DE0D68500838DD7 /* BeatRateUITests */ = {
+		8BED085E2DE0F6C500838DD7 /* Data */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = BeatRateUITests;
+			exceptions = (
+				8BED087E2DE0FCCF00838DD7 /* Exceptions for "Data" folder in "BeatRate" target */,
+				8BED087F2DE0FCCF00838DD7 /* Exceptions for "Data" folder in "BeatRate Development" target */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		8BED085F2DE0F6CD00838DD7 /* Domain */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8BED08822DE0FD1600838DD7 /* Exceptions for "Domain" folder in "BeatRate" target */,
+				8BED08832DE0FD1600838DD7 /* Exceptions for "Domain" folder in "BeatRate Development" target */,
+			);
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		8BED08612DE0F6DE00838DD7 /* Presentation */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8BED08732DE0F93F00838DD7 /* Exceptions for "Presentation" folder in "BeatRate" target */,
+				8BED08742DE0F93F00838DD7 /* Exceptions for "Presentation" folder in "BeatRate Development" target */,
+			);
+			path = Presentation;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +213,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8BED088D2DE1031900838DD7 /* Login in Frameworks */,
+				8BED088B2DE100BC00838DD7 /* TabBar in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -84,10 +224,12 @@
 		8BED07E52DE0D68300838DD7 = {
 			isa = PBXGroup;
 			children = (
-				8BED08592DE0DDF200838DD7 /* BeatRate Development.entitlements */,
-				8BED07F02DE0D68300838DD7 /* BeatRate */,
-				8BED07FE2DE0D68500838DD7 /* BeatRateTests */,
-				8BED08082DE0D68500838DD7 /* BeatRateUITests */,
+				8BED07F02DE0D68300838DD7 /* App */,
+				8BED085D2DE0F6B500838DD7 /* Core */,
+				8BED085E2DE0F6C500838DD7 /* Data */,
+				8BED085F2DE0F6CD00838DD7 /* Domain */,
+				8BED08612DE0F6DE00838DD7 /* Presentation */,
+				8BED08752DE0FA3B00838DD7 /* Frameworks */,
 				8BED07EF2DE0D68300838DD7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -101,6 +243,13 @@
 				8BED08462DE0DBFB00838DD7 /* BeatRate Development.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		8BED08752DE0FA3B00838DD7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -119,7 +268,11 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				8BED07F02DE0D68300838DD7 /* BeatRate */,
+				8BED07F02DE0D68300838DD7 /* App */,
+				8BED085D2DE0F6B500838DD7 /* Core */,
+				8BED085E2DE0F6C500838DD7 /* Data */,
+				8BED085F2DE0F6CD00838DD7 /* Domain */,
+				8BED08612DE0F6DE00838DD7 /* Presentation */,
 			);
 			name = BeatRate;
 			packageProductDependencies = (
@@ -141,9 +294,6 @@
 			dependencies = (
 				8BED07FD2DE0D68500838DD7 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				8BED07FE2DE0D68500838DD7 /* BeatRateTests */,
-			);
 			name = BeatRateTests;
 			packageProductDependencies = (
 			);
@@ -163,9 +313,6 @@
 			);
 			dependencies = (
 				8BED08072DE0D68500838DD7 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				8BED08082DE0D68500838DD7 /* BeatRateUITests */,
 			);
 			name = BeatRateUITests;
 			packageProductDependencies = (
@@ -187,10 +334,16 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				8BED07F02DE0D68300838DD7 /* BeatRate */,
+				8BED07F02DE0D68300838DD7 /* App */,
+				8BED085D2DE0F6B500838DD7 /* Core */,
+				8BED085E2DE0F6C500838DD7 /* Data */,
+				8BED085F2DE0F6CD00838DD7 /* Domain */,
+				8BED08612DE0F6DE00838DD7 /* Presentation */,
 			);
 			name = "BeatRate Development";
 			packageProductDependencies = (
+				8BED088A2DE100BC00838DD7 /* TabBar */,
+				8BED088C2DE1031900838DD7 /* Login */,
 			);
 			productName = BeatRate;
 			productReference = 8BED08462DE0DBFB00838DD7 /* BeatRate Development.app */;
@@ -443,7 +596,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = BeatRate/BeatRate.entitlements;
+				CODE_SIGN_ENTITLEMENTS = App/BeatRate.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
@@ -477,7 +630,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = BeatRate/BeatRate.entitlements;
+				CODE_SIGN_ENTITLEMENTS = App/BeatRate.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
@@ -584,7 +737,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-				CODE_SIGN_ENTITLEMENTS = "BeatRate Development.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "App/BeatRate Development.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
@@ -610,7 +763,8 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "BeatRate Development Development";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY = YES;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -621,7 +775,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-				CODE_SIGN_ENTITLEMENTS = "BeatRate Development.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "App/BeatRate Development.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
@@ -647,7 +801,8 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "BeatRate Development Distribution";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY = YES;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -701,6 +856,17 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8BED088A2DE100BC00838DD7 /* TabBar */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TabBar;
+		};
+		8BED088C2DE1031900838DD7 /* Login */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Login;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8BED07E62DE0D68300838DD7 /* Project object */;
 }
