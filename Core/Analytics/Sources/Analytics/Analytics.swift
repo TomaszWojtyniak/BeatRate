@@ -1,2 +1,7 @@
-// The Swift Programming Language
-// https://docs.swift.org/swift-book
+//
+//  Analytics.swift
+//  Analytics
+//
+//  Created by Tomasz Wojtyniak on 28/05/2025.
+//
+

@@ -14,7 +14,7 @@ let package = Package(
             targets: ["Analytics"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", exact: "11.13.0")
+        .package(name: "Firebase", url: "https://github.com/firebase/firebase-ios-sdk.git", from: "11.13.0")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.

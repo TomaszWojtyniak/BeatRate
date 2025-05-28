@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Analytics
 
 @MainActor
 struct LoginView: View {
@@ -13,7 +14,10 @@ struct LoginView: View {
     @State private var dataModel: LoginDataModel = LoginDataModel()
     
     var body: some View {
-        Text("Hello, World!")
+        VStack {
+            Text("Login screen")
+        }
+        .trackScreenView("LoginView", screenClass: "Login")
     }
 }
 

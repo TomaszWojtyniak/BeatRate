@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		8B7266D82DE7383800681754 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266D72DE7383800681754 /* FirebaseCore */; };
 		8B7266DA2DE7384400681754 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266D92DE7384400681754 /* FirebaseCore */; };
+		8B7266E62DE7460100681754 /* Analytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266E52DE7460100681754 /* Analytics */; };
+		8B7266E82DE7464700681754 /* Analytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266E72DE7464700681754 /* Analytics */; };
 		8BED088B2DE100BC00838DD7 /* TabBar in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED088A2DE100BC00838DD7 /* TabBar */; };
 		8BED088D2DE1031900838DD7 /* Login in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED088C2DE1031900838DD7 /* Login */; };
 		8BED089C2DE645E800838DD7 /* Login in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED089B2DE645E800838DD7 /* Login */; };
@@ -201,6 +203,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8BED089E2DE645EE00838DD7 /* TabBar in Frameworks */,
+				8B7266E82DE7464700681754 /* Analytics in Frameworks */,
 				8B7266DA2DE7384400681754 /* FirebaseCore in Frameworks */,
 				8BED089C2DE645E800838DD7 /* Login in Frameworks */,
 			);
@@ -225,6 +228,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8BED088D2DE1031900838DD7 /* Login in Frameworks */,
+				8B7266E62DE7460100681754 /* Analytics in Frameworks */,
 				8B7266D82DE7383800681754 /* FirebaseCore in Frameworks */,
 				8BED088B2DE100BC00838DD7 /* TabBar in Frameworks */,
 			);
@@ -233,6 +237,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8B7266E42DE7460100681754 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		8BED07E52DE0D68300838DD7 = {
 			isa = PBXGroup;
 			children = (
@@ -241,6 +252,7 @@
 				8BED085E2DE0F6C500838DD7 /* Data */,
 				8BED085F2DE0F6CD00838DD7 /* Domain */,
 				8BED08612DE0F6DE00838DD7 /* Presentation */,
+				8B7266E42DE7460100681754 /* Frameworks */,
 				8BED07EF2DE0D68300838DD7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -283,6 +295,7 @@
 				8BED089B2DE645E800838DD7 /* Login */,
 				8BED089D2DE645EE00838DD7 /* TabBar */,
 				8B7266D92DE7384400681754 /* FirebaseCore */,
+				8B7266E72DE7464700681754 /* Analytics */,
 			);
 			productName = BeatRate;
 			productReference = 8BED07EE2DE0D68300838DD7 /* BeatRate.app */;
@@ -352,6 +365,7 @@
 				8BED088A2DE100BC00838DD7 /* TabBar */,
 				8BED088C2DE1031900838DD7 /* Login */,
 				8B7266D72DE7383800681754 /* FirebaseCore */,
+				8B7266E52DE7460100681754 /* Analytics */,
 			);
 			productName = BeatRate;
 			productReference = 8BED08462DE0DBFB00838DD7 /* BeatRate Development.app */;
@@ -899,6 +913,14 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 8B7266CD2DE7377600681754 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCore;
+		};
+		8B7266E52DE7460100681754 /* Analytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Analytics;
+		};
+		8B7266E72DE7464700681754 /* Analytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Analytics;
 		};
 		8BED088A2DE100BC00838DD7 /* TabBar */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -11,7 +11,7 @@ import Login
 
 @MainActor
 struct ContentView: View {
-    @State var isUserLoggedIn: Bool = true
+    @State var isUserLoggedIn: Bool = false
     @State private var selection: TabBarScreen? = .home
     
     var body: some View {
