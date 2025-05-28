@@ -8,7 +8,6 @@
 import SwiftUI
 import TabBar
 import Login
-import Navigation
 
 @MainActor
 struct ContentView: View {
@@ -19,7 +18,7 @@ struct ContentView: View {
         if isUserLoggedIn {
             TabBarView(selection: $selection)
         } else {
-            LoginView()
+            LoginNavigationStack()
         }
     }
 }

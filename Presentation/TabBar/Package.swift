@@ -14,7 +14,6 @@ let package = Package(
             targets: ["TabBar"]),
     ],
     dependencies: [
-        .package(path: "../../Core/Navigation"),
         .package(path: "../Home"),
         .package(path: "../Search"),
         .package(path: "../Settings")
@@ -25,7 +24,6 @@ let package = Package(
         .target(
             name: "TabBar",
             dependencies: [
-                "Navigation",
                 "Home",
                 "Search",
                 "Settings"

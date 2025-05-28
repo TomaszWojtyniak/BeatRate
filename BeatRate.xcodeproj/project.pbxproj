@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		8BED088B2DE100BC00838DD7 /* TabBar in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED088A2DE100BC00838DD7 /* TabBar */; };
 		8BED088D2DE1031900838DD7 /* Login in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED088C2DE1031900838DD7 /* Login */; };
+		8BED089C2DE645E800838DD7 /* Login in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED089B2DE645E800838DD7 /* Login */; };
+		8BED089E2DE645EE00838DD7 /* TabBar in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED089D2DE645EE00838DD7 /* TabBar */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +38,20 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		8B613DF42DE71A69000782EB /* Exceptions for "Core" folder in "BeatRate" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models,
+			);
+			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
+		};
+		8B613DF52DE71A69000782EB /* Exceptions for "Core" folder in "BeatRate Development" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models,
+			);
+			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
+		};
 		8BED086B2DE0F71D00838DD7 /* Exceptions for "App" folder in "BeatRate" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -94,7 +110,6 @@
 		8BED087E2DE0FCCF00838DD7 /* Exceptions for "Data" folder in "BeatRate" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Models,
 				Repositories/LoginRepository,
 			);
 			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
@@ -102,7 +117,6 @@
 		8BED087F2DE0FCCF00838DD7 /* Exceptions for "Data" folder in "BeatRate Development" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Models,
 				Repositories/LoginRepository,
 			);
 			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
@@ -118,20 +132,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				LoginUseCases,
-			);
-			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
-		};
-		8BED08872DE0FE2400838DD7 /* Exceptions for "Core" folder in "BeatRate" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Navigation,
-			);
-			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
-		};
-		8BED08882DE0FE2400838DD7 /* Exceptions for "Core" folder in "BeatRate Development" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Navigation,
 			);
 			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
 		};
@@ -152,8 +152,8 @@
 		8BED085D2DE0F6B500838DD7 /* Core */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				8BED08872DE0FE2400838DD7 /* Exceptions for "Core" folder in "BeatRate" target */,
-				8BED08882DE0FE2400838DD7 /* Exceptions for "Core" folder in "BeatRate Development" target */,
+				8B613DF42DE71A69000782EB /* Exceptions for "Core" folder in "BeatRate" target */,
+				8B613DF52DE71A69000782EB /* Exceptions for "Core" folder in "BeatRate Development" target */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -192,6 +192,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8BED089E2DE645EE00838DD7 /* TabBar in Frameworks */,
+				8BED089C2DE645E800838DD7 /* Login in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -229,7 +231,6 @@
 				8BED085E2DE0F6C500838DD7 /* Data */,
 				8BED085F2DE0F6CD00838DD7 /* Domain */,
 				8BED08612DE0F6DE00838DD7 /* Presentation */,
-				8BED08752DE0FA3B00838DD7 /* Frameworks */,
 				8BED07EF2DE0D68300838DD7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -243,13 +244,6 @@
 				8BED08462DE0DBFB00838DD7 /* BeatRate Development.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		8BED08752DE0FA3B00838DD7 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -276,6 +270,8 @@
 			);
 			name = BeatRate;
 			packageProductDependencies = (
+				8BED089B2DE645E800838DD7 /* Login */,
+				8BED089D2DE645EE00838DD7 /* TabBar */,
 			);
 			productName = BeatRate;
 			productReference = 8BED07EE2DE0D68300838DD7 /* BeatRate.app */;
@@ -865,6 +861,14 @@
 		8BED088C2DE1031900838DD7 /* Login */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Login;
+		};
+		8BED089B2DE645E800838DD7 /* Login */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Login;
+		};
+		8BED089D2DE645EE00838DD7 /* TabBar */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TabBar;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Navigation
 
 @MainActor
 public struct TabBarView: View {

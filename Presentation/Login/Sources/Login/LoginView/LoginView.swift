@@ -8,11 +8,11 @@
 import SwiftUI
 
 @MainActor
-public struct LoginView: View {
+struct LoginView: View {
     
-    public init() {}
+    @State private var dataModel: LoginDataModel = LoginDataModel()
     
-    public var body: some View {
+    var body: some View {
         Text("Hello, World!")
     }
 }
