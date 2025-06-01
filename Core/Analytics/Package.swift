@@ -4,31 +4,29 @@
 import PackageDescription
 
 let package = Package(
-    name: "Login",
+    name: "Analytics",
     defaultLocalization: "en",
     platforms: [.iOS(.v18)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "Login",
-            targets: ["Login"]),
+            name: "Analytics",
+            targets: ["Analytics"]),
     ],
     dependencies: [
-        .package(path: "../../Domain/LoginUseCases"),
-        .package(path: "../../Core/Analytics")
+        .package(name: "Firebase", url: "https://github.com/firebase/firebase-ios-sdk.git", from: "11.13.0")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "Login",
-            dependencies: [
-                "LoginUseCases",
-                "Analytics"
+            name: "Analytics", dependencies: [
+                .product(name: "FirebaseCrashlytics", package: "Firebase"),
+                .product(name: "FirebaseAnalytics", package: "Firebase")
             ]),
         .testTarget(
-            name: "LoginTests",
-            dependencies: ["Login"]
+            name: "AnalyticsTests",
+            dependencies: ["Analytics"]
         ),
     ]
 )

@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8B7266D82DE7383800681754 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266D72DE7383800681754 /* FirebaseCore */; };
+		8B7266DA2DE7384400681754 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266D92DE7384400681754 /* FirebaseCore */; };
+		8B7266E62DE7460100681754 /* Analytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266E52DE7460100681754 /* Analytics */; };
+		8B7266E82DE7464700681754 /* Analytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266E72DE7464700681754 /* Analytics */; };
 		8BED088B2DE100BC00838DD7 /* TabBar in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED088A2DE100BC00838DD7 /* TabBar */; };
 		8BED088D2DE1031900838DD7 /* Login in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED088C2DE1031900838DD7 /* Login */; };
 		8BED089C2DE645E800838DD7 /* Login in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED089B2DE645E800838DD7 /* Login */; };
@@ -41,6 +45,7 @@
 		8B613DF42DE71A69000782EB /* Exceptions for "Core" folder in "BeatRate" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Analytics,
 				Models,
 			);
 			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
@@ -48,6 +53,7 @@
 		8B613DF52DE71A69000782EB /* Exceptions for "Core" folder in "BeatRate Development" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Analytics,
 				Models,
 			);
 			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
@@ -58,6 +64,8 @@
 				BeatRateTests/BeatRateTests.swift,
 				BeatRateUITests/BeatRateUITests.swift,
 				BeatRateUITests/BeatRateUITestsLaunchTests.swift,
+				"Development/BeatRate-Development-Info.plist",
+				"Development/GoogleService-Info.plist",
 			);
 			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
 		};
@@ -67,6 +75,8 @@
 				BeatRateTests/BeatRateTests.swift,
 				BeatRateUITests/BeatRateUITests.swift,
 				BeatRateUITests/BeatRateUITestsLaunchTests.swift,
+				"Development/BeatRate-Development-Info.plist",
+				"Production/GoogleService-Info.plist",
 			);
 			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
 		};
@@ -193,6 +203,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				8BED089E2DE645EE00838DD7 /* TabBar in Frameworks */,
+				8B7266E82DE7464700681754 /* Analytics in Frameworks */,
+				8B7266DA2DE7384400681754 /* FirebaseCore in Frameworks */,
 				8BED089C2DE645E800838DD7 /* Login in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -216,6 +228,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				8BED088D2DE1031900838DD7 /* Login in Frameworks */,
+				8B7266E62DE7460100681754 /* Analytics in Frameworks */,
+				8B7266D82DE7383800681754 /* FirebaseCore in Frameworks */,
 				8BED088B2DE100BC00838DD7 /* TabBar in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -223,6 +237,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8B7266E42DE7460100681754 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		8BED07E52DE0D68300838DD7 = {
 			isa = PBXGroup;
 			children = (
@@ -231,6 +252,7 @@
 				8BED085E2DE0F6C500838DD7 /* Data */,
 				8BED085F2DE0F6CD00838DD7 /* Domain */,
 				8BED08612DE0F6DE00838DD7 /* Presentation */,
+				8B7266E42DE7460100681754 /* Frameworks */,
 				8BED07EF2DE0D68300838DD7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -256,6 +278,7 @@
 				8BED07EA2DE0D68300838DD7 /* Sources */,
 				8BED07EB2DE0D68300838DD7 /* Frameworks */,
 				8BED07EC2DE0D68300838DD7 /* Resources */,
+				8B7266F22DE9EF2100681754 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -272,6 +295,8 @@
 			packageProductDependencies = (
 				8BED089B2DE645E800838DD7 /* Login */,
 				8BED089D2DE645EE00838DD7 /* TabBar */,
+				8B7266D92DE7384400681754 /* FirebaseCore */,
+				8B7266E72DE7464700681754 /* Analytics */,
 			);
 			productName = BeatRate;
 			productReference = 8BED07EE2DE0D68300838DD7 /* BeatRate.app */;
@@ -324,6 +349,7 @@
 				8BED08402DE0DBFB00838DD7 /* Sources */,
 				8BED08412DE0DBFB00838DD7 /* Frameworks */,
 				8BED08422DE0DBFB00838DD7 /* Resources */,
+				8B7266F12DE9EBE400681754 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -340,6 +366,8 @@
 			packageProductDependencies = (
 				8BED088A2DE100BC00838DD7 /* TabBar */,
 				8BED088C2DE1031900838DD7 /* Login */,
+				8B7266D72DE7383800681754 /* FirebaseCore */,
+				8B7266E52DE7460100681754 /* Analytics */,
 			);
 			productName = BeatRate;
 			productReference = 8BED08462DE0DBFB00838DD7 /* BeatRate Development.app */;
@@ -377,6 +405,9 @@
 			);
 			mainGroup = 8BED07E52DE0D68300838DD7;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				8B7266CD2DE7377600681754 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8BED07EF2DE0D68300838DD7 /* Products */;
 			projectDirPath = "";
@@ -420,6 +451,55 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		8B7266F12DE9EBE400681754 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+				"$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}.debug.dylib",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n";
+		};
+		8B7266F22DE9EF2100681754 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+				"$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}.debug.dylib",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		8BED07EA2DE0D68300838DD7 /* Sources */ = {
@@ -592,14 +672,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = App/BeatRate.entitlements;
+				CODE_SIGN_ENTITLEMENTS = App/Production/BeatRate.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 969V354CHJ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = BeatRate;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -610,7 +694,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = tomasz.wojtyniak.beat.rate;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -626,7 +710,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = App/BeatRate.entitlements;
+				CODE_SIGN_ENTITLEMENTS = App/Production/BeatRate.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
@@ -634,6 +718,9 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 969V354CHJ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = BeatRate;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -644,7 +731,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = tomasz.wojtyniak.beat.rate;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -733,15 +820,19 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-				CODE_SIGN_ENTITLEMENTS = "App/BeatRate Development.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "App/Development/BeatRate Development.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 969V354CHJ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "App/Development/BeatRate-Development-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "BeatRate Development";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -753,7 +844,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.0;
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = tomasz.wojtyniak.beat.rate.development;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -771,15 +863,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-				CODE_SIGN_ENTITLEMENTS = "App/BeatRate Development.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "App/Development/BeatRate Development.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 969V354CHJ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "App/Development/BeatRate-Development-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "BeatRate Development";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -791,7 +886,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.0;
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = tomasz.wojtyniak.beat.rate.development;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -853,7 +949,36 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		8B7266CD2DE7377600681754 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = exactVersion;
+				version = 11.13.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+		8B7266D72DE7383800681754 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8B7266CD2DE7377600681754 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		8B7266D92DE7384400681754 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8B7266CD2DE7377600681754 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		8B7266E52DE7460100681754 /* Analytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Analytics;
+		};
+		8B7266E72DE7464700681754 /* Analytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Analytics;
+		};
 		8BED088A2DE100BC00838DD7 /* TabBar */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = TabBar;
