@@ -35,6 +35,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		8B7268072DEC8C0500681754 /* ci_post_xcodebuild.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = ci_post_xcodebuild.sh; sourceTree = "<group>"; };
 		8BED07EE2DE0D68300838DD7 /* BeatRate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeatRate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BED07FB2DE0D68500838DD7 /* BeatRateTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BeatRateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BED08052DE0D68500838DD7 /* BeatRateUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BeatRateUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -244,9 +245,18 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		8B7268062DEC8BE600681754 /* ci_scripts */ = {
+			isa = PBXGroup;
+			children = (
+				8B7268072DEC8C0500681754 /* ci_post_xcodebuild.sh */,
+			);
+			path = ci_scripts;
+			sourceTree = "<group>";
+		};
 		8BED07E52DE0D68300838DD7 = {
 			isa = PBXGroup;
 			children = (
+				8B7268062DEC8BE600681754 /* ci_scripts */,
 				8BED07F02DE0D68300838DD7 /* App */,
 				8BED085D2DE0F6B500838DD7 /* Core */,
 				8BED085E2DE0F6C500838DD7 /* Data */,
@@ -455,6 +465,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		8B7266F12DE9EBE400681754 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
