@@ -16,6 +16,10 @@ struct LoginView: View {
     var body: some View {
         VStack {
             Text("Login screen")
+            
+            Button("Tap") {
+                fatalError("Fata error")
+            }
         }
         .task {
             await self.dataModel.getLoginData()
