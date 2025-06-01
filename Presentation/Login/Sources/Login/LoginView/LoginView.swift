@@ -17,6 +17,9 @@ struct LoginView: View {
         VStack {
             Text("Login screen")
         }
+        .task {
+            await self.dataModel.getLoginData()
+        }
         .trackScreenView("LoginView", screenClass: "Login")
     }
 }

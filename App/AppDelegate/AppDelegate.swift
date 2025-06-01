@@ -12,13 +12,20 @@ import Analytics
 class AppDelegate: NSObject, UIApplicationDelegate {
   func application(_ application: UIApplication,
                    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-    FirebaseApp.configure()
+      FirebaseApp.configure()
       
       Task {
-          if let bundleID = Bundle.main.bundleIdentifier {
-              await AnalyticsManager.shared.configure(debugMode: bundleID != "tomasz.wojtyniak.beat.rate")
+          if let bundleID = Bundle.main.bundleIdentifier, bundleID == "tomasz.wojtyniak.beat.rate" {
+              await AnalyticsManager.shared.configure(debugMode: false)
+              await CrashLogger.shared.configure(minimumLogLevel: .notice,
+                                                 debugMode: false,
+                                                 crashlyticsEnabled: true)
+          } else {
+              await AnalyticsManager.shared.configure(debugMode: true)
+              await CrashLogger.shared.configure(minimumLogLevel: .debug,
+                                                 debugMode: true,
+                                                 crashlyticsEnabled: true)
           }
-          await AnalyticsManager.shared.setAnalyticsEnabled(true)
       }
       
     return true
