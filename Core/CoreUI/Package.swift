@@ -4,33 +4,23 @@
 import PackageDescription
 
 let package = Package(
-    name: "Login",
+    name: "CoreUI",
     defaultLocalization: "en",
     platforms: [.iOS(.v18)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "Login",
-            targets: ["Login"]),
-    ],
-    dependencies: [
-        .package(path: "../../Domain/LoginUseCases"),
-        .package(path: "../../Core/Analytics"),
-        .package(path: "../../Core/CoreUI")
+            name: "CoreUI",
+            targets: ["CoreUI"]),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "Login",
-            dependencies: [
-                "LoginUseCases",
-                "Analytics",
-                "CoreUI"
-            ]),
+            name: "CoreUI"),
         .testTarget(
-            name: "LoginTests",
-            dependencies: ["Login"]
+            name: "CoreUITests",
+            dependencies: ["CoreUI"]
         ),
     ]
 )

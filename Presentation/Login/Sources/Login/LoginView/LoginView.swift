@@ -7,6 +7,8 @@
 
 import SwiftUI
 import Analytics
+import CoreUI
+import AuthenticationServices
 
 @MainActor
 struct LoginView: View {
@@ -15,12 +17,34 @@ struct LoginView: View {
     
     var body: some View {
         VStack {
-            Text("Login screen")
+            Spacer()
+            
+            Image(systemName: "star.square.on.square")
+                .resizable()
+                .foregroundStyle(Color.honeyYellow)
+                .frame(maxWidth: 200, maxHeight: 200)
+
+            
+            
+            Text("login.app.name", bundle: .module)
+                .font(.system(size: 70, weight: .medium))
+                .foregroundStyle(Color.primaryText)
+            
+            Spacer()
+            
+            SignInWithAppleButton(onRequest: { request in
+                
+            }, onCompletion: { result in
+                
+            })
+            .signInWithAppleButtonStyle(.white)
+            .frame(maxWidth: .infinity, maxHeight: 50)
+            .padding()
+                
         }
-        .task {
-            await self.dataModel.getLoginData()
-        }
-        .trackScreenView("LoginView", screenClass: "Login")
+        .padding(.horizontal)
+        .padding(.vertical, 40)
+        .background(Color.backgroundGradient)
     }
 }
 

@@ -8,11 +8,12 @@
 import SwiftUI
 import LoginUseCases
 import Analytics
+import AuthenticationServices
 import os
 
 @Observable
 @MainActor
-class LoginDataModel {
+class LoginDataModel: NSObject {
     private let getLoginUseCase: GetLoginUseCaseProtocol
     let analyticsManager: AnalyticsManager
     let crashLogger: CrashLogger
@@ -27,17 +28,7 @@ class LoginDataModel {
         self.analyticsManager = analyticsManager
         self.crashLogger = crashLogger
     }
-    
-    func trackAnalytics(eventName: String, parameter: [String: String]? = nil) {
-        Task {
-            await self.analyticsManager.track(AppAnalyticsEvent.custom(eventName: eventName, parameters: parameter))
-        }
-    }
-    
-    func getLoginData() async {
-        Self.logger.debug("Get login data started")
-        await self.getLoginUseCase.getLoginData()
-        await self.crashLogger.debug("Get login data finished")
-    }
+
 }
+
 
