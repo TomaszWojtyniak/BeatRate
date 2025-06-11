@@ -11,6 +11,8 @@
 		8B7266DA2DE7384400681754 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266D92DE7384400681754 /* FirebaseCore */; };
 		8B7266E62DE7460100681754 /* Analytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266E52DE7460100681754 /* Analytics */; };
 		8B7266E82DE7464700681754 /* Analytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266E72DE7464700681754 /* Analytics */; };
+		8B9E2E2D2DF99A4900D96333 /* Models in Frameworks */ = {isa = PBXBuildFile; productRef = 8B9E2E2C2DF99A4900D96333 /* Models */; };
+		8B9E2E2F2DF99A4E00D96333 /* Models in Frameworks */ = {isa = PBXBuildFile; productRef = 8B9E2E2E2DF99A4E00D96333 /* Models */; };
 		8BED088B2DE100BC00838DD7 /* TabBar in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED088A2DE100BC00838DD7 /* TabBar */; };
 		8BED088D2DE1031900838DD7 /* Login in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED088C2DE1031900838DD7 /* Login */; };
 		8BED089C2DE645E800838DD7 /* Login in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED089B2DE645E800838DD7 /* Login */; };
@@ -209,6 +211,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8B9E2E2F2DF99A4E00D96333 /* Models in Frameworks */,
 				8BED089E2DE645EE00838DD7 /* TabBar in Frameworks */,
 				8B7266E82DE7464700681754 /* Analytics in Frameworks */,
 				8B7266DA2DE7384400681754 /* FirebaseCore in Frameworks */,
@@ -234,6 +237,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8B9E2E2D2DF99A4900D96333 /* Models in Frameworks */,
 				8BED088D2DE1031900838DD7 /* Login in Frameworks */,
 				8B7266E62DE7460100681754 /* Analytics in Frameworks */,
 				8B7266D82DE7383800681754 /* FirebaseCore in Frameworks */,
@@ -313,6 +317,7 @@
 				8BED089D2DE645EE00838DD7 /* TabBar */,
 				8B7266D92DE7384400681754 /* FirebaseCore */,
 				8B7266E72DE7464700681754 /* Analytics */,
+				8B9E2E2E2DF99A4E00D96333 /* Models */,
 			);
 			productName = BeatRate;
 			productReference = 8BED07EE2DE0D68300838DD7 /* BeatRate.app */;
@@ -384,6 +389,7 @@
 				8BED088C2DE1031900838DD7 /* Login */,
 				8B7266D72DE7383800681754 /* FirebaseCore */,
 				8B7266E52DE7460100681754 /* Analytics */,
+				8B9E2E2C2DF99A4900D96333 /* Models */,
 			);
 			productName = BeatRate;
 			productReference = 8BED08462DE0DBFB00838DD7 /* BeatRate Development.app */;
@@ -995,6 +1001,14 @@
 		8B7266E72DE7464700681754 /* Analytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Analytics;
+		};
+		8B9E2E2C2DF99A4900D96333 /* Models */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Models;
+		};
+		8B9E2E2E2DF99A4E00D96333 /* Models */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Models;
 		};
 		8BED088A2DE100BC00838DD7 /* TabBar */ = {
 			isa = XCSwiftPackageProductDependency;

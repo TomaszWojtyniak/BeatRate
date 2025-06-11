@@ -9,9 +9,16 @@ import SwiftUI
 import Analytics
 import CoreUI
 import AuthenticationServices
+import OSLog
+import Models
+import SwiftData
+
+private let logger = Logger(subsystem: "BeatRate", category: "LoginView")
 
 @MainActor
 struct LoginView: View {
+    @Environment(\.modelContext) private var context
+    @Query private var sessions: [UserSession]
     
     @State private var dataModel: LoginDataModel = LoginDataModel()
     
@@ -42,9 +49,23 @@ struct LoginView: View {
                 Task {
                     switch result {
                     case .success(let authResult):
-                        try await self.dataModel.handleLoginSuccess(authResult: authResult)
+                        do {
+                            try await self.dataModel.handleLoginSuccess(authResult: authResult)
+                            logger.debug("User login successful")
+                            if let session = sessions.first {
+                                logger.debug("User session model exist, changing isLoggedIn to true")
+                                session.isLoggedIn = true
+                            } else {
+                                logger.debug("User session dont exist, creating a new one")
+                                let newSession = UserSession(isLoggedIn: true)
+                                context.insert(newSession)
+                                logger.debug("New UserSession model created")
+                            }
+                        } catch let error {
+                            await self.dataModel.handleLoginFailure(error: error)
+                        }
                     case .failure(let error):
-                        self.dataModel.handleLoginFailure(error: error)
+                        await self.dataModel.handleLoginFailure(error: error)
                     }
                 }
             })
@@ -53,6 +74,9 @@ struct LoginView: View {
             .padding()
                 
         }
+        .errorAlert(isPresented: $dataModel.isShowingErrorAlert,
+                    title: String(localized: "login.alert.error.title", bundle: .module),
+                    message: String(localized: "login.alert.error.description", bundle: .module))
         .padding(.horizontal)
         .padding(.vertical, 40)
         .background(Color.backgroundGradient)

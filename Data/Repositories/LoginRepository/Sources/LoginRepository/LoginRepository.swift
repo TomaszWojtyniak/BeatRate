@@ -12,7 +12,7 @@ import Analytics
 import FirebaseService
 
 public protocol LoginRepositoryProtocol: Sendable {
-    func postLoginData(authResult: ASAuthorization) async throws
+    func setLoginData(authResult: ASAuthorization) async throws
     func getCurrentNonce() async -> String
 }
 
@@ -60,7 +60,7 @@ public actor LoginRepository: LoginRepositoryProtocol {
       return String(nonce)
     }
     
-    public func postLoginData(authResult: ASAuthorization) async throws {
+    public func setLoginData(authResult: ASAuthorization) async throws {
         if let appleIDCredential = authResult.credential as? ASAuthorizationAppleIDCredential {
             guard let nonce = currentNonce else {
                 fatalError("Invalid state: A login callback was received, but no login request was sent.")
@@ -74,7 +74,7 @@ public actor LoginRepository: LoginRepositoryProtocol {
                 return
             }
             
-            try await self.authFirebaseService.postLoginData(idTokenString: idTokenString, nonce: nonce, appleIDCredential: appleIDCredential)
+            try await self.authFirebaseService.setLoginData(idTokenString: idTokenString, nonce: nonce, appleIDCredential: appleIDCredential)
         }
     }
 }

@@ -12,7 +12,7 @@ import FirebaseAuth
 import AuthenticationServices
 
 public protocol AuthFirebaseServiceProtocol: Sendable {
-    func postLoginData(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws
+    func setLoginData(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws
 }
 
 public actor AuthFirebaseService: AuthFirebaseServiceProtocol{
@@ -25,15 +25,14 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol{
         
     }
     
-    public func postLoginData(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws {
+    public func setLoginData(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws {
         Self.logger.debug("Initialize a Firebase credential")
         let credential = OAuthProvider.appleCredential(withIDToken: idTokenString,
                                                           rawNonce: nonce,
                                                           fullName: appleIDCredential.fullName)
         
-        // Sign in with Firebase.
-        Auth.auth().signIn(with: credential) { (authResult, error) in
-            Self.logger.info("authResult: \(authResult), error: \(error)")
-        }
+        Self.logger.debug("Sign in with Firebase")
+        _ = try await Auth.auth().signIn(with: credential)
+        Self.logger.debug("Firebase auth login successful")
     }
 }

@@ -16,15 +16,17 @@ import CryptoKit
 @MainActor
 class LoginDataModel: NSObject {
     private let getLoginUseCase: GetLoginUseCaseProtocol
-    private let postLoginUseCase: PostLoginUseCaseProtocol
+    private let postLoginUseCase: SetLoginUseCaseProtocol
     let analyticsManager: AnalyticsManager
     let crashLogger: CrashLogger
     static var logger: Logger {
         return Logger.for(Self.self)
     }
     
+    var isShowingErrorAlert: Bool = false
+    
     init(getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),
-         postLoginUseCase: PostLoginUseCaseProtocol = PostLoginUseCase(),
+         postLoginUseCase: SetLoginUseCaseProtocol = SetLoginUseCase(),
          analyticsManager: AnalyticsManager = .shared,
          crashLogger: CrashLogger = .shared) {
         self.getLoginUseCase = getLoginUseCase
@@ -34,11 +36,13 @@ class LoginDataModel: NSObject {
     }
     
     func handleLoginSuccess(authResult: ASAuthorization) async throws {
-        try await self.postLoginUseCase.postLoginData(authResult: authResult)
+        try await self.postLoginUseCase.setLoginData(authResult: authResult)
     }
     
-    func handleLoginFailure(error: Error) {
-        
+    func handleLoginFailure(error: Error) async {
+        Self.logger.debug("Login failed: \(error)")
+        await self.crashLogger.recordError(error)
+        self.isShowingErrorAlert = true
     }
     
     func getCurrentNonce() async -> String {

@@ -9,18 +9,18 @@ import SwiftUI
 import LoginRepository
 import AuthenticationServices
 
-public protocol PostLoginUseCaseProtocol: Sendable {
-    func postLoginData(authResult: ASAuthorization) async throws
+public protocol SetLoginUseCaseProtocol: Sendable {
+    func setLoginData(authResult: ASAuthorization) async throws
 }
 
-public actor PostLoginUseCase: PostLoginUseCaseProtocol {
+public actor SetLoginUseCase: SetLoginUseCaseProtocol {
     private let loginRepository: LoginRepositoryProtocol
     
     public init(loginRepository: LoginRepositoryProtocol = LoginRepository.shared) {
         self.loginRepository = loginRepository
     }
     
-    public func postLoginData(authResult: ASAuthorization) async throws {
-        try await loginRepository.postLoginData(authResult: authResult)
+    public func setLoginData(authResult: ASAuthorization) async throws {
+        try await loginRepository.setLoginData(authResult: authResult)
     }
 }
