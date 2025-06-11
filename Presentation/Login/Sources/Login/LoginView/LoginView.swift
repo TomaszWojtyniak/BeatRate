@@ -33,9 +33,20 @@ struct LoginView: View {
             Spacer()
             
             SignInWithAppleButton(onRequest: { request in
-                
+                Task {
+                    let nonce = await self.dataModel.getCurrentNonce()
+                    request.requestedScopes = [.fullName, .email]
+                    request.nonce = self.dataModel.sha256(nonce)
+                }
             }, onCompletion: { result in
-                
+                Task {
+                    switch result {
+                    case .success(let authResult):
+                        try await self.dataModel.handleLoginSuccess(authResult: authResult)
+                    case .failure(let error):
+                        self.dataModel.handleLoginFailure(error: error)
+                    }
+                }
             })
             .signInWithAppleButtonStyle(.white)
             .frame(maxWidth: .infinity, maxHeight: 50)

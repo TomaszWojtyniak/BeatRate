@@ -1,34 +1,26 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.2
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
 let package = Package(
-    name: "LoginRepository",
-    defaultLocalization: "en",
-    platforms: [.iOS(.v18)],
+    name: "CoreApp",
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "LoginRepository",
-            targets: ["LoginRepository"]),
-    ],
-    dependencies: [
-        .package(path: "../../Core/Analytics"),
-        .package(path: "../../Data/FirebaseService")
+            name: "CoreApp",
+            targets: ["CoreApp"]
+        ),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "LoginRepository",
-            dependencies: [
-                "Analytics",
-                "FirebaseService"
-            ]),
+            name: "CoreApp"
+        ),
         .testTarget(
-            name: "LoginRepositoryTests",
-            dependencies: ["LoginRepository"]
+            name: "CoreAppTests",
+            dependencies: ["CoreApp"]
         ),
     ]
 )
