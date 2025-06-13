@@ -16,14 +16,14 @@ struct AppView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var dataModel = AppDataModel()
     
-    @Query private var userSession: [UserSession]
+    @Query private var user: [User]
     @State private var selection: TabBarScreen? = .home
     
     var body: some View {
-        if userSession.first?.isLoggedIn == true {
+        if user.first?.isLoggedIn == true {
             TabBarView(selection: $selection)
                 .onAppear {
-                    if let userId = userSession.first?.userId {
+                    if let userId = user.first?.userId {
                         self.dataModel.setUserId(userId)
                     }
                 }

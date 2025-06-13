@@ -18,7 +18,7 @@ private let logger = Logger(subsystem: "BeatRate", category: "LoginView")
 @MainActor
 struct LoginView: View {
     @Environment(\.modelContext) private var context
-    @Query private var userSession: [UserSession]
+    @Query private var user: [User]
     
     @State private var dataModel: LoginDataModel = LoginDataModel()
     
@@ -52,15 +52,15 @@ struct LoginView: View {
                         do {
                             let userId = try await self.dataModel.handleLoginFlow(authResult: authResult)
                             logger.debug("User login successful")
-                            if let session = userSession.first {
-                                logger.debug("User session model exist, changing values")
-                                session.isLoggedIn = true
-                                session.userId = userId
+                            if let user = user.first {
+                                logger.debug("User model exist, changing values")
+                                user.isLoggedIn = true
+                                user.userId = userId
                             } else {
-                                logger.debug("User session dont exist, creating a new one")
-                                let newUserSession = UserSession(isLoggedIn: true, userId: userId)
-                                context.insert(newUserSession)
-                                logger.debug("New UserSession model created")
+                                logger.debug("User dont exist, creating a new one")
+                                let newUser = User(isLoggedIn: true, userId: userId)
+                                context.insert(newUser)
+                                logger.debug("New User model created")
                             }
                         } catch let error {
                             await self.dataModel.handleLoginFailure(error: error)
