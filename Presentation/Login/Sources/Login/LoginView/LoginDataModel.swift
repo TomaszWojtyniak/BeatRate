@@ -17,8 +17,8 @@ import CryptoKit
 class LoginDataModel: NSObject {
     private let getLoginUseCase: GetLoginUseCaseProtocol
     private let postLoginUseCase: SetLoginUseCaseProtocol
-    let analyticsManager: AnalyticsManager
-    let crashLogger: CrashLogger
+    private let analyticsManager: AnalyticsManager
+    private let crashLogger: CrashLogger
     static var logger: Logger {
         return Logger.for(Self.self)
     }
@@ -35,8 +35,8 @@ class LoginDataModel: NSObject {
         self.crashLogger = crashLogger
     }
     
-    func handleLoginSuccess(authResult: ASAuthorization) async throws {
-        try await self.postLoginUseCase.setLoginData(authResult: authResult)
+    func handleLoginFlow(authResult: ASAuthorization) async throws -> String {
+        return try await self.postLoginUseCase.setLoginData(authResult: authResult)
     }
     
     func handleLoginFailure(error: Error) async {

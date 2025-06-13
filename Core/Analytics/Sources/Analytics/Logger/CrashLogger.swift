@@ -108,7 +108,8 @@ public actor CrashLogger {
         debugMode: Bool = false,
         crashlyticsEnabled: Bool = true
     ) {
-        self.minimumLogLevel = minimumLogLevel
+        let logLevel = minimumLogLevel
+        self.minimumLogLevel = logLevel
         self.isDebugMode = debugMode
         self.isCrashlyticsEnabled = crashlyticsEnabled
         
@@ -125,8 +126,9 @@ public actor CrashLogger {
         reportToCrashlytics: Bool = true
     ) {
         guard level >= minimumLogLevel else { return }
+        let logLevel = level
         
-        let formattedMessage = formatMessage(message, level: level, context: context, error: error)
+        let formattedMessage = formatMessage(message, level: logLevel, context: context, error: error)
         
         // Log to Swift Logger
         logger.log(level: level.osLogType, "\(formattedMessage)")
@@ -136,7 +138,7 @@ public actor CrashLogger {
         
         // Report to Crashlytics if enabled
         if isCrashlyticsEnabled && reportToCrashlytics {
-            self.reportToCrashlytics(level: level, message: message, error: error, context: context)
+            self.reportToCrashlytics(level: logLevel, message: message, error: error, context: context)
         }
         
         // Print to console in debug mode

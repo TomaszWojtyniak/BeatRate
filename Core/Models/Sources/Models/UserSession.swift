@@ -11,9 +11,11 @@ import SwiftUI
 @Model
 public class UserSession {
     public var isLoggedIn: Bool
+    public var userId: String
 
     
-    public init(isLoggedIn: Bool = false) {
+    public init(isLoggedIn: Bool = false, userId: String = "") {
         self.isLoggedIn = isLoggedIn
+        self.userId = userId
     }
 }

@@ -699,7 +699,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 969V354CHJ;
 				ENABLE_PREVIEWS = YES;
@@ -848,7 +848,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 969V354CHJ;
 				ENABLE_PREVIEWS = YES;
@@ -891,6 +891,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 969V354CHJ;
 				ENABLE_PREVIEWS = YES;

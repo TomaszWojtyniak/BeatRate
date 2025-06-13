@@ -14,12 +14,19 @@ import SwiftData
 @MainActor
 struct AppView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var sessions: [UserSession]
+    @State private var dataModel = AppDataModel()
+    
+    @Query private var userSession: [UserSession]
     @State private var selection: TabBarScreen? = .home
     
     var body: some View {
-        if sessions.first?.isLoggedIn == true {
+        if userSession.first?.isLoggedIn == true {
             TabBarView(selection: $selection)
+                .onAppear {
+                    if let userId = userSession.first?.userId {
+                        self.dataModel.setUserId(userId)
+                    }
+                }
         } else {
             LoginNavigationStack()
         }

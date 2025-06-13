@@ -11,8 +11,12 @@ import OSLog
 import Analytics
 import FirebaseService
 
+public enum LoginError: Error {
+    case wrongData
+}
+
 public protocol LoginRepositoryProtocol: Sendable {
-    func setLoginData(authResult: ASAuthorization) async throws
+    func setLoginData(authResult: ASAuthorization) async throws -> String
     func getCurrentNonce() async -> String
 }
 
@@ -60,21 +64,23 @@ public actor LoginRepository: LoginRepositoryProtocol {
       return String(nonce)
     }
     
-    public func setLoginData(authResult: ASAuthorization) async throws {
+    public func setLoginData(authResult: ASAuthorization) async throws -> String {
         if let appleIDCredential = authResult.credential as? ASAuthorizationAppleIDCredential {
             guard let nonce = currentNonce else {
                 fatalError("Invalid state: A login callback was received, but no login request was sent.")
             }
             guard let appleIDToken = appleIDCredential.identityToken else {
                 Self.logger.error("Unable to fetch identity token")
-                return
+                throw LoginError.wrongData
             }
             guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
                 Self.logger.error("Unable to serialize token string from data: \(appleIDToken.debugDescription)")
-                return
+                throw LoginError.wrongData
             }
             
-            try await self.authFirebaseService.setLoginData(idTokenString: idTokenString, nonce: nonce, appleIDCredential: appleIDCredential)
+            return try await self.authFirebaseService.setLoginData(idTokenString: idTokenString, nonce: nonce, appleIDCredential: appleIDCredential)
+        } else {
+            throw LoginError.wrongData
         }
     }
 }

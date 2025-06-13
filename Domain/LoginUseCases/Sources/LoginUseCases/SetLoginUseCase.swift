@@ -10,7 +10,7 @@ import LoginRepository
 import AuthenticationServices
 
 public protocol SetLoginUseCaseProtocol: Sendable {
-    func setLoginData(authResult: ASAuthorization) async throws
+    func setLoginData(authResult: ASAuthorization) async throws -> String
 }
 
 public actor SetLoginUseCase: SetLoginUseCaseProtocol {
@@ -20,7 +20,7 @@ public actor SetLoginUseCase: SetLoginUseCaseProtocol {
         self.loginRepository = loginRepository
     }
     
-    public func setLoginData(authResult: ASAuthorization) async throws {
-        try await loginRepository.setLoginData(authResult: authResult)
+    public func setLoginData(authResult: ASAuthorization) async throws -> String {
+        return try await loginRepository.setLoginData(authResult: authResult)
     }
 }
