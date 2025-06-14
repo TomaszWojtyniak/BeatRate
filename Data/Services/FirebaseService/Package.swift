@@ -4,31 +4,33 @@
 import PackageDescription
 
 let package = Package(
-    name: "LoginRepository",
+    name: "FirebaseService",
     defaultLocalization: "en",
     platforms: [.iOS(.v18)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "LoginRepository",
-            targets: ["LoginRepository"]),
+            name: "FirebaseService",
+            targets: ["FirebaseService"]
+        ),
     ],
     dependencies: [
-        .package(path: "../../Core/Analytics"),
-        .package(path: "../../Data/FirebaseService")
+        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "11.13.0"),
+        .package(path: "../../Core/Analytics")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "LoginRepository",
+            name: "FirebaseService",
             dependencies: [
-                "Analytics",
-                "FirebaseService"
-            ]),
+                .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
+                "Analytics"
+            ]
+        ),
         .testTarget(
-            name: "LoginRepositoryTests",
-            dependencies: ["LoginRepository"]
+            name: "FirebaseServiceTests",
+            dependencies: ["FirebaseService"]
         ),
     ]
 )
