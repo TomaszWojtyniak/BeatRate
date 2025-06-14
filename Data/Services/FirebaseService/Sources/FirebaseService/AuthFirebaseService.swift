@@ -8,7 +8,7 @@
 import SwiftUI
 import OSLog
 import Analytics
-import FirebaseAuth
+@preconcurrency import FirebaseAuth
 import AuthenticationServices
 
 public protocol AuthFirebaseServiceProtocol: Sendable {
