@@ -36,9 +36,8 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol{
                                                           fullName: appleIDCredential.fullName)
         
         Self.logger.debug("Sign in with Firebase")
-        let authResults = try await Auth.auth().signIn(with: credential)
+        let userId = try await Auth.auth().signIn(with: credential).user.uid
         Self.logger.debug("Firebase auth login successful")
-        let userId = authResults.user.uid
         return userId
     }
 }
