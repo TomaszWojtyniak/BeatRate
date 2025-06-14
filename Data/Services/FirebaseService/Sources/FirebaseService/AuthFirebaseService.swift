@@ -38,6 +38,7 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol{
         Self.logger.debug("Sign in with Firebase")
         let authResults = try await Auth.auth().signIn(with: credential)
         Self.logger.debug("Firebase auth login successful")
-        return authResults.user.uid
+        let userId = authResults.user.uid
+        return userId
     }
 }
