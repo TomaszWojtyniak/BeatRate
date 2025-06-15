@@ -8,7 +8,7 @@
 import OSLog
 
 public extension Logger {
-    private static let subsystem = Bundle.main.bundleIdentifier!
+    private static let subsystem = "BeatRate"
 
     static let viewCycle = Logger(subsystem: subsystem, category: "viewcycle")
 

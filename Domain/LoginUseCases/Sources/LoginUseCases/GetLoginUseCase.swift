@@ -9,7 +9,7 @@ import SwiftUI
 import LoginRepository
 
 public protocol GetLoginUseCaseProtocol: Sendable {
-    func getLoginData() async
+    func getCurrentNonce() async -> String
 }
 
 public actor GetLoginUseCase: GetLoginUseCaseProtocol {
@@ -19,7 +19,7 @@ public actor GetLoginUseCase: GetLoginUseCaseProtocol {
         self.loginRepository = loginRepository
     }
     
-    public func getLoginData() async {
-        await loginRepository.getLoginData()
+    public func getCurrentNonce() async -> String {
+        await self.loginRepository.getCurrentNonce()
     }
 }

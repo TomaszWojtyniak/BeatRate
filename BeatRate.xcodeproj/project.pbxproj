@@ -11,6 +11,8 @@
 		8B7266DA2DE7384400681754 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266D92DE7384400681754 /* FirebaseCore */; };
 		8B7266E62DE7460100681754 /* Analytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266E52DE7460100681754 /* Analytics */; };
 		8B7266E82DE7464700681754 /* Analytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266E72DE7464700681754 /* Analytics */; };
+		8B9E2E2D2DF99A4900D96333 /* Models in Frameworks */ = {isa = PBXBuildFile; productRef = 8B9E2E2C2DF99A4900D96333 /* Models */; };
+		8B9E2E2F2DF99A4E00D96333 /* Models in Frameworks */ = {isa = PBXBuildFile; productRef = 8B9E2E2E2DF99A4E00D96333 /* Models */; };
 		8BED088B2DE100BC00838DD7 /* TabBar in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED088A2DE100BC00838DD7 /* TabBar */; };
 		8BED088D2DE1031900838DD7 /* Login in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED088C2DE1031900838DD7 /* Login */; };
 		8BED089C2DE645E800838DD7 /* Login in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED089B2DE645E800838DD7 /* Login */; };
@@ -47,6 +49,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Analytics,
+				CoreApp,
+				CoreUI,
 				Models,
 			);
 			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
@@ -55,6 +59,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Analytics,
+				CoreApp,
+				CoreUI,
 				Models,
 			);
 			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
@@ -122,6 +128,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Repositories/LoginRepository,
+				Services/FirebaseService,
 			);
 			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
 		};
@@ -129,6 +136,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Repositories/LoginRepository,
+				Services/FirebaseService,
 			);
 			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
 		};
@@ -203,6 +211,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8B9E2E2F2DF99A4E00D96333 /* Models in Frameworks */,
 				8BED089E2DE645EE00838DD7 /* TabBar in Frameworks */,
 				8B7266E82DE7464700681754 /* Analytics in Frameworks */,
 				8B7266DA2DE7384400681754 /* FirebaseCore in Frameworks */,
@@ -228,6 +237,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8B9E2E2D2DF99A4900D96333 /* Models in Frameworks */,
 				8BED088D2DE1031900838DD7 /* Login in Frameworks */,
 				8B7266E62DE7460100681754 /* Analytics in Frameworks */,
 				8B7266D82DE7383800681754 /* FirebaseCore in Frameworks */,
@@ -307,6 +317,7 @@
 				8BED089D2DE645EE00838DD7 /* TabBar */,
 				8B7266D92DE7384400681754 /* FirebaseCore */,
 				8B7266E72DE7464700681754 /* Analytics */,
+				8B9E2E2E2DF99A4E00D96333 /* Models */,
 			);
 			productName = BeatRate;
 			productReference = 8BED07EE2DE0D68300838DD7 /* BeatRate.app */;
@@ -378,6 +389,7 @@
 				8BED088C2DE1031900838DD7 /* Login */,
 				8B7266D72DE7383800681754 /* FirebaseCore */,
 				8B7266E52DE7460100681754 /* Analytics */,
+				8B9E2E2C2DF99A4900D96333 /* Models */,
 			);
 			productName = BeatRate;
 			productReference = 8BED08462DE0DBFB00838DD7 /* BeatRate Development.app */;
@@ -687,7 +699,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 969V354CHJ;
 				ENABLE_PREVIEWS = YES;
@@ -836,7 +848,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 969V354CHJ;
 				ENABLE_PREVIEWS = YES;
@@ -879,6 +891,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 969V354CHJ;
 				ENABLE_PREVIEWS = YES;
@@ -989,6 +1002,14 @@
 		8B7266E72DE7464700681754 /* Analytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Analytics;
+		};
+		8B9E2E2C2DF99A4900D96333 /* Models */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Models;
+		};
+		8B9E2E2E2DF99A4E00D96333 /* Models */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Models;
 		};
 		8BED088A2DE100BC00838DD7 /* TabBar */ = {
 			isa = XCSwiftPackageProductDependency;
