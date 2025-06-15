@@ -6,10 +6,13 @@
 //
 
 import SwiftUI
+import CoreUI
+
 
 @MainActor
 public struct TabBarView: View {
     @Binding var selection: TabBarScreen?
+    let tabs: [TabBarScreen] = TabBarScreen.allCases
     
     public init(selection: Binding<TabBarScreen?>) {
         self._selection = selection
@@ -17,12 +20,15 @@ public struct TabBarView: View {
     
     public var body: some View {
         TabView(selection: $selection) {
-            ForEach(TabBarScreen.allCases) { screen in
-                screen.destination
-                    .tag(screen as TabBarScreen?)
-                    .tabItem { screen.label }
+            ForEach(tabs) { tab in
+                Tab(value: tab, role: tab == TabBarScreen.search ? .search : .none) {
+                    tab.destination
+                } label: {
+                    tab.label
+                }
             }
         }
+        .tint(Color.honeyYellow)
     }
 }
 
