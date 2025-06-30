@@ -12,6 +12,7 @@ struct HomeSectionView: View {
     
     let name: String
     let albums: [Album]
+    @Binding var selectedAlbum: Album?
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -22,6 +23,9 @@ struct HomeSectionView: View {
                 LazyHStack {
                     ForEach(albums) { album in
                         SectionAlbumView(album: album)
+                            .onTapGesture {
+                                self.selectedAlbum = album
+                            }
                     }
                 }
             }
@@ -30,5 +34,5 @@ struct HomeSectionView: View {
 }
 
 #Preview {
-    HomeSectionView(name: "Section name", albums: [Album(title: "Album name", artist: "Artist name", cover: "")])
+    HomeSectionView(name: "Section name", albums: [Album(title: "Album name", artist: "Artist name", cover: "")], selectedAlbum: .constant(Album(title: "Album name", artist: "Artist name", cover: "")))
 }
