@@ -14,7 +14,7 @@ import Account
 public struct HomeView: View {
     
     @State var dataModel: HomeDataModel = HomeDataModel()
-    @State var selectedAlbum: Album?
+    @State var selectedAlbum: AlbumModel?
     @State var showingAccount = false
     
     public init() {}
@@ -40,6 +40,10 @@ public struct HomeView: View {
         }
         .sheet(isPresented: $showingAccount) {
             AccountNavigationStack()
+        }
+        .task {
+            await self.dataModel.authorizeMusicKit()
+            await self.dataModel.getMusicData()
         }
     }
 }

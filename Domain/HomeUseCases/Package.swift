@@ -4,28 +4,33 @@
 import PackageDescription
 
 let package = Package(
-    name: "LoginUseCases",
+    name: "HomeUseCases",
     defaultLocalization: "en",
     platforms: [.iOS(.v18)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "LoginUseCases",
-            targets: ["LoginUseCases"]),
+            name: "HomeUseCases",
+            targets: ["HomeUseCases"]
+        ),
     ],
     dependencies: [
-        .package(path: "../../Data/Repositories/LoginRepository")
+        .package(path: "../../Data/Repositories/MusicRepository"),
+        .package(path: "../../Core/Models")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "LoginUseCases", dependencies: [
-                "LoginRepository"
-            ]),
+            name: "HomeUseCases",
+            dependencies: [
+                "MusicRepository",
+                "Models"
+            ]
+        ),
         .testTarget(
-            name: "LoginUseCasesTests",
-            dependencies: ["LoginUseCases"]
+            name: "HomeUseCasesTests",
+            dependencies: ["HomeUseCases"]
         ),
     ]
 )

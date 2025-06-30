@@ -18,7 +18,8 @@ let package = Package(
         .package(path: "../../Core/CoreUI"),
         .package(path: "../../Core/Models"),
         .package(path: "../../Presentation/AlbumDetails"),
-        .package(path: "../../Presentation/Account")
+        .package(path: "../../Presentation/Account"),
+        .package(path: "../../Domain/HomeUseCases")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -29,7 +30,8 @@ let package = Package(
                 "CoreUI",
                 "Models",
                 "AlbumDetails",
-                "Account"
+                "Account",
+                "HomeUseCases"
             ]),
         .testTarget(
             name: "HomeTests",

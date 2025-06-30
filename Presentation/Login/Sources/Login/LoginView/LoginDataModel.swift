@@ -9,7 +9,7 @@ import SwiftUI
 import LoginUseCases
 import Analytics
 import AuthenticationServices
-import os
+import OSLog
 import CryptoKit
 
 @Observable

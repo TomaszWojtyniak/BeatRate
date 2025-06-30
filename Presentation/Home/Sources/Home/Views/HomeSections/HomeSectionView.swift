@@ -11,8 +11,8 @@ import Models
 struct HomeSectionView: View {
     
     let name: String
-    let albums: [Album]
-    @Binding var selectedAlbum: Album?
+    let albums: [AlbumModel]
+    @Binding var selectedAlbum: AlbumModel?
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -34,5 +34,5 @@ struct HomeSectionView: View {
 }
 
 #Preview {
-    HomeSectionView(name: "Section name", albums: [Album(title: "Album name", artist: "Artist name", cover: "")], selectedAlbum: .constant(Album(title: "Album name", artist: "Artist name", cover: "")))
+    HomeSectionView(name: "Section name", albums: [AlbumModel(title: "Album name", artist: "Artist name", cover: "")], selectedAlbum: .constant(AlbumModel(title: "Album name", artist: "Artist name", cover: "")))
 }

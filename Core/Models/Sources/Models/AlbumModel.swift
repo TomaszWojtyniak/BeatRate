@@ -1,5 +1,5 @@
 //
-//  Album.swift
+//  AlbumModel.swift
 //  Models
 //
 //  Created by Tomasz Wojtyniak on 26/06/2025.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-public struct Album: Identifiable, Hashable {
+public struct AlbumModel: Identifiable, Hashable, Sendable {
     public let id = UUID()
     public let title: String
     public let artist: String

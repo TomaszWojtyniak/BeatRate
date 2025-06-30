@@ -10,7 +10,7 @@ import Models
 
 struct SectionAlbumView: View {
     
-    let album: Album
+    let album: AlbumModel
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -33,5 +33,5 @@ struct SectionAlbumView: View {
 }
 
 #Preview {
-    SectionAlbumView(album: Album(title: "Album title", artist: "Artist", cover: ""))
+    SectionAlbumView(album: AlbumModel(title: "Album title", artist: "Artist", cover: ""))
 }
