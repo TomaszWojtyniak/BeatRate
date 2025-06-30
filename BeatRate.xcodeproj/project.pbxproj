@@ -105,6 +105,8 @@
 		8BED08732DE0F93F00838DD7 /* Exceptions for "Presentation" folder in "BeatRate" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Account,
+				AlbumDetails,
 				Home,
 				Login,
 				Search,
@@ -116,6 +118,8 @@
 		8BED08742DE0F93F00838DD7 /* Exceptions for "Presentation" folder in "BeatRate Development" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Account,
+				AlbumDetails,
 				Home,
 				Login,
 				Search,

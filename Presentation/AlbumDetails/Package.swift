@@ -4,36 +4,25 @@
 import PackageDescription
 
 let package = Package(
-    name: "Home",
+    name: "AlbumDetails",
     defaultLocalization: "en",
     platforms: [.iOS(.v18)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "Home",
-            targets: ["Home"])
-    ],
-    dependencies: [
-        .package(path: "../../Core/Analytics"),
-        .package(path: "../../Core/CoreUI"),
-        .package(path: "../../Core/Models"),
-        .package(path: "../../Presentation/AlbumDetails"),
-        .package(path: "../../Presentation/Account")
+            name: "AlbumDetails",
+            targets: ["AlbumDetails"]
+        ),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "Home", dependencies: [
-                "Analytics",
-                "CoreUI",
-                "Models",
-                "AlbumDetails",
-                "Account"
-            ]),
+            name: "AlbumDetails"
+        ),
         .testTarget(
-            name: "HomeTests",
-            dependencies: ["Home"]
+            name: "AlbumDetailsTests",
+            dependencies: ["AlbumDetails"]
         ),
     ]
 )

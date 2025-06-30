@@ -12,8 +12,8 @@ import Settings
 
 public enum TabBarScreen: Codable, Hashable, Identifiable, CaseIterable {
     case home
-    case search
     case settings
+    case search
     
     public var id: TabBarScreen { self }
 }
@@ -36,7 +36,7 @@ extension TabBarScreen {
     var destination: some View {
         switch self {
         case .home:
-            HomeView()
+            HomeNavigationStack()
         case .search:
             SearchView()
         case .settings:
