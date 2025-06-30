@@ -30,10 +30,10 @@ public struct HomeView: View {
         .navigationDestination(item: $selectedAlbum) { album in
             AlbumDetailsNavigationStack(album: album)
         }
-        .navigationBarTitle("Home", displayMode: .automatic)
+        .navigationBarTitle("home.navigation.title", displayMode: .automatic)
         .toolbar {
             ToolbarItem {
-                Button("Account", systemImage: "person.crop.circle") {
+                Button("account.button.name", systemImage: "person.crop.circle") {
                     showingAccount = true
                 }
             }
