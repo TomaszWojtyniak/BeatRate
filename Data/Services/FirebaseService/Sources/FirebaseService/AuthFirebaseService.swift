@@ -15,7 +15,7 @@ public protocol AuthFirebaseServiceProtocol: Sendable {
     func setLoginData(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws -> String
 }
 
-public actor AuthFirebaseService: AuthFirebaseServiceProtocol{
+public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
     public static let shared = AuthFirebaseService()
     let analyticsManager: AnalyticsManager
     let crashLogger: CrashLogger

@@ -24,12 +24,13 @@ public struct HomeView: View {
         NavigationStack {
             List(self.dataModel.homeSections) { section in
                 HomeSectionView(name: section.sectionName, albums: section.albums, selectedAlbum: $selectedAlbum)
+                    .listRowSeparator(.hidden)
                 
             }
             .listStyle(.inset)
             .refreshable {
                 Task {
-                    await self.dataModel.getMusicData()
+                    await self.dataModel.fetchSectionsData()
                 }
             }
         }
@@ -50,7 +51,7 @@ public struct HomeView: View {
         .onFirstAppear {
             Task {
                 await self.dataModel.authorizeMusicKit()
-                await self.dataModel.getMusicData()
+                await self.dataModel.fetchSectionsData()
             }
         }
     }
