@@ -24,5 +24,5 @@ public struct AlbumDetailsNavigationStack: View {
 }
 
 #Preview {
-    AlbumDetailsNavigationStack(album: AlbumModel(title: "Album title", artist: "Artist", cover: ""))
+    AlbumDetailsNavigationStack(album: AlbumModel(title: "Album title", artist: "Artist", coverUrl: URL(string: "")))
 }

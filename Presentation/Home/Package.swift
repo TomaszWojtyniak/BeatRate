@@ -16,6 +16,7 @@ let package = Package(
     dependencies: [
         .package(path: "../../Core/Analytics"),
         .package(path: "../../Core/CoreUI"),
+        .package(path: "../../Core/CoreApp"),
         .package(path: "../../Core/Models"),
         .package(path: "../../Presentation/AlbumDetails"),
         .package(path: "../../Presentation/Account"),
@@ -31,7 +32,8 @@ let package = Package(
                 "Models",
                 "AlbumDetails",
                 "Account",
-                "HomeUseCases"
+                "HomeUseCases",
+                "CoreApp"
             ]),
         .testTarget(
             name: "HomeTests",

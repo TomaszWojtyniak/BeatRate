@@ -9,6 +9,7 @@ import SwiftUI
 import Models
 import AlbumDetails
 import Account
+import CoreApp
 
 @MainActor
 public struct HomeView: View {
@@ -26,11 +27,16 @@ public struct HomeView: View {
                 
             }
             .listStyle(.inset)
+            .refreshable {
+                Task {
+                    await self.dataModel.getMusicData()
+                }
+            }
         }
         .navigationDestination(item: $selectedAlbum) { album in
             AlbumDetailsNavigationStack(album: album)
         }
-        .navigationBarTitle("home.navigation.title", displayMode: .automatic)
+        .navigationBarTitle(String(localized: "home.navigation.title", bundle: .module), displayMode: .automatic)
         .toolbar {
             ToolbarItem {
                 Button("account.button.name", systemImage: "person.crop.circle") {
@@ -41,9 +47,11 @@ public struct HomeView: View {
         .sheet(isPresented: $showingAccount) {
             AccountNavigationStack()
         }
-        .task {
-            await self.dataModel.authorizeMusicKit()
-            await self.dataModel.getMusicData()
+        .onFirstAppear {
+            Task {
+                await self.dataModel.authorizeMusicKit()
+                await self.dataModel.getMusicData()
+            }
         }
     }
 }

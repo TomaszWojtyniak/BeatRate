@@ -50,7 +50,8 @@ public actor MusicKitService: MusicKitServiceProtocol {
         
         // Return the first (and should be only) album from the response
         if let album = response.items.first {
-            return AlbumModel(title: album.title, artist: album.artistName, cover: "")
+            let coverUrl = album.artwork?.url(width: 300, height: 300)
+            return AlbumModel(title: album.title, artist: album.artistName, coverUrl: coverUrl)
         } else {
             return nil
         }

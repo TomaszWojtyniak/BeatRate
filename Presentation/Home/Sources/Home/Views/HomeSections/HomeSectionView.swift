@@ -34,5 +34,5 @@ struct HomeSectionView: View {
 }
 
 #Preview {
-    HomeSectionView(name: "Section name", albums: [AlbumModel(title: "Album name", artist: "Artist name", cover: "")], selectedAlbum: .constant(AlbumModel(title: "Album name", artist: "Artist name", cover: "")))
+    HomeSectionView(name: "Section name", albums: [AlbumModel(title: "Album name", artist: "Artist name", coverUrl: nil)], selectedAlbum: .constant(AlbumModel(title: "Album name", artist: "Artist name", coverUrl: nil)))
 }

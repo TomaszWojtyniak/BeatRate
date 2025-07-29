@@ -13,10 +13,10 @@ struct AlbumDetailsView: View {
     let album: AlbumModel
     
     var body: some View {
-        Text("Album: \("album.id")")
+        Text("Album: \(album.id)")
     }
 }
 
 #Preview {
-    AlbumDetailsView(album: AlbumModel(title: "Album title", artist: "Artist", cover: ""))
+    AlbumDetailsView(album: AlbumModel(title: "Album title", artist: "Artist", coverUrl: URL(string: "")))
 }
