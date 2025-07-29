@@ -18,5 +18,5 @@ struct AlbumDetailsView: View {
 }
 
 #Preview {
-    AlbumDetailsView(album: AlbumModel(title: "Album title", artist: "Artist", coverUrl: URL(string: "")))
+    AlbumDetailsView(album: AlbumModel(title: "Album title", artist: "Artist", coverUrl: nil))
 }

@@ -38,8 +38,8 @@ public actor MusicKitService: MusicKitServiceProtocol {
         return MusicItemID(stringID)
     }
     
-    public nonisolated func fetchAlbum(by id: String) async throws -> AlbumModel? {
-        let musicId = await createMusicItemID(from: id)
+    public func fetchAlbum(by id: String) async throws -> AlbumModel? {
+        let musicId = createMusicItemID(from: id)
         var request = MusicCatalogResourceRequest<Album>(matching: \.id, equalTo: musicId)
         
         request.properties = [.genres, .tracks]
