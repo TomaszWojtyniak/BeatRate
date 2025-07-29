@@ -10,9 +10,9 @@ import SwiftUI
 public struct HomeSection: Identifiable {
     public let id = UUID()
     public let sectionName: String
-    public let albums: [Album]
+    public let albums: [AlbumModel]
     
-    public init(sectionName: String, albums: [Album]) {
+    public init(sectionName: String, albums: [AlbumModel]) {
         self.sectionName = sectionName
         self.albums = albums
     }

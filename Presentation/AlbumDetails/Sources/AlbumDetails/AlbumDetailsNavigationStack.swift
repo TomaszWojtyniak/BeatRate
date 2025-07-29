@@ -10,9 +10,9 @@ import Models
 
 public struct AlbumDetailsNavigationStack: View {
     
-    let album: Album
+    let album: AlbumModel
     
-    public init(album: Album) {
+    public init(album: AlbumModel) {
         self.album = album
     }
     
@@ -24,5 +24,5 @@ public struct AlbumDetailsNavigationStack: View {
 }
 
 #Preview {
-    AlbumDetailsNavigationStack(album: Album(title: "Album title", artist: "Artist", cover: ""))
+    AlbumDetailsNavigationStack(album: AlbumModel(title: "Album title", artist: "Artist", coverUrl: URL(string: "")))
 }

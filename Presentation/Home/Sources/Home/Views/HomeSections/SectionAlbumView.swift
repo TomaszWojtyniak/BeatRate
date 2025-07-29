@@ -10,16 +10,24 @@ import Models
 
 struct SectionAlbumView: View {
     
-    let album: Album
+    let album: AlbumModel
     
     var body: some View {
         VStack(alignment: .leading) {
-            Image(album.cover)
-                .resizable()
-                .frame(width: 150, height: 150)
-                .aspectRatio(contentMode: .fit)
-                .background(.red)
-                .cornerRadius(10)
+            AsyncImage(url: album.coverUrl) { image in
+                image
+                    .resizable()
+                    .scaledToFit()
+            } placeholder: {
+                Rectangle()
+                    .fill(.gray)
+                    .overlay {
+                        ProgressView()
+                    }
+            }
+            .frame(width: 150, height: 150)
+            .background(.gray)
+            .cornerRadius(10)
             
             Text(album.title)
                 .font(.caption)
@@ -33,5 +41,5 @@ struct SectionAlbumView: View {
 }
 
 #Preview {
-    SectionAlbumView(album: Album(title: "Album title", artist: "Artist", cover: ""))
+    SectionAlbumView(album: AlbumModel(title: "Album title", artist: "Artist", coverUrl: nil))
 }
