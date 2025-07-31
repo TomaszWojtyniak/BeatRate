@@ -8,17 +8,22 @@
 import SwiftUI
 import MusicRepository
 import Models
+import HomeRepository
 
 public protocol GetHomeUseCaseProtocol: Sendable {
     func authorizeMusicKit() async -> Bool
     func getAlbumById(_ id: String) async throws -> AlbumModel
+    func fetchHomeSections() async throws -> [HomeSection]
 }
 
 public actor GetHomeUseCase: GetHomeUseCaseProtocol {
     private let musicRepository: MusicRepositoryProtocol
+    private let homeRepository: HomeRepositoryProtocol
     
-    public init(musicRepository: MusicRepositoryProtocol = MusicRepository.shared) {
+    public init(musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
+                homeRepository: HomeRepositoryProtocol = HomeRepository.shared) {
         self.musicRepository = musicRepository
+        self.homeRepository = homeRepository
     }
     
     public func authorizeMusicKit() async -> Bool {
@@ -27,5 +32,9 @@ public actor GetHomeUseCase: GetHomeUseCaseProtocol {
     
     public func getAlbumById(_ id: String) async throws -> AlbumModel {
         return try await musicRepository.getAlbumById(id)
+    }
+    
+    public func fetchHomeSections() async throws -> [HomeSection] {
+        return try await homeRepository.fetchHomeSections()
     }
 }

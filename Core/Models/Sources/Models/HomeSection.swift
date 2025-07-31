@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-public struct HomeSection: Identifiable {
+public struct HomeSection: Identifiable, Sendable {
     public let id = UUID()
     public let sectionName: String
     public let albums: [AlbumModel]

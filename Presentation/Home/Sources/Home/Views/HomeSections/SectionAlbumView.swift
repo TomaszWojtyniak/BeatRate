@@ -21,9 +21,6 @@ struct SectionAlbumView: View {
             } placeholder: {
                 Rectangle()
                     .fill(.gray)
-                    .overlay {
-                        ProgressView()
-                    }
             }
             .frame(width: 150, height: 150)
             .background(.gray)
@@ -32,10 +29,14 @@ struct SectionAlbumView: View {
             Text(album.title)
                 .font(.caption)
                 .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(width: 150, alignment: .leading)
             
             Text(album.artist)
                 .font(.system(.caption2, weight: .light))
                 .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(width: 150, alignment: .leading)
         }
     }
 }
