@@ -59,14 +59,3 @@ public actor HomeRepository: HomeRepositoryProtocol {
         return self.homeSections
     }
 }
-
-public enum HomeRepositoryError: Error {
-    case invalidIndex
-    
-    var localizedDescription: String {
-        switch self {
-        case .invalidIndex:
-            return "Invalid section index"
-        }
-    }
-}
