@@ -15,7 +15,8 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../../Core/Models")
+        .package(path: "../../Core/Models"),
+        .package(path: "../../Core/CoreUI")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -23,7 +24,8 @@ let package = Package(
         .target(
             name: "AlbumDetails",
             dependencies: [
-                "Models"
+                "Models",
+                "CoreUI"
             ]
         ),
         .testTarget(
