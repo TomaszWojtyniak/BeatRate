@@ -132,6 +132,7 @@
 		8BED087E2DE0FCCF00838DD7 /* Exceptions for "Data" folder in "BeatRate" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Repositories/HomeRepository,
 				Repositories/LoginRepository,
 				Repositories/MusicRepository,
 				Services/FirebaseService,
@@ -142,6 +143,7 @@
 		8BED087F2DE0FCCF00838DD7 /* Exceptions for "Data" folder in "BeatRate Development" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Repositories/HomeRepository,
 				Repositories/LoginRepository,
 				Repositories/MusicRepository,
 				Services/FirebaseService,

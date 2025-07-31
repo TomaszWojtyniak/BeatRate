@@ -15,8 +15,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../../Data/Services/MusicKitService"),
-        .package(path: "../../Data/Services/FirebaseService")
+        .package(path: "../../Data/Services/MusicKitService")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -24,8 +23,7 @@ let package = Package(
         .target(
             name: "MusicRepository",
             dependencies: [
-                "MusicKitService",
-                "FirebaseService"
+                "MusicKitService"
             ]
         ),
         .testTarget(

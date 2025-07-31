@@ -4,35 +4,33 @@
 import PackageDescription
 
 let package = Package(
-    name: "HomeUseCases",
+    name: "HomeRepository",
     defaultLocalization: "en",
     platforms: [.iOS(.v18)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "HomeUseCases",
-            targets: ["HomeUseCases"]
+            name: "HomeRepository",
+            targets: ["HomeRepository"]
         ),
     ],
     dependencies: [
         .package(path: "../../Data/Repositories/MusicRepository"),
-        .package(path: "../../Core/Models"),
-        .package(path: "../../Data/Repositories/HomeRepository"),
+        .package(path: "../../Data/Services/FirebaseService")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "HomeUseCases",
+            name: "HomeRepository",
             dependencies: [
                 "MusicRepository",
-                "Models",
-                "HomeRepository"
+                "FirebaseService"
             ]
         ),
         .testTarget(
-            name: "HomeUseCasesTests",
-            dependencies: ["HomeUseCases"]
+            name: "HomeRepositoryTests",
+            dependencies: ["HomeRepository"]
         ),
     ]
 )
