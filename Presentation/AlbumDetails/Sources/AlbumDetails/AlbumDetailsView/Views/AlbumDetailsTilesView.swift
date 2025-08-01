@@ -11,46 +11,77 @@ import CoreUI
 struct AlbumDetailsTilesView: View {
     
     var body: some View {
-        HStack(alignment: .center) {
-            VStack {
+        HStack(spacing: 20) {
+            
+            // Rating tile
+            VStack(spacing: 8) {
                 Text("Rating")
-                    .font(.subheadline)
+                    .font(.system(.caption, design: .rounded, weight: .medium))
                     .foregroundColor(.secondary)
+                
                 HStack {
                     Image(systemName: "star.fill")
-                        .foregroundColor(Color.honeyYellow)
+                        .foregroundColor(.yellow)
+                        .font(.title3)
                     Text("7.8")
-                        .font(.headline)
+                        .font(.system(.title2, design: .rounded, weight: .bold))
+                        .foregroundColor(.primary)
                 }
             }
             .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.thinMaterial)
+                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+            )
             
-            Divider()
-                .frame(height: 40)
-            
-            VStack {
+            // Year tile
+            VStack(spacing: 8) {
                 Text("Released")
-                    .font(.subheadline)
+                    .font(.system(.caption, design: .rounded, weight: .medium))
                     .foregroundColor(.secondary)
-                Text("2025")
-                    .font(.headline)
+                
+                HStack {
+                    Image(systemName: "calendar")
+                        .foregroundColor(.blue)
+                        .font(.title3)
+                    Text("2025")
+                        .font(.system(.title2, design: .rounded, weight: .bold))
+                        .foregroundColor(.primary)
+                }
             }
             .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.thinMaterial)
+                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+            )
             
-            Divider()
-                .frame(height: 40)
-            
-            VStack {
+            // Genre tile
+            VStack(spacing: 8) {
                 Text("Genre")
-                    .font(.subheadline)
+                    .font(.system(.caption, design: .rounded, weight: .medium))
                     .foregroundColor(.secondary)
-                Text("POP")
-                    .font(.headline)
+                
+                HStack {
+                    Image(systemName: "music.quarternote.3")
+                        .foregroundColor(.purple)
+                        .font(.title3)
+                    Text("POP")
+                        .font(.system(.title2, design: .rounded, weight: .bold))
+                        .foregroundColor(.primary)
+                }
             }
             .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.thinMaterial)
+                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+            )
         }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, 20)
     }
 }
 

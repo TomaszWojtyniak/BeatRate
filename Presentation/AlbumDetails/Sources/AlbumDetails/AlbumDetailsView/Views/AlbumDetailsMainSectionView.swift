@@ -37,6 +37,7 @@ struct AlbumDetailsMainSectionView: View {
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.center)
                     .lineLimit(3)
+                    .padding(.horizontal)
                 
                 Text(album.artist)
                     .font(.system(.title2, design: .rounded, weight: .medium))
@@ -50,5 +51,5 @@ struct AlbumDetailsMainSectionView: View {
 }
 
 #Preview {
-    AlbumDetailsMainSectionView(album: AlbumModel(title: "Album title", artist: "Artist", coverUrl: nil))
+    AlbumDetailsMainSectionView(album: AlbumModel(title: "Album title Album title Album title Album title Album title, Album title Album title Album title Album title Album title", artist: "Artist", coverUrl: nil))
 }
