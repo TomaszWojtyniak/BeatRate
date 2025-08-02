@@ -33,14 +33,14 @@ struct AlbumDetailsMainSectionView: View {
             
             VStack(spacing: 12) {
                 Text(album.title)
-                    .font(.system(.title, design: .rounded, weight: .bold))
+                    .font(.system(.title, weight: .bold))
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.center)
                     .lineLimit(3)
                     .padding(.horizontal)
                 
                 Text(album.artist)
-                    .font(.system(.title2, design: .rounded, weight: .medium))
+                    .font(.system(.title2, weight: .medium))
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)

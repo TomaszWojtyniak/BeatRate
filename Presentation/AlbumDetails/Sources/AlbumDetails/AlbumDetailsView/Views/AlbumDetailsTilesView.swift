@@ -11,10 +11,9 @@ import CoreUI
 struct AlbumDetailsTilesView: View {
     
     var body: some View {
-        HStack(spacing: 20) {
-            
-            // Rating tile
-            VStack(spacing: 8) {
+        HStack(spacing: 25) {
+
+            VStack(spacing: 10) {
                 Text("Rating")
                     .font(.system(.caption, design: .rounded, weight: .medium))
                     .foregroundColor(.secondary)
@@ -30,14 +29,9 @@ struct AlbumDetailsTilesView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(.thinMaterial)
-                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-            )
+            .roundedMaterialBackground()
             
-            // Year tile
-            VStack(spacing: 8) {
+            VStack(spacing: 10) {
                 Text("Released")
                     .font(.system(.caption, design: .rounded, weight: .medium))
                     .foregroundColor(.secondary)
@@ -53,14 +47,9 @@ struct AlbumDetailsTilesView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(.thinMaterial)
-                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-            )
+            .roundedMaterialBackground()
             
-            // Genre tile
-            VStack(spacing: 8) {
+            VStack(spacing: 10) {
                 Text("Genre")
                     .font(.system(.caption, design: .rounded, weight: .medium))
                     .foregroundColor(.secondary)
@@ -76,15 +65,15 @@ struct AlbumDetailsTilesView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(.thinMaterial)
-                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-            )
+            .roundedMaterialBackground()
         }
     }
 }
 
 #Preview {
-    AlbumDetailsTilesView()
+    VStack {
+        AlbumDetailsTilesView()
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(Color.backgroundColor)
 }
