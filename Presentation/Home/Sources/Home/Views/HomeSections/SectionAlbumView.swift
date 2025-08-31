@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Models
+import CoreUI
 
 struct SectionAlbumView: View {
     
@@ -17,13 +18,17 @@ struct SectionAlbumView: View {
             AsyncImage(url: album.coverUrl) { image in
                 image
                     .resizable()
-                    .scaledToFit()
+                    .aspectRatio(contentMode: .fit)
             } placeholder: {
                 Rectangle()
-                    .fill(.gray)
+                    .fill(Color.albumPlaceholderColor)
+                    .overlay {
+                        Image(systemName: "music.note")
+                            .font(.system(size: 50))
+                            .foregroundColor(.gray)
+                    }
             }
             .frame(width: 150, height: 150)
-            .background(.gray)
             .cornerRadius(10)
             
             Text(album.title)
@@ -42,5 +47,5 @@ struct SectionAlbumView: View {
 }
 
 #Preview {
-    SectionAlbumView(album: AlbumModel(title: "Album title", artist: "Artist", coverUrl: nil))
+    SectionAlbumView(album: AlbumModel(title: "Album title", artist: "Artist", coverUrl: nil, releaseDate: nil, genre: nil))
 }

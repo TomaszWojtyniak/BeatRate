@@ -18,6 +18,8 @@ public extension Color {
     static let honeyYellow: Color = Color(red: 230/255, green: 182/255, blue: 85/255)
     static let lightGrey: Color = Color(red: 212/255, green: 212/255, blue: 212/255)
     static let crimsonRed: Color = Color(red: 178/255, green: 34/255, blue: 34/255)
+    static let backgroundColor: Color = .black.opacity(0.07)
+    static let albumPlaceholderColor: Color = .gray.opacity(0.3)
     
     ///App uses of colors
     static let primaryText: Color = .creamBeige

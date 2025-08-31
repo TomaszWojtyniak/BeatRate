@@ -43,15 +43,21 @@ public actor MusicKitService: MusicKitServiceProtocol {
         var request = MusicCatalogResourceRequest<Album>(matching: \.id, equalTo: musicId)
         
         request.properties = [.genres, .tracks]
-    
         
-        // Execute the request
         let response = try await request.response()
         
-        // Return the first (and should be only) album from the response
         if let album = response.items.first {
             let coverUrl = album.artwork?.url(width: 300, height: 300)
-            return AlbumModel(title: album.title, artist: album.artistName, coverUrl: coverUrl)
+            
+            let genre: String? = album.genreNames.first
+            return AlbumModel(
+                title: album.title,
+                artist: album.artistName,
+                coverUrl: coverUrl,
+                releaseDate: album.releaseDate,
+                genre: genre,
+                rating: 7.8
+            )
         } else {
             return nil
         }

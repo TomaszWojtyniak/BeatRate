@@ -9,7 +9,7 @@ import SwiftUI
 import Models
 import AlbumDetails
 import Account
-import CoreApp
+import CoreUI
 
 @MainActor
 public struct HomeView: View {
@@ -24,10 +24,16 @@ public struct HomeView: View {
         NavigationStack {
             List(self.dataModel.homeSections) { section in
                 HomeSectionView(name: section.sectionName, albums: section.albums, selectedAlbum: $selectedAlbum)
+                    .padding(20)
+                    .roundedMaterialBackground()
                     .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .padding(.top, 5)
                 
             }
             .listStyle(.inset)
+            .scrollContentBackground(.hidden)
+            .background(Color.backgroundColor)
             .refreshable {
                 Task {
                     await self.dataModel.fetchSectionsData()
