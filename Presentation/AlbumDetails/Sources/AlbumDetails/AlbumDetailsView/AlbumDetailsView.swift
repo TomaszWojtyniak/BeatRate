@@ -19,7 +19,7 @@ struct AlbumDetailsView: View {
             VStack {
                 AlbumDetailsMainSectionView(album: album)
                 
-                AlbumDetailsTilesView()
+                AlbumDetailsTilesView(album: album)
                     .padding(.top, 20)
                 
                 RateAlbumView(myRating: $myRating)
@@ -32,5 +32,5 @@ struct AlbumDetailsView: View {
 }
 
 #Preview {
-    AlbumDetailsView(album: AlbumModel(title: "Album title", artist: "Artist", coverUrl: nil))
+    AlbumDetailsView(album: AlbumModel(title: "Album title", artist: "Artist", coverUrl: nil, releaseDate: nil, genre: "Pop"))
 }

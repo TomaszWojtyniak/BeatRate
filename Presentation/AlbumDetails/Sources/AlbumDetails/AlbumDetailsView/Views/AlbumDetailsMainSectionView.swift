@@ -51,5 +51,5 @@ struct AlbumDetailsMainSectionView: View {
 }
 
 #Preview {
-    AlbumDetailsMainSectionView(album: AlbumModel(title: "Album title Album title Album title Album title Album title, Album title Album title Album title Album title Album title", artist: "Artist", coverUrl: nil))
+    AlbumDetailsMainSectionView(album: AlbumModel(title: "Album title", artist: "Artist", coverUrl: nil, releaseDate: nil, genre: nil))
 }

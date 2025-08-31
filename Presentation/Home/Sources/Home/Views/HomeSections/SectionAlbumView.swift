@@ -47,5 +47,5 @@ struct SectionAlbumView: View {
 }
 
 #Preview {
-    SectionAlbumView(album: AlbumModel(title: "Album title", artist: "Artist", coverUrl: nil))
+    SectionAlbumView(album: AlbumModel(title: "Album title", artist: "Artist", coverUrl: nil, releaseDate: nil, genre: nil))
 }
