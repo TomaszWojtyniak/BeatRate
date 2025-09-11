@@ -13,7 +13,7 @@ import HomeUseCases
 
 @Observable
 @MainActor
-class HomeDataModel {
+final class HomeDataModel {
     private let analyticsManager: AnalyticsManager
     private let crashLogger: CrashLogger
     private let getHomeUseCase: GetHomeUseCaseProtocol

@@ -10,10 +10,11 @@ import Models
 import AlbumDetails
 import Account
 import CoreUI
+import SwiftDataManager
 
 @MainActor
 public struct HomeView: View {
-    
+    @EnvironmentObject private var swiftDataManager: SwiftDataManager
     @State var dataModel: HomeDataModel = HomeDataModel()
     @State var selectedAlbum: AlbumModel?
     @State var showingAccount = false
@@ -35,9 +36,8 @@ public struct HomeView: View {
             .scrollContentBackground(.hidden)
             .background(Color.backgroundColor)
             .refreshable {
-                Task {
-                    await self.dataModel.fetchSectionsData()
-                }
+                try? await swiftDataManager.clearCache()
+                await self.dataModel.fetchSectionsData()
             }
         }
         .navigationDestination(item: $selectedAlbum) { album in
@@ -54,11 +54,23 @@ public struct HomeView: View {
         .sheet(isPresented: $showingAccount) {
             AccountNavigationStack()
         }
-        .onFirstAppear {
-            Task {
-                await self.dataModel.authorizeMusicKit()
-                await self.dataModel.fetchSectionsData()
+        .task {
+            // Load from cache if available
+            if swiftDataManager.isDataLoaded {
+                do {
+                    let cachedSections = try await swiftDataManager.getCachedSections()
+                    if !cachedSections.isEmpty {
+                        self.dataModel.homeSections = cachedSections
+                        return
+                    }
+                } catch {
+                    // Fall back to network fetch
+                }
             }
+            
+            // Fetch from network if no cache
+            await self.dataModel.authorizeMusicKit()
+            await self.dataModel.fetchSectionsData()
         }
     }
 }

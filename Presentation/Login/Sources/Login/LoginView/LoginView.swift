@@ -13,8 +13,6 @@ import OSLog
 import Models
 import SwiftData
 
-private let logger = Logger(subsystem: "BeatRate", category: "LoginView")
-
 @MainActor
 struct LoginView: View {
     @Environment(\.modelContext) private var context
@@ -51,16 +49,16 @@ struct LoginView: View {
                     case .success(let authResult):
                         do {
                             let userId = try await self.dataModel.handleLoginFlow(authResult: authResult)
-                            logger.debug("User login successful")
+                            Logger.login.debug("User login successful")
                             if let user = user.first {
-                                logger.debug("User model exist, changing values")
+                                Logger.login.debug("User model exist, changing values")
                                 user.isLoggedIn = true
                                 user.userId = userId
                             } else {
-                                logger.debug("User dont exist, creating a new one")
+                                Logger.login.debug("User dont exist, creating a new one")
                                 let newUser = User(isLoggedIn: true, userId: userId)
                                 context.insert(newUser)
-                                logger.debug("New User model created")
+                                Logger.login.debug("New User model created")
                             }
                         } catch let error {
                             await self.dataModel.handleLoginFailure(error: error)

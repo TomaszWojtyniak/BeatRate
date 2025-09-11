@@ -10,7 +10,7 @@ import OSLog
 import FirebaseCrashlytics
 
 @MainActor
-public class CrashLogger {
+public final class CrashLogger {
     public static let shared = CrashLogger()
 
     private init() {

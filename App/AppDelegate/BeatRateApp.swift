@@ -8,24 +8,19 @@
 import SwiftUI
 import SwiftData
 import Models
+import SwiftDataManager
 
 @main
 struct BeatRateApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    let container: ModelContainer
     
-    init() {
-        do {
-            container = try ModelContainer(for: User.self)
-        } catch {
-            fatalError("Failed to create ModelContainer: \(error)")
-        }
-    }
+    @State private var cacheManager = SwiftDataManager.shared
     
     var body: some Scene {
         WindowGroup {
             AppView()
-                .modelContainer(container)
+                .modelContainer(cacheManager.container)
+                .environmentObject(cacheManager)
         }
     }
 }

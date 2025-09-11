@@ -10,7 +10,7 @@ import SwiftUI
 import OSLog
 
 @MainActor
-public class AnalyticsManager {
+public final class AnalyticsManager {
     public static let shared = AnalyticsManager()
     
     private var isEnabled: Bool = true

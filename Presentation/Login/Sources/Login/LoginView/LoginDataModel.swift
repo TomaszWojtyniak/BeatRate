@@ -14,7 +14,7 @@ import CryptoKit
 
 @Observable
 @MainActor
-class LoginDataModel {
+final class LoginDataModel {
     private let getLoginUseCase: GetLoginUseCaseProtocol
     private let postLoginUseCase: SetLoginUseCaseProtocol
     private let analyticsManager: AnalyticsManager
