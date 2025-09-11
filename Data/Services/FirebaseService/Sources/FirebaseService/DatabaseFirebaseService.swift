@@ -19,9 +19,6 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     public static let shared = DatabaseFirebaseService()
     let analyticsManager: AnalyticsManager
     let crashLogger: CrashLogger
-    static var logger: Logger {
-        return Logger.for(Self.self)
-    }
     
     private init(analyticsManager: AnalyticsManager = .shared,
                  crashLogger: CrashLogger = .shared) {
@@ -29,6 +26,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
         self.crashLogger = crashLogger
     }
     
+    @MainActor
     public func fetchSections() async throws -> [FirebaseAlbumSection] {
         let ref = Database.database().reference().child("sections")
         let snapshot = try await ref.getData()

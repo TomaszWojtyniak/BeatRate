@@ -19,9 +19,6 @@ class LoginDataModel {
     private let postLoginUseCase: SetLoginUseCaseProtocol
     private let analyticsManager: AnalyticsManager
     private let crashLogger: CrashLogger
-    static var logger: Logger {
-        return Logger.for(Self.self)
-    }
     
     var isShowingErrorAlert: Bool = false
     
@@ -40,8 +37,8 @@ class LoginDataModel {
     }
     
     func handleLoginFailure(error: Error) async {
-        Self.logger.debug("Login failed: \(error)")
-        await self.crashLogger.recordError(error)
+        Logger.login.debug("Login failed: \(error)")
+        self.crashLogger.reportToCrashlytics(error: error)
         self.isShowingErrorAlert = true
     }
     

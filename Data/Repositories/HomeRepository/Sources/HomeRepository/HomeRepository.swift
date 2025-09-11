@@ -18,9 +18,6 @@ public protocol HomeRepositoryProtocol: Sendable {
 
 public actor HomeRepository: HomeRepositoryProtocol {
     public static let shared = HomeRepository()
-    static var logger: Logger {
-        return Logger.for(Self.self)
-    }
     
     let databaseFirebaseService: DatabaseFirebaseServiceProtocol
     let musicRepository: MusicRepositoryProtocol
@@ -41,16 +38,16 @@ public actor HomeRepository: HomeRepositoryProtocol {
         for section in firebaseSections {
             var albumModels: [AlbumModel] = []
 
-            for albumId in section.albums {
+            for albumId in await section.albums {
                 do {
                     let album = try await self.musicRepository.getAlbumById(albumId)
                     albumModels.append(album)
                 } catch {
-                    Self.logger.error("Album not found for id: \(albumId) — \(error)")
+                    Logger.homeRepository.error("Album not found for id: \(albumId) — \(error)")
                 }
             }
 
-            let homeSection = HomeSection(sectionName: section.name, albums: albumModels)
+            let homeSection = await HomeSection(sectionName: section.name, albums: albumModels)
             newHomeSections.append(homeSection)
         }
         

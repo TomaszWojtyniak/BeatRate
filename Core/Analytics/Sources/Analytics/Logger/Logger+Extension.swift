@@ -9,15 +9,22 @@ import OSLog
 
 public extension Logger {
     private static let subsystem = "BeatRate"
-
-    static let viewCycle = Logger(subsystem: subsystem, category: "viewcycle")
-
-    static let networking = Logger(subsystem: subsystem, category: "networking")
     
-    static func `for`<T>(_ type: T.Type) -> Logger {
-        return Logger(
-            subsystem: subsystem,
-            category: String(describing: type)
-        )
-    }
+    static let analytics = Logger(subsystem: subsystem, category: "analytics")
+    
+    static let crashLogger = Logger(subsystem: subsystem, category: "crashLogger")
+    
+    static let homeRepository = Logger(subsystem: subsystem, category: "homeRepository")
+    
+    static let musicRepository = Logger(subsystem: subsystem, category: "musicRepository")
+    
+    static let loginRepository = Logger(subsystem: subsystem, category: "loginRepository")
+    
+    static let firebaseService = Logger(subsystem: subsystem, category: "firebaseService")
+    
+    static let home = Logger(subsystem: subsystem, category: "home")
+    
+    static let login = Logger(subsystem: subsystem, category: "login")
+    
+    static let app = Logger(subsystem: subsystem, category: "app")
 }

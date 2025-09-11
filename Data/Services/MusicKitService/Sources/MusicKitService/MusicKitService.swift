@@ -20,9 +20,6 @@ public actor MusicKitService: MusicKitServiceProtocol {
     public static let shared = MusicKitService()
     let analyticsManager: AnalyticsManager
     let crashLogger: CrashLogger
-    static var logger: Logger {
-        return Logger.for(Self.self)
-    }
     
     public init(analyticsManager: AnalyticsManager = .shared,
                 crashLogger: CrashLogger = .shared) {
@@ -50,7 +47,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
             let coverUrl = album.artwork?.url(width: 300, height: 300)
             
             let genre: String? = album.genreNames.first
-            return AlbumModel(
+            return await AlbumModel(
                 title: album.title,
                 artist: album.artistName,
                 coverUrl: coverUrl,

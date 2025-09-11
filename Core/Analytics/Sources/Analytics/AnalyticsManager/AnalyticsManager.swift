@@ -9,21 +9,14 @@ import FirebaseAnalytics
 import SwiftUI
 import OSLog
 
-@globalActor
-public actor AnalyticsManager {
+@MainActor
+public class AnalyticsManager {
     public static let shared = AnalyticsManager()
     
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.beat.rate", category: "Analytics")
     private var isEnabled: Bool = true
-    private var debugMode: Bool = false
     
     private init() {
-        logger.info("Analytics Manager initialized")
-    }
-    
-    public func configure(debugMode: Bool = false) {
-        self.debugMode = debugMode
-        logger.info("Analytics Manager configured with debug mode: \(debugMode)")
+        Logger.analytics.info("Analytics Manager initialized")
     }
     
     public func setAnalyticsEnabled(_ enabled: Bool) {
@@ -35,27 +28,7 @@ public actor AnalyticsManager {
           .adPersonalization: .granted,
         ])
         Analytics.setAnalyticsCollectionEnabled(enabled)
-        logger.info("Analytics collection \(enabled ? "enabled" : "disabled")")
-    }
-    
-    public func track(_ event: AnalyticsEvent) {
-        guard isEnabled else {
-            logger.debug("Analytics disabled, skipping event: \(event.name)")
-            return
-        }
-        
-        let eventName = event.name
-        let parameters = event.parameters
-        
-        if debugMode {
-            logger.debug("Tracking event: \(eventName) with parameters: \(String(describing: parameters))")
-        }
-        
-        Analytics.logEvent(eventName, parameters: parameters)
-    }
-    
-    public func track(_ event: AppAnalyticsEvent) {
-        track(event as AnalyticsEvent)
+        Logger.analytics.info("Analytics collection \(enabled ? "enabled" : "disabled")")
     }
     
     public func setUserProperty(_ value: String?, forName name: String) {
@@ -63,9 +36,7 @@ public actor AnalyticsManager {
         
         Analytics.setUserProperty(value, forName: name)
         
-        if debugMode {
-            logger.debug("Set user property: \(name) = \(value ?? "nil")")
-        }
+        Logger.analytics.debug("Set user property: \(name) = \(value ?? "nil")")
     }
     
     public func setUserId(_ userId: String?) {
@@ -73,16 +44,6 @@ public actor AnalyticsManager {
         
         Analytics.setUserID(userId)
         
-        if debugMode {
-            logger.debug("Set user ID: \(userId ?? "nil")")
-        }
-    }
-    
-    func trackScreenView(_ screenName: String, screenClass: String? = nil) {
-        track(AppAnalyticsEvent.screenView(screenName: screenName, screenClass: screenClass))
-    }
-
-    func trackButtonTap(_ buttonName: String, location: String? = nil) {
-        track(AppAnalyticsEvent.buttonTap(buttonName: buttonName, location: location))
+        Logger.analytics.debug("Set user ID: \(userId ?? "nil")")
     }
 }

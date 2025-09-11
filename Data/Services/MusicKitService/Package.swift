@@ -26,6 +26,9 @@ let package = Package(
             dependencies: [
                 "Analytics",
                 "Models"
+            ],
+            swiftSettings: [
+                .defaultIsolation(MainActor.self)
             ]
         ),
         .testTarget(

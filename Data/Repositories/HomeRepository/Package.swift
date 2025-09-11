@@ -26,6 +26,9 @@ let package = Package(
             dependencies: [
                 "MusicRepository",
                 "FirebaseService"
+            ],
+            swiftSettings: [
+                .defaultIsolation(MainActor.self)
             ]
         ),
         .testTarget(

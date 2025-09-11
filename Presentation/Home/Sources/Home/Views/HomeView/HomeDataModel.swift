@@ -18,9 +18,6 @@ class HomeDataModel {
     private let crashLogger: CrashLogger
     private let getHomeUseCase: GetHomeUseCaseProtocol
     private let setHomeUseCase: SetHomeUseCaseProtocol
-    static var logger: Logger {
-        return Logger.for(Self.self)
-    }
     
     var homeSections: [HomeSection] = []
     
@@ -36,7 +33,7 @@ class HomeDataModel {
     
     func authorizeMusicKit() async {
         let isAuthorized = await self.getHomeUseCase.authorizeMusicKit()
-        Self.logger.debug("MusicKit authorization status: \(isAuthorized)")
+        Logger.home.debug("MusicKit authorization status: \(isAuthorized)")
     }
     
     func fetchSectionsData() async {
@@ -44,7 +41,7 @@ class HomeDataModel {
             let sections = try await self.getHomeUseCase.fetchHomeSections()
             self.homeSections = sections
         } catch let error {
-            Self.logger.error("\(error)")
+            Logger.home.error("\(error)")
         }
     }
 }
