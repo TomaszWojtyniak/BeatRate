@@ -20,13 +20,13 @@ public protocol GetSplashUseCaseProtocol: Sendable {
 }
 
 public actor GetSplashUseCase: GetSplashUseCaseProtocol {
-    private let musicRepository: MusicRepository
-    private let homeRepository: HomeRepository
-    private let swiftDataManager: SwiftDataManager
+    private let musicRepository: MusicRepositoryProtocol
+    private let homeRepository: HomeRepositoryProtocol
+    private let swiftDataManager: SwiftDataManagerProtocol
     
-    public init(musicRepository: MusicRepository = .shared,
-         homeRepository: HomeRepository = .shared,
-         swiftDataManager: SwiftDataManager = .shared) {
+    public init(musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
+         homeRepository: HomeRepositoryProtocol = HomeRepository.shared,
+         swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared) {
         self.musicRepository = musicRepository
         self.homeRepository = homeRepository
         self.swiftDataManager = swiftDataManager

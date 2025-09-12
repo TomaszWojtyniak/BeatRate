@@ -19,11 +19,11 @@ struct AppView: View {
     
     @Query private var user: [User]
     @State private var selection: TabBarScreen? = .home
-    @State private var showingSplash = false
+    @State private var showingSplash = true
     
     var body: some View {
         if let currentUser = user.first, currentUser.isLoggedIn {
-            if showingSplash || !dataModel.isDataLoaded() {
+            if showingSplash {
                 SplashView {
                     withAnimation {
                         showingSplash = false
@@ -39,11 +39,6 @@ struct AppView: View {
             }
         } else {
             LoginNavigationStack()
-                .onChange(of: user.first?.isLoggedIn) { _, isLoggedIn in
-                    if isLoggedIn == true {
-                        showingSplash = true
-                    }
-                }
         }
     }
 }

@@ -20,6 +20,7 @@ final class HomeDataModel {
     private let setHomeUseCase: SetHomeUseCaseProtocol
     
     var homeSections: [HomeSection] = []
+    var isLoadingFromCache: Bool = false
     
     init(analyticsManager: AnalyticsManager = .shared,
          crashLogger: CrashLogger = .shared,
@@ -31,17 +32,53 @@ final class HomeDataModel {
         self.setHomeUseCase = setHomeUseCase
     }
     
+    func loadInitialData() async {
+        // First try to load from cache
+        if await getHomeUseCase.isCacheValid() {
+            isLoadingFromCache = true
+            do {
+                let cachedSections = try await getHomeUseCase.getCachedSections()
+                if !cachedSections.isEmpty {
+                    self.homeSections = cachedSections
+                    isLoadingFromCache = false
+                    Logger.home.debug("Loaded \(cachedSections.count) sections from cache")
+                    return
+                }
+            } catch {
+                Logger.home.error("Failed to load from cache: \(error)")
+            }
+            isLoadingFromCache = false
+        }
+        
+        // If no cache, fetch from network
+        await authorizeMusicKit()
+        await fetchSectionsData()
+    }
+    
     func authorizeMusicKit() async {
         let isAuthorized = await self.getHomeUseCase.authorizeMusicKit()
         Logger.home.debug("MusicKit authorization status: \(isAuthorized)")
     }
     
-    func fetchSectionsData() async {
+    func refreshData() async {
+        do {
+            try await setHomeUseCase.clearCache()
+            Logger.home.debug("Cache cleared for refresh")
+        } catch {
+            Logger.home.error("Failed to clear cache: \(error)")
+        }
+        
+        await fetchSectionsData()
+    }
+    
+    private func fetchSectionsData() async {
         do {
             let sections = try await self.getHomeUseCase.fetchHomeSections()
             self.homeSections = sections
+            Logger.home.debug("Fetched \(sections.count) sections from network")
         } catch let error {
-            Logger.home.error("\(error)")
+            Logger.home.error("Failed to fetch sections: \(error)")
+            self.crashLogger.reportToCrashlytics(error: error)
         }
     }
 }

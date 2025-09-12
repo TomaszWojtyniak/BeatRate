@@ -23,21 +23,26 @@ public struct HomeView: View {
     
     public var body: some View {
         NavigationStack {
-            List(self.dataModel.homeSections) { section in
-                HomeSectionView(name: section.sectionName, albums: section.albums, selectedAlbum: $selectedAlbum)
-                    .padding(20)
-                    .roundedMaterialBackground()
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
-                    .padding(.top, 5)
-                
-            }
-            .listStyle(.inset)
-            .scrollContentBackground(.hidden)
-            .background(Color.backgroundColor)
-            .refreshable {
-                try? await swiftDataManager.clearCache()
-                await self.dataModel.fetchSectionsData()
+            if dataModel.isLoadingFromCache && dataModel.homeSections.isEmpty {
+                VStack {
+                    Text("Loading your library...")
+                }
+            } else {
+                List(self.dataModel.homeSections) { section in
+                    HomeSectionView(name: section.sectionName, albums: section.albums, selectedAlbum: $selectedAlbum)
+                        .padding(20)
+                        .roundedMaterialBackground()
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .padding(.top, 5)
+                    
+                }
+                .listStyle(.inset)
+                .scrollContentBackground(.hidden)
+                .background(Color.backgroundColor)
+                .refreshable {
+                    await dataModel.refreshData()
+                }
             }
         }
         .navigationDestination(item: $selectedAlbum) { album in
@@ -55,22 +60,7 @@ public struct HomeView: View {
             AccountNavigationStack()
         }
         .task {
-            // Load from cache if available
-            if swiftDataManager.isDataLoaded {
-                do {
-                    let cachedSections = try await swiftDataManager.getCachedSections()
-                    if !cachedSections.isEmpty {
-                        self.dataModel.homeSections = cachedSections
-                        return
-                    }
-                } catch {
-                    // Fall back to network fetch
-                }
-            }
-            
-            // Fetch from network if no cache
-            await self.dataModel.authorizeMusicKit()
-            await self.dataModel.fetchSectionsData()
+            await self.dataModel.loadInitialData()
         }
     }
 }

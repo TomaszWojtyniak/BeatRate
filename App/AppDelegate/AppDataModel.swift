@@ -34,10 +34,6 @@ class AppDataModel {
         }
     }
     
-    func isDataLoaded() -> Bool {
-        self.swiftDataManager.isDataLoaded
-    }
-    
     func context() -> ModelContext {
         self.swiftDataManager.context
     }

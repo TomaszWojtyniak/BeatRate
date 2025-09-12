@@ -30,5 +30,8 @@ public struct SplashView: View {
             await dataModel.loadInitialData()
             onComplete()
         }
+        .alert("Error", isPresented: $dataModel.showError) {
+            
+        }
     }
 }

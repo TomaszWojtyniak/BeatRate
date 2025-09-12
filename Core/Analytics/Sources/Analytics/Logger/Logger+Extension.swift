@@ -27,4 +27,6 @@ public extension Logger {
     static let login = Logger(subsystem: subsystem, category: "login")
     
     static let app = Logger(subsystem: subsystem, category: "app")
+    
+    static let splash = Logger(subsystem: subsystem, category: "splash")
 }

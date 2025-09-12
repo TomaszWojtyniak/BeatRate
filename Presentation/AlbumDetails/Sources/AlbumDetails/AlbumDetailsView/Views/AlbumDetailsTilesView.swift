@@ -55,26 +55,6 @@ struct AlbumDetailsTilesView: View {
                 .padding(.vertical, 20)
                 .roundedMaterialBackground()
             }
-            
-            if let genre = album.genre {
-                VStack(spacing: 10) {
-                    Text("Genre")
-                        .font(.system(.caption, design: .rounded, weight: .medium))
-                        .foregroundColor(.secondary)
-                    
-                    HStack {
-                        Image(systemName: "music.quarternote.3")
-                            .foregroundColor(.purple)
-                            .font(.title3)
-                        Text(genre)
-                            .font(.system(.title2, design: .rounded, weight: .bold))
-                            .foregroundColor(.primary)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
-                .roundedMaterialBackground()
-            }
         }
     }
 }

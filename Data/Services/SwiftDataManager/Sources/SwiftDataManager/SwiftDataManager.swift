@@ -9,13 +9,21 @@ import SwiftData
 import SwiftUI
 import Models
 
+public protocol SwiftDataManagerProtocol: Sendable {
+    var context: ModelContext { get }
+    func cacheAlbum(albumId: String, album: AlbumModel) async throws
+    func cacheSections(_ sections: [HomeSection]) async throws
+    func getCachedSections() async throws -> [HomeSection]
+    func getCachedAlbum(albumId: String) async throws -> AlbumModel?
+    func clearCache() async throws
+    func isCacheValid() async -> Bool
+}
+
 @Observable
 @MainActor
-public final class SwiftDataManager: ObservableObject {
+public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol {
     public static let shared = SwiftDataManager()
-    
     public let container: ModelContainer
-    public var isDataLoaded = false
     
     private init() {
         do {
@@ -26,7 +34,9 @@ public final class SwiftDataManager: ObservableObject {
     }
     
     public var context: ModelContext {
-        container.mainContext
+        get {
+            container.mainContext
+        }
     }
     
     public func cacheAlbum(albumId: String, album: AlbumModel) async throws {
@@ -87,7 +97,6 @@ public final class SwiftDataManager: ObservableObject {
         }
         
         try context.save()
-        isDataLoaded = true
     }
     
     public func getCachedSections() async throws -> [HomeSection] {
@@ -109,7 +118,6 @@ public final class SwiftDataManager: ObservableObject {
         try context.delete(model: CachedAlbum.self)
         try context.delete(model: CachedSection.self)
         try context.save()
-        isDataLoaded = false
     }
     
     public func isCacheValid() async -> Bool {
