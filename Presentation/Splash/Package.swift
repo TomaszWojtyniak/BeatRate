@@ -16,6 +16,9 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../../Domain/SplashUseCases"),
+        .package(path: "../../Core/Analytics"),
+        .package(path: "../../Core/CoreUI"),
+        
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -23,7 +26,9 @@ let package = Package(
         .target(
             name: "Splash",
             dependencies: [
-                "SplashUseCases"
+                "SplashUseCases",
+                "Analytics",
+                "CoreUI"
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)

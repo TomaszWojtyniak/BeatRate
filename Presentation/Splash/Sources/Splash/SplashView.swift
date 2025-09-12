@@ -6,9 +6,6 @@
 //
 
 import SwiftUI
-import Models
-import HomeRepository
-import MusicRepository
 import CoreUI
 
 @MainActor
@@ -24,14 +21,33 @@ public struct SplashView: View {
     
     public var body: some View {
         VStack {
-            Text("Splash view")
+            Spacer()
+            
+            Image(systemName: "star.square.on.square")
+                .resizable()
+                .foregroundStyle(Color.honeyYellow)
+                .frame(maxWidth: 200, maxHeight: 200)
+
+            
+            
+            Text("login.app.name", bundle: .module)
+                .font(.system(size: 70, weight: .medium))
+                .foregroundStyle(Color.primaryText)
+            
+            Spacer()
         }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal)
+        .padding(.vertical, 40)
+        .background(Color.backgroundGradient)
         .task {
             await dataModel.loadInitialData()
             onComplete()
         }
-        .alert("Error", isPresented: $dataModel.showError) {
-            
-        }
+        .errorAlert(isPresented: $dataModel.showError, title: "Error", message: "Error")
     }
+}
+
+#Preview {
+    SplashView(onComplete: {})
 }

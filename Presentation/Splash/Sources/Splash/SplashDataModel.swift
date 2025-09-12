@@ -28,6 +28,7 @@ final class SplashDataModel {
                 let cachedSections = try await getSplashUseCase.getCachedSections()
                 if !cachedSections.isEmpty {
                     Logger.splash.info("Cache is not empty, finishing loadin data")
+                    try? await Task.sleep(for: .milliseconds(600))
                     return
                 }
             } catch {
