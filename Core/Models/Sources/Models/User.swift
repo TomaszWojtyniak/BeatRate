@@ -9,7 +9,7 @@ import SwiftData
 import SwiftUI
 
 @Model
-public class User {
+public final class User {
     public var isLoggedIn: Bool
     public var userId: String
 

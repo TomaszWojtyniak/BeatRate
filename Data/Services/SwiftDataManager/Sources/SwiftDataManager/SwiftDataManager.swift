@@ -17,6 +17,12 @@ public protocol SwiftDataManagerProtocol: Sendable {
     func getCachedAlbum(albumId: String) async throws -> AlbumModel?
     func clearCache() async throws
     func isCacheValid() async -> Bool
+    
+    // User management methods
+    func getCurrentUser() async throws -> User?
+    func setUserLoggedIn(userId: String) async throws
+    func setUserLoggedOut() async throws
+    func isUserLoggedIn() async -> Bool
 }
 
 @Observable
@@ -129,6 +135,36 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         // Check if cache is less than 24 hours old
         let dayAgo = Date().addingTimeInterval(-86400)
         return sections.allSatisfy { $0.lastUpdated > dayAgo }
+    }
+    
+    // MARK: - User Management
+    
+    public func getCurrentUser() async throws -> User? {
+        let descriptor = FetchDescriptor<User>()
+        return try context.fetch(descriptor).first
+    }
+    
+    public func setUserLoggedIn(userId: String) async throws {
+        if let existingUser = try await getCurrentUser() {
+            existingUser.isLoggedIn = true
+            existingUser.userId = userId
+        } else {
+            let newUser = User(isLoggedIn: true, userId: userId)
+            context.insert(newUser)
+        }
+        try context.save()
+    }
+    
+    public func setUserLoggedOut() async throws {
+        if let existingUser = try await getCurrentUser() {
+            existingUser.isLoggedIn = false
+            try context.save()
+        }
+    }
+    
+    public func isUserLoggedIn() async -> Bool {
+        guard let user = try? await getCurrentUser() else { return false }
+        return user.isLoggedIn
     }
 }
 
