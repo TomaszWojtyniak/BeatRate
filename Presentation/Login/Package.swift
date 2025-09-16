@@ -27,7 +27,11 @@ let package = Package(
                 "LoginUseCases",
                 "Analytics",
                 "CoreUI"
-            ]),
+            ],
+            swiftSettings: [
+                .defaultIsolation(MainActor.self)
+            ]
+        ),
         .testTarget(
             name: "LoginTests",
             dependencies: ["Login"]

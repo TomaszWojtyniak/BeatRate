@@ -28,6 +28,9 @@ let package = Package(
                 "MusicRepository",
                 "Models",
                 "HomeRepository"
+            ],
+            swiftSettings: [
+                .defaultIsolation(MainActor.self)
             ]
         ),
         .testTarget(

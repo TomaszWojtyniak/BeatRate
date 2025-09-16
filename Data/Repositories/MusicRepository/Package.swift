@@ -24,6 +24,9 @@ let package = Package(
             name: "MusicRepository",
             dependencies: [
                 "MusicKitService"
+            ],
+            swiftSettings: [
+                .defaultIsolation(MainActor.self)
             ]
         ),
         .testTarget(

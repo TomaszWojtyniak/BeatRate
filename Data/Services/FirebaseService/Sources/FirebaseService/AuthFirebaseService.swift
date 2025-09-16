@@ -19,9 +19,6 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
     public static let shared = AuthFirebaseService()
     let analyticsManager: AnalyticsManager
     let crashLogger: CrashLogger
-    static var logger: Logger {
-        return Logger.for(Self.self)
-    }
     
     private init(analyticsManager: AnalyticsManager = .shared,
                  crashLogger: CrashLogger = .shared) {
@@ -30,14 +27,14 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
     }
     
     public func setLoginData(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws -> String {
-        Self.logger.debug("Initialize a Firebase credential")
+        Logger.firebaseService.debug("Initialize a Firebase credential")
         let credential = OAuthProvider.appleCredential(withIDToken: idTokenString,
                                                           rawNonce: nonce,
                                                           fullName: appleIDCredential.fullName)
         
-        Self.logger.debug("Sign in with Firebase")
+        Logger.firebaseService.debug("Sign in with Firebase")
         let userId = try await Auth.auth().signIn(with: credential).user.uid
-        Self.logger.debug("Firebase auth login successful")
+        Logger.firebaseService.debug("Firebase auth login successful")
         return userId
     }
 }

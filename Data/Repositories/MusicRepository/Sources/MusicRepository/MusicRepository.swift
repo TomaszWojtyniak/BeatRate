@@ -26,9 +26,6 @@ public protocol MusicRepositoryProtocol: Sendable {
 
 public actor MusicRepository: MusicRepositoryProtocol {
     public static let shared = MusicRepository()
-    static var logger: Logger {
-        return Logger.for(Self.self)
-    }
     
     let musicKitService: MusicKitServiceProtocol
     
@@ -50,16 +47,16 @@ public actor MusicRepository: MusicRepositoryProtocol {
             isMusicKitAuthorized = true
             return true
         case .notDetermined:
-            Self.logger.info("Error getting Apple Music Authorization: Not determined")
+            Logger.musicRepository.info("Error getting Apple Music Authorization: Not determined")
             return false
         case .restricted:
-            Self.logger.info("Error getting Apple Music Authorization: Restricted")
+            Logger.musicRepository.info("Error getting Apple Music Authorization: Restricted")
             return false
         case .denied:
-            Self.logger.info("Error getting Apple Music Authorization: Denied")
+            Logger.musicRepository.info("Error getting Apple Music Authorization: Denied")
             return false
         default:
-            Self.logger.info("Error getting Apple Music Authorization: Unknown (New case)")
+            Logger.musicRepository.info("Error getting Apple Music Authorization: Unknown (New case)")
             return false
         }
     }

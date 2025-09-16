@@ -10,6 +10,7 @@ import TabBar
 import Login
 import Models
 import SwiftData
+import Splash
 
 @MainActor
 struct AppView: View {
@@ -18,15 +19,24 @@ struct AppView: View {
     
     @Query private var user: [User]
     @State private var selection: TabBarScreen? = .home
+    @State private var showingSplash = true
     
     var body: some View {
-        if user.first?.isLoggedIn == true {
-            TabBarView(selection: $selection)
-                .onAppear {
-                    if let userId = user.first?.userId {
-                        self.dataModel.setUserId(userId)
+        if let currentUser = user.first, currentUser.isLoggedIn {
+            if showingSplash {
+                SplashView {
+                    withAnimation {
+                        showingSplash = false
                     }
                 }
+                .transition(.opacity)
+                .onAppear {
+                    dataModel.setUserId(currentUser.userId)
+                }
+            } else {
+                TabBarView(selection: $selection)
+                    .environment(\.modelContext, dataModel.context())
+            }
         } else {
             LoginNavigationStack()
         }

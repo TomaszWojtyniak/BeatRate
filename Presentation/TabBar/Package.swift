@@ -27,6 +27,9 @@ let package = Package(
                 "Home",
                 "Search",
                 "Settings"
+            ],
+            swiftSettings: [
+                .defaultIsolation(MainActor.self)
             ]
         ),
         .testTarget(

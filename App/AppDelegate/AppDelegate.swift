@@ -15,17 +15,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
       FirebaseApp.configure()
       
       Task {
-          if let bundleID = Bundle.main.bundleIdentifier, bundleID == "tomasz.wojtyniak.beat.rate" {
-              await AnalyticsManager.shared.configure(debugMode: false)
-              await CrashLogger.shared.configure(minimumLogLevel: .notice,
-                                                 debugMode: false,
-                                                 crashlyticsEnabled: true)
-          } else {
-              await AnalyticsManager.shared.configure(debugMode: true)
-              await CrashLogger.shared.configure(minimumLogLevel: .debug,
-                                                 debugMode: true,
-                                                 crashlyticsEnabled: true)
-          }
+          AnalyticsManager.shared.setAnalyticsEnabled(true)
+          CrashLogger.shared.configure()
       }
       
     return true

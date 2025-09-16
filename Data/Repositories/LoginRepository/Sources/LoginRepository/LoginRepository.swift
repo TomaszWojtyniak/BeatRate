@@ -22,9 +22,6 @@ public protocol LoginRepositoryProtocol: Sendable {
 
 public actor LoginRepository: LoginRepositoryProtocol {
     public static let shared = LoginRepository()
-    static var logger: Logger {
-        return Logger.for(Self.self)
-    }
     
     let authFirebaseService: AuthFirebaseServiceProtocol
     
@@ -70,11 +67,11 @@ public actor LoginRepository: LoginRepositoryProtocol {
                 fatalError("Invalid state: A login callback was received, but no login request was sent.")
             }
             guard let appleIDToken = appleIDCredential.identityToken else {
-                Self.logger.error("Unable to fetch identity token")
+                Logger.loginRepository.error("Unable to fetch identity token")
                 throw LoginError.wrongData
             }
             guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
-                Self.logger.error("Unable to serialize token string from data: \(appleIDToken.debugDescription)")
+                Logger.loginRepository.error("Unable to serialize token string from data: \(appleIDToken.debugDescription)")
                 throw LoginError.wrongData
             }
             

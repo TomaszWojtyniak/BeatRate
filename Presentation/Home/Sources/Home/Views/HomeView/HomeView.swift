@@ -10,10 +10,10 @@ import Models
 import AlbumDetails
 import Account
 import CoreUI
+import SwiftDataManager
 
 @MainActor
 public struct HomeView: View {
-    
     @State var dataModel: HomeDataModel = HomeDataModel()
     @State var selectedAlbum: AlbumModel?
     @State var showingAccount = false
@@ -22,21 +22,25 @@ public struct HomeView: View {
     
     public var body: some View {
         NavigationStack {
-            List(self.dataModel.homeSections) { section in
-                HomeSectionView(name: section.sectionName, albums: section.albums, selectedAlbum: $selectedAlbum)
-                    .padding(20)
-                    .roundedMaterialBackground()
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
-                    .padding(.top, 5)
-                
-            }
-            .listStyle(.inset)
-            .scrollContentBackground(.hidden)
-            .background(Color.backgroundColor)
-            .refreshable {
-                Task {
-                    await self.dataModel.fetchSectionsData()
+            if dataModel.isLoadingFromCache && dataModel.homeSections.isEmpty {
+                VStack {
+                    Text("Loading your library...")
+                }
+            } else {
+                List(self.dataModel.homeSections) { section in
+                    HomeSectionView(name: section.sectionName, albums: section.albums, selectedAlbum: $selectedAlbum)
+                        .padding(20)
+                        .roundedMaterialBackground()
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .padding(.top, 5)
+                    
+                }
+                .listStyle(.inset)
+                .scrollContentBackground(.hidden)
+                .background(Color.backgroundColor)
+                .refreshable {
+                    await dataModel.refreshData()
                 }
             }
         }
@@ -54,11 +58,8 @@ public struct HomeView: View {
         .sheet(isPresented: $showingAccount) {
             AccountNavigationStack()
         }
-        .onFirstAppear {
-            Task {
-                await self.dataModel.authorizeMusicKit()
-                await self.dataModel.fetchSectionsData()
-            }
+        .task {
+            await self.dataModel.loadInitialData()
         }
     }
 }

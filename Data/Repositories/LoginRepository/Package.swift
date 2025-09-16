@@ -25,7 +25,11 @@ let package = Package(
             dependencies: [
                 "Analytics",
                 "FirebaseService"
-            ]),
+            ],
+            swiftSettings: [
+                .defaultIsolation(MainActor.self)
+            ]
+        ),
         .testTarget(
             name: "LoginRepositoryTests",
             dependencies: ["LoginRepository"]

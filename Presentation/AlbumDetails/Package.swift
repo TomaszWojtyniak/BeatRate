@@ -26,6 +26,9 @@ let package = Package(
             dependencies: [
                 "Models",
                 "CoreUI"
+            ],
+            swiftSettings: [
+                .defaultIsolation(MainActor.self)
             ]
         ),
         .testTarget(
