@@ -13,6 +13,7 @@ struct AlbumDetailsView: View {
     
     let album: AlbumModel
     @State private var myRating: Double = 0
+    @State private var dataModel = AlbumDetailsDataModel()
     
     var body: some View {
         ScrollView {
@@ -28,6 +29,11 @@ struct AlbumDetailsView: View {
             .padding(.horizontal, 50)
         }
         .background(Color.backgroundColor)
+        .onChange(of: myRating) { oldValue, newValue in
+            Task {
+                await self.dataModel.saveAlbumRating(albumId: self.album.id.uuidString, rating: newValue)
+            }
+        }
     }
 }
 
