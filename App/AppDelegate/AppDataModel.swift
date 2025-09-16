@@ -7,23 +7,23 @@
 
 import SwiftUI
 import Analytics
-import SwiftDataManager
 import OSLog
 import SwiftData
+import AppUseCases
 
 @Observable
 @MainActor
 class AppDataModel {
     private let analyticsManager: AnalyticsManager
     private let crashLogger: CrashLogger
-    private let swiftDataManager: SwiftDataManager
+    private let getAppUseCase: GetAppUseCaseProtocol
     
     init(analyticsManager: AnalyticsManager = .shared,
          crashLogger: CrashLogger = .shared,
-         swiftDataManager: SwiftDataManager = .shared) {
+         getAppUseCase: GetAppUseCaseProtocol = GetAppUseCase()) {
         self.analyticsManager = analyticsManager
         self.crashLogger = crashLogger
-        self.swiftDataManager = swiftDataManager
+        self.getAppUseCase = getAppUseCase
     }
     
     func setUserId(_ userId: String) {
@@ -35,6 +35,6 @@ class AppDataModel {
     }
     
     func context() -> ModelContext {
-        self.swiftDataManager.context
+        self.getAppUseCase.context()
     }
 }

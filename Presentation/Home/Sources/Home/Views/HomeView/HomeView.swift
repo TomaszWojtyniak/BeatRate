@@ -14,7 +14,6 @@ import SwiftDataManager
 
 @MainActor
 public struct HomeView: View {
-    @EnvironmentObject private var swiftDataManager: SwiftDataManager
     @State var dataModel: HomeDataModel = HomeDataModel()
     @State var selectedAlbum: AlbumModel?
     @State var showingAccount = false
