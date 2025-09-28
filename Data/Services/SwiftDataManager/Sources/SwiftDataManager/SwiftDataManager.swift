@@ -11,10 +11,10 @@ import Models
 
 public protocol SwiftDataManagerProtocol: Sendable {
     var context: ModelContext { get }
-    func cacheAlbum(albumId: String, album: AlbumModel) async throws
+    func cacheAlbum(id: String, album: AlbumModel) async throws
     func cacheSections(_ sections: [HomeSection]) async throws
     func getCachedSections() async throws -> [HomeSection]
-    func getCachedAlbum(albumId: String) async throws -> AlbumModel?
+    func getCachedAlbum(id: String) async throws -> AlbumModel?
     func clearCache() async throws
     func isCacheValid() async -> Bool
     
@@ -45,14 +45,10 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         }
     }
     
-    public func cacheAlbum(albumId: String, album: AlbumModel) async throws {
+    public func cacheAlbum(id: String, album: AlbumModel) async throws {
         let cachedAlbum = CachedAlbum(
-            albumId: albumId,
-            title: album.title,
-            artist: album.artist,
-            coverUrlString: album.coverUrl?.absoluteString,
-            releaseDate: album.releaseDate,
-            genre: album.genre,
+            id: id,
+            appleMusicAlbumData: album.appleMusicAlbumData,
             rating: album.rating
         )
         context.insert(cachedAlbum)
@@ -73,22 +69,18 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
             var cachedAlbums: [CachedAlbum] = []
             for album in section.albums {
                 // Generate albumId from title and artist
-                let albumId = "\(album.title)_\(album.artist)".replacingOccurrences(of: " ", with: "_")
+                let albumId = "\(album.appleMusicAlbumData.title)_\(album.appleMusicAlbumData.artist)".replacingOccurrences(of: " ", with: "_")
                 
                 // Check if album already exists
                 let descriptor = FetchDescriptor<CachedAlbum>(
-                    predicate: #Predicate { $0.albumId == albumId }
+                    predicate: #Predicate { $0.id == albumId }
                 )
                 
                 let existingAlbum = try context.fetch(descriptor).first
                 
                 let cachedAlbum = existingAlbum ?? CachedAlbum(
-                    albumId: albumId,
-                    title: album.title,
-                    artist: album.artist,
-                    coverUrlString: album.coverUrl?.absoluteString,
-                    releaseDate: album.releaseDate,
-                    genre: album.genre,
+                    id: albumId,
+                    appleMusicAlbumData: album.appleMusicAlbumData,
                     rating: album.rating
                 )
                 
@@ -113,9 +105,9 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         return sections.map { $0.toHomeSection() }
     }
     
-    public func getCachedAlbum(albumId: String) async throws -> AlbumModel? {
+    public func getCachedAlbum(id: String) async throws -> AlbumModel? {
         let descriptor = FetchDescriptor<CachedAlbum>(
-            predicate: #Predicate { $0.albumId == albumId }
+            predicate: #Predicate { $0.id == id }
         )
         return try context.fetch(descriptor).first?.toAlbumModel()
     }

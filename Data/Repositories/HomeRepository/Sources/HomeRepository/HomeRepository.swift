@@ -61,15 +61,16 @@ public actor HomeRepository: HomeRepositoryProtocol {
             for albumId in await section.albums {
                 do {
                     // Try cache first
-                    if let cachedAlbum = try await swiftDataManager.getCachedAlbum(albumId: albumId) {
+                    if let cachedAlbum = try await swiftDataManager.getCachedAlbum(id: albumId) {
                         albumModels.append(cachedAlbum)
                     } else {
                         // Fetch from MusicKit if not in cache
-                        let album = try await self.musicRepository.getAlbumById(albumId)
+                        let appleMusicAlbum = try await self.musicRepository.getAlbumDataById(albumId)
+                        let album = await AlbumModel(id: albumId, appleMusicAlbumData: appleMusicAlbum, rating: nil)
                         albumModels.append(album)
                         
                         // Cache the fetched album
-                        try await swiftDataManager.cacheAlbum(albumId: albumId, album: album)
+                        try await swiftDataManager.cacheAlbum(id: albumId, album: album)
                     }
                 } catch {
                     Logger.homeRepository.error("Album not found for id: \(albumId) — \(error)")

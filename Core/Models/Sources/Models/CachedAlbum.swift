@@ -10,37 +10,56 @@ import Foundation
 
 @Model
 public final class CachedAlbum {
-    @Attribute(.unique) public var albumId: String
-    public var title: String
-    public var artist: String
-    public var coverUrlString: String?
-    public var releaseDate: Date?
-    public var genre: String?
+    @Attribute(.unique) public var id: String
+
+    @Attribute(.externalStorage) public var appleMusicAlbumDataData: Data
+
+    @MainActor
+    public var appleMusicAlbumData: AppleMusicAlbumData {
+        get {
+            do {
+                return try JSONDecoder().decode(AppleMusicAlbumData.self, from: appleMusicAlbumDataData)
+            } catch {
+                fatalError("Failed to decode AppleMusicAlbumData: \(error)")
+            }
+        }
+        set {
+            do {
+                appleMusicAlbumDataData = try JSONEncoder().encode(newValue)
+                lastUpdated = Date()
+            } catch {
+                fatalError("Failed to encode AppleMusicAlbumData: \(error)")
+            }
+        }
+    }
+    
     public var rating: Double?
     public var lastUpdated: Date
     
     @Relationship(inverse: \CachedSection.albums)
     public var sections: [CachedSection]?
     
-    public init(albumId: String, title: String, artist: String, coverUrlString: String? = nil, 
-                releaseDate: Date? = nil, genre: String? = nil, rating: Double? = nil) {
-        self.albumId = albumId
-        self.title = title
-        self.artist = artist
-        self.coverUrlString = coverUrlString
-        self.releaseDate = releaseDate
-        self.genre = genre
+    public init(id: String, appleMusicAlbumDataData: Data, rating: Double? = nil) {
+        self.id = id
+        self.appleMusicAlbumDataData = appleMusicAlbumDataData
         self.rating = rating
         self.lastUpdated = Date()
+    }
+
+    @MainActor
+    public convenience init(id: String, appleMusicAlbumData: AppleMusicAlbumData, rating: Double? = nil) {
+        do {
+            let data = try JSONEncoder().encode(appleMusicAlbumData)
+            self.init(id: id, appleMusicAlbumDataData: data, rating: rating)
+        } catch {
+            fatalError("Failed to encode AppleMusicAlbumData for init: \(error)")
+        }
     }
     
     @MainActor public func toAlbumModel() -> AlbumModel {
         AlbumModel(
-            title: title,
-            artist: artist,
-            coverUrl: coverUrlString.flatMap { URL(string: $0) },
-            releaseDate: releaseDate,
-            genre: genre,
+            id: id,
+            appleMusicAlbumData: appleMusicAlbumData,
             rating: rating
         )
     }

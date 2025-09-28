@@ -31,12 +31,12 @@ struct AlbumDetailsView: View {
         .background(Color.backgroundColor)
         .onChange(of: myRating) { oldValue, newValue in
             Task {
-                await self.dataModel.saveAlbumRating(albumId: self.album.id.uuidString, rating: newValue)
+                await self.dataModel.saveAlbumRating(albumId: self.album.id, rating: newValue)
             }
         }
     }
 }
 
 #Preview {
-    AlbumDetailsView(album: AlbumModel(title: "Album title", artist: "Artist", coverUrl: nil, releaseDate: nil, genre: "Pop"))
+    AlbumDetailsView(album: AlbumModel.albumPlaceholder)
 }

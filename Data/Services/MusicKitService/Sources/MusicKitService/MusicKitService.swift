@@ -13,7 +13,7 @@ import Models
 
 public protocol MusicKitServiceProtocol: Sendable {
     func requestMusicAuthorization() async -> MusicAuthorization.Status
-    func fetchAlbum(by id: String) async throws -> AlbumModel?
+    func fetchAlbumData(by id: String) async throws -> AppleMusicAlbumData?
 }
 
 public actor MusicKitService: MusicKitServiceProtocol {
@@ -35,7 +35,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
         return MusicItemID(stringID)
     }
     
-    public func fetchAlbum(by id: String) async throws -> AlbumModel? {
+    public func fetchAlbumData(by id: String) async throws -> AppleMusicAlbumData? {
         let musicId = createMusicItemID(from: id)
         var request = MusicCatalogResourceRequest<Album>(matching: \.id, equalTo: musicId)
         
@@ -47,14 +47,11 @@ public actor MusicKitService: MusicKitServiceProtocol {
             let coverUrl = album.artwork?.url(width: 300, height: 300)
             
             let genre: String? = album.genreNames.first
-            return await AlbumModel(
-                title: album.title,
-                artist: album.artistName,
-                coverUrl: coverUrl,
-                releaseDate: album.releaseDate,
-                genre: genre,
-                rating: 7.8
-            )
+            return await AppleMusicAlbumData(title: album.title,
+                                             artist: album.artistName,
+                                             coverUrl: coverUrl,
+                                             releaseDate: album.releaseDate,
+                                             genre: genre)
         } else {
             return nil
         }
