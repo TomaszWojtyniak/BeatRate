@@ -15,6 +15,7 @@ import SwiftDataManager
 
 public protocol HomeRepositoryProtocol: Sendable {
     func fetchHomeSections() async throws -> [HomeSection]
+    func saveAlbumRating(albumId: String, rating: Double) async throws
 }
 
 public actor HomeRepository: HomeRepositoryProtocol {
@@ -85,5 +86,9 @@ public actor HomeRepository: HomeRepositoryProtocol {
         // Update the cached sections
         self.homeSections = newHomeSections
         return self.homeSections
+    }
+    
+    public func saveAlbumRating(albumId: String, rating: Double) async throws {
+        
     }
 }

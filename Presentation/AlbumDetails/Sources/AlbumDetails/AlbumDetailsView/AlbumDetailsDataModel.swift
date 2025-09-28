@@ -6,16 +6,22 @@
 //
 
 import Foundation
+import HomeUseCases
 
 @MainActor
 @Observable
 final class AlbumDetailsDataModel {
+    private let getAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol
     
-    init() {
-        
+    init(getAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol = GetAlbumDetailsUseCase()) {
+        self.getAlbumDetailsUseCase = getAlbumDetailsUseCase
     }
     
     func saveAlbumRating(albumId: String, rating: Double) async {
-        
+        do {
+            try await self.getAlbumDetailsUseCase.saveAlbumRating(albumId: albumId, rating: rating)
+        } catch {
+            
+        }
     }
 }
