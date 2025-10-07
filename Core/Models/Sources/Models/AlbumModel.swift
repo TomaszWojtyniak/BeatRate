@@ -10,12 +10,12 @@ import SwiftUI
 public struct AlbumModel: Identifiable, Hashable, Sendable {
     public var id: String
     public let appleMusicAlbumData: AppleMusicAlbumData
-    public let rating: Double?
-    
-    public init(id: String, appleMusicAlbumData: AppleMusicAlbumData, rating: Double?) {
+    public let firebaseAlbumData: FirebaseAlbumData?
+
+    public init(id: String, appleMusicAlbumData: AppleMusicAlbumData, firebaseAlbumData: FirebaseAlbumData?) {
         self.id = id
         self.appleMusicAlbumData = appleMusicAlbumData
-        self.rating = rating
+        self.firebaseAlbumData = firebaseAlbumData
     }
     
     public static func == (lhs: AlbumModel, rhs: AlbumModel) -> Bool {
@@ -29,6 +29,6 @@ public struct AlbumModel: Identifiable, Hashable, Sendable {
 
 extension AlbumModel {
     public static var albumPlaceholder: Self {
-        AlbumModel(id: "1", appleMusicAlbumData: AppleMusicAlbumData(title: "Name", artist: "Artist", coverUrl: nil, releaseDate: nil, genre: nil), rating: nil)
+        AlbumModel(id: "1", appleMusicAlbumData: AppleMusicAlbumData(title: "Name", artist: "Artist", coverUrl: nil, releaseDate: nil, genre: nil), firebaseAlbumData: nil)
     }
 }

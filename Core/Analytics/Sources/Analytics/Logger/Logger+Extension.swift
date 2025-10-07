@@ -17,9 +17,11 @@ public extension Logger {
     static let homeRepository = Logger(subsystem: subsystem, category: "homeRepository")
     
     static let musicRepository = Logger(subsystem: subsystem, category: "musicRepository")
-    
+
+    static let musicService = Logger(subsystem: subsystem, category: "musicKit")
+
     static let loginRepository = Logger(subsystem: subsystem, category: "loginRepository")
-    
+
     static let firebaseService = Logger(subsystem: subsystem, category: "firebaseService")
     
     static let home = Logger(subsystem: subsystem, category: "home")

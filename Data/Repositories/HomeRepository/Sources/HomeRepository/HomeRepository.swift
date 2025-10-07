@@ -64,11 +64,36 @@ public actor HomeRepository: HomeRepositoryProtocol {
                     if let cachedAlbum = try await swiftDataManager.getCachedAlbum(id: albumId) {
                         albumModels.append(cachedAlbum)
                     } else {
-                        // Fetch from MusicKit if not in cache
-                        let appleMusicAlbum = try await self.musicRepository.getAlbumDataById(albumId)
-                        let album = await AlbumModel(id: albumId, appleMusicAlbumData: appleMusicAlbum, rating: nil)
-                        albumModels.append(album)
+                        // Fetch from MusicKit and Firebase in parallel
+                        async let appleMusicAlbumTask = self.musicRepository.getAlbumDataById(albumId)
+                        async let firebaseAlbumDataTask = self.databaseFirebaseService.fetchAlbumData(albumId: albumId)
+
+                        let musicData = try await appleMusicAlbumTask
+                        let firebaseData = try await firebaseAlbumDataTask
                         
+                        guard let firebaseData else {
+                            //TODO: Add album from sections to albums in firebase
+                            continue
+                        }
+
+                        let album = await AlbumModel(
+                            id: albumId,
+                            appleMusicAlbumData: musicData,
+                            firebaseAlbumData: firebaseData
+                        )
+                        
+                        let firebaseTitle = await album.firebaseAlbumData?.title
+                        let firebaseArtist = await album.firebaseAlbumData?.artist
+                        let musicTitle = await album.appleMusicAlbumData.title
+                        let musicArtist = await album.appleMusicAlbumData.artist
+
+                        if firebaseTitle != musicTitle || firebaseArtist != musicArtist {
+                            Logger.homeRepository.error("Wrong album data for album id: \(albumId)")
+                            continue
+                        }
+
+                        albumModels.append(album)
+
                         // Cache the fetched album
                         try await swiftDataManager.cacheAlbum(id: albumId, album: album)
                     }

@@ -49,7 +49,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         let cachedAlbum = CachedAlbum(
             id: id,
             appleMusicAlbumData: album.appleMusicAlbumData,
-            rating: album.rating
+            firebaseAlbumData: album.firebaseAlbumData
         )
         context.insert(cachedAlbum)
         try context.save()
@@ -81,7 +81,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
                 let cachedAlbum = existingAlbum ?? CachedAlbum(
                     id: albumId,
                     appleMusicAlbumData: album.appleMusicAlbumData,
-                    rating: album.rating
+                    firebaseAlbumData: album.firebaseAlbumData
                 )
                 
                 if existingAlbum == nil {

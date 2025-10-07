@@ -16,7 +16,7 @@ struct AlbumDetailsTilesView: View {
     var body: some View {
         HStack(spacing: 25) {
 
-            if let rating = album.rating {
+            if let rating = album.firebaseAlbumData?.avgRating {
                 VStack(spacing: 10) {
                     Text("Rating")
                         .font(.system(.caption, design: .rounded, weight: .medium))
