@@ -13,6 +13,10 @@ import MusicRepository
 import FirebaseService
 import SwiftDataManager
 
+private enum HomeRepositoryError: Error {
+    case userIdMissing
+}
+
 public protocol HomeRepositoryProtocol: Sendable {
     func fetchHomeSections() async throws -> [HomeSection]
     func saveAlbumRating(albumId: String, rating: Double) async throws
@@ -131,6 +135,14 @@ public actor HomeRepository: HomeRepositoryProtocol {
     }
     
     public func saveAlbumRating(albumId: String, rating: Double) async throws {
-        
+        guard let currentUserId = try await swiftDataManager.getCurrentUserId(), !currentUserId.isEmpty else {
+            Logger.homeRepository.error("Cannot save rating: User not logged in")
+            throw HomeRepositoryError.userIdMissing
+        }
+        try await databaseFirebaseService.saveUserRating(userId: currentUserId, albumId: albumId, rating: rating)
+        // Invalidate cache to force refresh with new rating data on next fetch
+        try await swiftDataManager.clearCache()
+
+        Logger.homeRepository.info("Saved rating \(rating) for album: \(albumId), user: \(currentUserId)")
     }
 }

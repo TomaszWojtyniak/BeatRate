@@ -15,6 +15,8 @@ public protocol DatabaseFirebaseServiceProtocol: Sendable {
     func fetchSections() async throws -> [FirebaseAlbumSection]
     func fetchAlbumData(albumId: String) async throws -> FirebaseAlbumData?
     func saveAlbumData(albumId: String, albumData: FirebaseAlbumData) async throws
+    func getUserRating(userId: String, albumId: String) async throws -> Double?
+    func saveUserRating(userId: String, albumId: String, rating: Double) async throws
 }
 
 public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
@@ -70,6 +72,55 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
 
         try await ref.setValue(json)
         Logger.firebaseService.info("Saved album data to Firebase for album: \(albumId)")
+    }
+
+    @MainActor
+    public func getUserRating(userId: String, albumId: String) async throws -> Double? {
+        let ref = Database.database().reference()
+            .child("user_ratings")
+            .child(userId)
+            .child(albumId)
+
+        let snapshot = try await ref.getData()
+
+        guard snapshot.exists(), let rating = snapshot.value as? Double else {
+            Logger.firebaseService.info("No user rating found for user: \(userId), album: \(albumId)")
+            return nil
+        }
+
+        Logger.firebaseService.info("Fetched user rating for user: \(userId), album: \(albumId)")
+        return rating
+    }
+
+    @MainActor
+    public func saveUserRating(userId: String, albumId: String, rating: Double) async throws {
+        let db = Database.database().reference()
+
+        // 1. Save to user_ratings/{userId}/{albumId}
+        let userRatingRef = db.child("user_ratings").child(userId).child(albumId)
+        try await userRatingRef.setValue(rating)
+
+        // 2. Save to album_ratings/{albumId}/{userId}
+        let albumRatingRef = db.child("album_ratings").child(albumId).child(userId)
+        try await albumRatingRef.setValue(rating)
+
+        // 3. Recalculate album average rating
+        let allRatingsRef = db.child("album_ratings").child(albumId)
+        let snapshot = try await allRatingsRef.getData()
+
+        guard let ratingsDict = snapshot.value as? [String: Double] else {
+            Logger.firebaseService.error("Failed to fetch ratings for album: \(albumId)")
+            return
+        }
+
+        let ratings = Array(ratingsDict.values)
+        let avgRating = ratings.reduce(0.0, +) / Double(ratings.count)
+        let ratingCount = ratings.count
+
+        // 4. Update album avgRating and ratingCount
+        let albumRef = db.child("albums").child(albumId)
+        try await albumRef.child("avgRating").setValue(avgRating)
+        try await albumRef.child("ratingCount").setValue(ratingCount)
     }
 }
 

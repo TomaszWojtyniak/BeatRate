@@ -158,6 +158,11 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         guard let user = try? await getCurrentUser() else { return false }
         return user.isLoggedIn
     }
+
+    public func getCurrentUserId() async throws -> String? {
+        guard let user = try await getCurrentUser() else { return nil }
+        return user.userId
+    }
 }
 
 

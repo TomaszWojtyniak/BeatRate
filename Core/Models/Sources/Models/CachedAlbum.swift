@@ -54,24 +54,26 @@ public final class CachedAlbum {
         }
     }
 
+    public var userRating: Double?
     public var lastUpdated: Date
 
     @Relationship(inverse: \CachedSection.albums)
     public var sections: [CachedSection]?
-    
-    public init(id: String, appleMusicAlbumDataData: Data, firebaseAlbumDataData: Data? = nil) {
+
+    public init(id: String, appleMusicAlbumDataData: Data, firebaseAlbumDataData: Data? = nil, userRating: Double? = nil) {
         self.id = id
         self.appleMusicAlbumDataData = appleMusicAlbumDataData
         self.firebaseAlbumDataData = firebaseAlbumDataData
+        self.userRating = userRating
         self.lastUpdated = Date()
     }
 
     @MainActor
-    public convenience init(id: String, appleMusicAlbumData: AppleMusicAlbumData, firebaseAlbumData: FirebaseAlbumData? = nil) {
+    public convenience init(id: String, appleMusicAlbumData: AppleMusicAlbumData, firebaseAlbumData: FirebaseAlbumData? = nil, userRating: Double? = nil) {
         do {
             let musicData = try JSONEncoder().encode(appleMusicAlbumData)
             let firebaseData = firebaseAlbumData != nil ? try JSONEncoder().encode(firebaseAlbumData) : nil
-            self.init(id: id, appleMusicAlbumDataData: musicData, firebaseAlbumDataData: firebaseData)
+            self.init(id: id, appleMusicAlbumDataData: musicData, firebaseAlbumDataData: firebaseData, userRating: userRating)
         } catch {
             fatalError("Failed to encode album data for init: \(error)")
         }
@@ -81,7 +83,8 @@ public final class CachedAlbum {
         AlbumModel(
             id: id,
             appleMusicAlbumData: appleMusicAlbumData,
-            firebaseAlbumData: firebaseAlbumData
+            firebaseAlbumData: firebaseAlbumData,
+            userRating: userRating
         )
     }
 }

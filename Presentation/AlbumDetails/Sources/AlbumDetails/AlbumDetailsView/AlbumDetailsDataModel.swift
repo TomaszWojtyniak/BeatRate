@@ -7,6 +7,7 @@
 
 import Foundation
 import HomeUseCases
+import OSLog
 
 @MainActor
 @Observable
@@ -20,8 +21,8 @@ final class AlbumDetailsDataModel {
     func saveAlbumRating(albumId: String, rating: Double) async {
         do {
             try await self.getAlbumDetailsUseCase.saveAlbumRating(albumId: albumId, rating: rating)
-        } catch {
-            
+        } catch let error {
+            Logger.albumDetails.error("error saving album: \(error)")
         }
     }
 }
