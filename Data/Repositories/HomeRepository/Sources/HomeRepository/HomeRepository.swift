@@ -69,19 +69,35 @@ public actor HomeRepository: HomeRepositoryProtocol {
                         async let firebaseAlbumDataTask = self.databaseFirebaseService.fetchAlbumData(albumId: albumId)
 
                         let musicData = try await appleMusicAlbumTask
-                        let firebaseData = try await firebaseAlbumDataTask
-                        
-                        guard let firebaseData else {
-                            //TODO: Add album from sections to albums in firebase
+                        var firebaseData = try await firebaseAlbumDataTask
+
+                        // If no Firebase data exists, create it with default values
+                        if firebaseData == nil {
+                            Logger.homeRepository.info("Creating new Firebase album entry for: \(albumId)")
+                            let newFirebaseData = await FirebaseAlbumData(
+                                artist: musicData.artist,
+                                avgRating: nil,
+                                createdAt: Int64(Date().timeIntervalSince1970 * 1000),
+                                ratingCount: 0,
+                                title: musicData.title
+                            )
+
+                            // Save to Firebase
+                            try await self.databaseFirebaseService.saveAlbumData(albumId: albumId, albumData: newFirebaseData)
+                            firebaseData = newFirebaseData
+                        }
+
+                        guard let validFirebaseData = firebaseData else {
+                            Logger.homeRepository.error("Failed to create Firebase data for album: \(albumId)")
                             continue
                         }
 
                         let album = await AlbumModel(
                             id: albumId,
                             appleMusicAlbumData: musicData,
-                            firebaseAlbumData: firebaseData
+                            firebaseAlbumData: validFirebaseData
                         )
-                        
+
                         let firebaseTitle = await album.firebaseAlbumData?.title
                         let firebaseArtist = await album.firebaseAlbumData?.artist
                         let musicTitle = await album.appleMusicAlbumData.title
