@@ -20,6 +20,7 @@ public protocol SwiftDataManagerProtocol: Sendable {
     
     // User management methods
     func getCurrentUser() async throws -> User?
+    func getCurrentUserId() async throws -> String?
     func setUserLoggedIn(userId: String) async throws
     func setUserLoggedOut() async throws
     func isUserLoggedIn() async -> Bool

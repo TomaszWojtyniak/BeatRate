@@ -51,5 +51,5 @@ struct AlbumDetailsMainSectionView: View {
 }
 
 #Preview {
-    AlbumDetailsView(album: AlbumModel.albumPlaceholder)
+    AlbumDetailsMainSectionView(album: AlbumModel.albumPlaceholder)
 }
