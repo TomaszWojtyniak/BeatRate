@@ -21,7 +21,7 @@ struct AlbumNotFoundError: Error {
 
 public protocol MusicRepositoryProtocol: Sendable {
     func requestMusicAuthorization() async -> Bool
-    func getAlbumById(_ id: String) async throws -> AlbumModel
+    func getAlbumDataById(_ id: String) async throws -> AppleMusicAlbumData
 }
 
 public actor MusicRepository: MusicRepositoryProtocol {
@@ -61,8 +61,8 @@ public actor MusicRepository: MusicRepositoryProtocol {
         }
     }
     
-    public func getAlbumById(_ id: String) async throws -> AlbumModel {
-        guard let album = try await self.musicKitService.fetchAlbum(by: id) else {
+    public func getAlbumDataById(_ id: String) async throws -> AppleMusicAlbumData {
+        guard let album = try await self.musicKitService.fetchAlbumData(by: id) else {
             throw AlbumNotFoundError(id: id)
         }
         return album

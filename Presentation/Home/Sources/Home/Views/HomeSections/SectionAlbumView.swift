@@ -15,7 +15,7 @@ struct SectionAlbumView: View {
     
     var body: some View {
         VStack(alignment: .leading) {
-            AsyncImage(url: album.coverUrl) { image in
+            AsyncImage(url: album.appleMusicAlbumData.coverUrl) { image in
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -31,13 +31,13 @@ struct SectionAlbumView: View {
             .frame(width: 150, height: 150)
             .cornerRadius(10)
             
-            Text(album.title)
+            Text(album.appleMusicAlbumData.title)
                 .font(.caption)
                 .lineLimit(1)
                 .truncationMode(.tail)
                 .frame(width: 150, alignment: .leading)
             
-            Text(album.artist)
+            Text(album.appleMusicAlbumData.artist)
                 .font(.system(.caption2, weight: .light))
                 .lineLimit(1)
                 .truncationMode(.tail)
@@ -47,5 +47,5 @@ struct SectionAlbumView: View {
 }
 
 #Preview {
-    SectionAlbumView(album: AlbumModel(title: "Album title", artist: "Artist", coverUrl: nil, releaseDate: nil, genre: nil))
+    SectionAlbumView(album: AlbumModel.albumPlaceholder)
 }

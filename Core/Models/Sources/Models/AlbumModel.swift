@@ -8,21 +8,29 @@
 import SwiftUI
 
 public struct AlbumModel: Identifiable, Hashable, Sendable {
-    public let id = UUID()
-    public let title: String
-    public let artist: String
-    public let coverUrl: URL?
-    public let releaseDate: Date?
-    public let genre: String?
-    public let rating: Double?
+    public var id: String
+    public let appleMusicAlbumData: AppleMusicAlbumData
+    public let firebaseAlbumData: FirebaseAlbumData?
+    public let userRating: Double?
+
+    public init(id: String, appleMusicAlbumData: AppleMusicAlbumData, firebaseAlbumData: FirebaseAlbumData?, userRating: Double? = nil) {
+        self.id = id
+        self.appleMusicAlbumData = appleMusicAlbumData
+        self.firebaseAlbumData = firebaseAlbumData
+        self.userRating = userRating
+    }
     
+    public static func == (lhs: AlbumModel, rhs: AlbumModel) -> Bool {
+        lhs.id == rhs.id
+    }
     
-    public init(title: String, artist: String, coverUrl: URL?, releaseDate: Date?, genre: String?, rating: Double? = nil) {
-        self.title = title
-        self.artist = artist
-        self.coverUrl = coverUrl
-        self.releaseDate = releaseDate
-        self.genre = genre
-        self.rating = rating
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
+extension AlbumModel {
+    public static var albumPlaceholder: Self {
+        AlbumModel(id: "1", appleMusicAlbumData: AppleMusicAlbumData(title: "Name", artist: "Artist", coverUrl: nil, releaseDate: nil, genre: nil), firebaseAlbumData: nil)
     }
 }

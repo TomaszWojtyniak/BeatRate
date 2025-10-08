@@ -14,7 +14,8 @@ let package = Package(
             targets: ["LoginUseCases"]),
     ],
     dependencies: [
-        .package(path: "../../Data/Repositories/LoginRepository")
+        .package(path: "../../Data/Repositories/LoginRepository"),
+        .package(path: "../../Data/Services/SwiftDataManager")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -22,7 +23,8 @@ let package = Package(
         .target(
             name: "LoginUseCases",
             dependencies: [
-                "LoginRepository"
+                "LoginRepository",
+                "SwiftDataManager"
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)

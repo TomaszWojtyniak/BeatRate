@@ -14,7 +14,6 @@ import Splash
 
 @MainActor
 struct AppView: View {
-    @Environment(\.modelContext) private var modelContext
     @State private var dataModel = AppDataModel()
     
     @Query private var user: [User]
@@ -31,11 +30,10 @@ struct AppView: View {
                 }
                 .transition(.opacity)
                 .onAppear {
-                    dataModel.setUserId(currentUser.userId)
+                    dataModel.setUserId()
                 }
             } else {
                 TabBarView(selection: $selection)
-                    .environment(\.modelContext, dataModel.context())
             }
         } else {
             LoginNavigationStack()

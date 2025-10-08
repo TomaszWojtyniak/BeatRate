@@ -8,9 +8,10 @@
 import Foundation
 import SwiftDataManager
 import SwiftData
+import Models
 
 public protocol GetAppUseCaseProtocol: Sendable {
-    @MainActor func context() -> ModelContext
+    func getCurrentUser() async throws -> User?
 }
 
 public actor GetAppUseCase: GetAppUseCaseProtocol {
@@ -20,7 +21,8 @@ public actor GetAppUseCase: GetAppUseCaseProtocol {
         self.swiftDataManager = swiftDataManager
     }
     
-    @MainActor public func context() -> ModelContext {
-        self.swiftDataManager.context
+    @MainActor
+    public func getCurrentUser() async throws -> User? {
+        try await self.swiftDataManager.getCurrentUser()
     }
 }

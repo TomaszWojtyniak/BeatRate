@@ -13,7 +13,6 @@ import SwiftDataManager
 
 public protocol GetHomeUseCaseProtocol: Sendable {
     func authorizeMusicKit() async -> Bool
-    func getAlbumById(_ id: String) async throws -> AlbumModel
     func fetchHomeSections() async throws -> [HomeSection]
     func isCacheValid() async -> Bool
     func getCachedSections() async throws -> [HomeSection]
@@ -34,10 +33,6 @@ public actor GetHomeUseCase: GetHomeUseCaseProtocol {
     
     public func authorizeMusicKit() async -> Bool {
         return await musicRepository.requestMusicAuthorization()
-    }
-    
-    public func getAlbumById(_ id: String) async throws -> AlbumModel {
-        return try await musicRepository.getAlbumById(id)
     }
     
     public func fetchHomeSections() async throws -> [HomeSection] {

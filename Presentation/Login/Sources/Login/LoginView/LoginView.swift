@@ -15,9 +15,6 @@ import SwiftData
 
 @MainActor
 struct LoginView: View {
-    @Environment(\.modelContext) private var context
-    @Query private var user: [User]
-    
     @State private var dataModel: LoginDataModel = LoginDataModel()
     
     var body: some View {
@@ -50,17 +47,11 @@ struct LoginView: View {
                         do {
                             let userId = try await self.dataModel.handleLoginFlow(authResult: authResult)
                             Logger.login.debug("User login successful")
-                            if let user = user.first {
-                                Logger.login.debug("User model exist, changing values")
-                                user.isLoggedIn = true
-                                user.userId = userId
-                            } else {
-                                Logger.login.debug("User dont exist, creating a new one")
-                                let newUser = User(isLoggedIn: true, userId: userId)
-                                context.insert(newUser)
-                                Logger.login.debug("New User model created")
-                            }
+                            
+                            try await self.dataModel.setUserLoggedIn(userId: userId)
+                            Logger.login.debug("User login state saved successfully")
                         } catch let error {
+                            Logger.login.error("Failed to save user login state: \(error)")
                             await self.dataModel.handleLoginFailure(error: error)
                         }
                     case .failure(let error):

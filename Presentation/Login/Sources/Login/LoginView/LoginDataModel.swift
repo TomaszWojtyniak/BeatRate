@@ -32,6 +32,10 @@ final class LoginDataModel {
         self.crashLogger = crashLogger
     }
     
+    func setUserLoggedIn(userId: String) async throws {
+        try await self.postLoginUseCase.setUserLoggedIn(userId: userId)
+    }
+    
     func handleLoginFlow(authResult: ASAuthorization) async throws -> String {
         return try await self.postLoginUseCase.setLoginData(authResult: authResult)
     }
