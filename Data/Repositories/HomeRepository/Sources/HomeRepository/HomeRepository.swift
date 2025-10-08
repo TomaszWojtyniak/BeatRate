@@ -141,8 +141,21 @@ public actor HomeRepository: HomeRepositoryProtocol {
             return nil
         }
 
+        // Check cache first (7-day validity)
+        if let cachedRating = try await swiftDataManager.getCachedUserRating(albumId: albumId) {
+            Logger.homeRepository.info("Returning cached user rating for album: \(albumId)")
+            return cachedRating
+        }
+
+        // Fetch from Firebase if not in cache or expired
         let rating = try await databaseFirebaseService.getUserRating(userId: currentUserId, albumId: albumId)
-        Logger.homeRepository.info("Fetched user rating for album: \(albumId), rating: \(rating?.description ?? "none")")
+        Logger.homeRepository.info("Fetched user rating from Firebase for album: \(albumId), rating: \(rating?.description ?? "none")")
+
+        // Cache the fetched rating
+        if let rating = rating {
+            try await swiftDataManager.cacheUserRating(albumId: albumId, rating: rating)
+        }
+
         return rating
     }
 
@@ -152,8 +165,15 @@ public actor HomeRepository: HomeRepositoryProtocol {
             throw HomeRepositoryError.userIdMissing
         }
         try await databaseFirebaseService.saveUserRating(userId: currentUserId, albumId: albumId, rating: rating)
-        // Invalidate cache to force refresh with new rating data on next fetch
-        try await swiftDataManager.clearCache()
+
+        // Update cache with new rating
+        try await swiftDataManager.cacheUserRating(albumId: albumId, rating: rating)
+
+        // Update only the specific album in cache with new Firebase data
+        if let updatedFirebaseData = try await databaseFirebaseService.fetchAlbumData(albumId: albumId) {
+            try await swiftDataManager.updateCachedAlbum(albumId: albumId, firebaseData: updatedFirebaseData)
+            Logger.homeRepository.info("Updated cache for album: \(albumId)")
+        }
 
         Logger.homeRepository.info("Saved rating \(rating) for album: \(albumId), user: \(currentUserId)")
     }

@@ -15,6 +15,9 @@ public final class CachedAlbum {
     @Attribute(.externalStorage) public var appleMusicAlbumDataData: Data
     @Attribute(.externalStorage) public var firebaseAlbumDataData: Data?
 
+    public var userRating: Double?
+    public var userRatingUpdatedAt: Date?
+
     @MainActor
     public var appleMusicAlbumData: AppleMusicAlbumData {
         get {

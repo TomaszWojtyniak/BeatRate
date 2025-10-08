@@ -15,9 +15,12 @@ public protocol SwiftDataManagerProtocol: Sendable {
     func cacheSections(_ sections: [HomeSection]) async throws
     func getCachedSections() async throws -> [HomeSection]
     func getCachedAlbum(id: String) async throws -> AlbumModel?
+    func updateCachedAlbum(albumId: String, firebaseData: FirebaseAlbumData) async throws
+    func getCachedUserRating(albumId: String) async throws -> Double?
+    func cacheUserRating(albumId: String, rating: Double) async throws
     func clearCache() async throws
     func isCacheValid() async -> Bool
-    
+
     // User management methods
     func getCurrentUser() async throws -> User?
     func getCurrentUserId() async throws -> String?
@@ -112,7 +115,55 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         )
         return try context.fetch(descriptor).first?.toAlbumModel()
     }
-    
+
+    public func updateCachedAlbum(albumId: String, firebaseData: FirebaseAlbumData) async throws {
+        let descriptor = FetchDescriptor<CachedAlbum>(
+            predicate: #Predicate { $0.id == albumId }
+        )
+
+        guard let cachedAlbum = try context.fetch(descriptor).first else {
+            return // Album not in cache, nothing to update
+        }
+
+        cachedAlbum.firebaseAlbumData = firebaseData
+        // Keep lastUpdated unchanged so cache remains valid
+        try context.save()
+    }
+
+    public func getCachedUserRating(albumId: String) async throws -> Double? {
+        let descriptor = FetchDescriptor<CachedAlbum>(
+            predicate: #Predicate { $0.id == albumId }
+        )
+
+        guard let cachedAlbum = try context.fetch(descriptor).first else {
+            return nil
+        }
+
+        // Check if user rating cache is valid (7 days)
+        if let updatedAt = cachedAlbum.userRatingUpdatedAt {
+            let sevenDaysAgo = Date().addingTimeInterval(-604800) // 7 days in seconds
+            if updatedAt > sevenDaysAgo {
+                return cachedAlbum.userRating
+            }
+        }
+
+        return nil
+    }
+
+    public func cacheUserRating(albumId: String, rating: Double) async throws {
+        let descriptor = FetchDescriptor<CachedAlbum>(
+            predicate: #Predicate { $0.id == albumId }
+        )
+
+        guard let cachedAlbum = try context.fetch(descriptor).first else {
+            return // Album not in cache, nothing to update
+        }
+
+        cachedAlbum.userRating = rating
+        cachedAlbum.userRatingUpdatedAt = Date()
+        try context.save()
+    }
+
     public func clearCache() async throws {
         try context.delete(model: CachedAlbum.self)
         try context.delete(model: CachedSection.self)

@@ -13,18 +13,19 @@ import OSLog
 @Observable
 final class AlbumDetailsDataModel {
     private let getAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol
-    
+
     var myRating: Double = 0
-    var isLoading = false
+    var isFetchingRating = false
     var hasLoadedInitialRating = false
+    private var previousRating: Double = 0
 
     init(getAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol = GetAlbumDetailsUseCase()) {
         self.getAlbumDetailsUseCase = getAlbumDetailsUseCase
     }
 
     func fetchUserRating(albumId: String) async -> Double? {
-        isLoading = true
-        defer { isLoading = false }
+        isFetchingRating = true
+        defer { isFetchingRating = false }
 
         do {
             return try await self.getAlbumDetailsUseCase.getUserRating(albumId: albumId)
@@ -35,13 +36,16 @@ final class AlbumDetailsDataModel {
     }
 
     func saveAlbumRating(albumId: String, rating: Double) async {
-        isLoading = true
-        defer { isLoading = false }
+        // Store previous rating for rollback in case of error
+        previousRating = myRating
 
         do {
             try await self.getAlbumDetailsUseCase.saveAlbumRating(albumId: albumId, rating: rating)
+            Logger.albumDetails.info("Successfully saved rating: \(rating)")
         } catch let error {
             Logger.albumDetails.error("error saving album: \(error)")
+            // Rollback to previous rating on error
+            myRating = previousRating
         }
     }
 }

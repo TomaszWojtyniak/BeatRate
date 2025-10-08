@@ -29,7 +29,7 @@ struct AlbumDetailsView: View {
         }
         .background(Color.backgroundColor)
         .loading(
-            dataModel.isLoading
+            dataModel.isFetchingRating
         )
         .task {
             if let userRating = await dataModel.fetchUserRating(albumId: album.id) {
