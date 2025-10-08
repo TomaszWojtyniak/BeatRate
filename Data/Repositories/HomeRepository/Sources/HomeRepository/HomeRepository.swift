@@ -21,6 +21,7 @@ public protocol HomeRepositoryProtocol: Sendable {
     func fetchHomeSections() async throws -> [HomeSection]
     func getUserRating(albumId: String) async throws -> Double?
     func saveAlbumRating(albumId: String, rating: Double) async throws
+    func getCachedAlbum(albumId: String) async throws -> AlbumModel?
 }
 
 public actor HomeRepository: HomeRepositoryProtocol {
@@ -83,6 +84,10 @@ public actor HomeRepository: HomeRepositoryProtocol {
 
         // Write to Firebase and update cache
         try await writeAndCacheUserRating(albumId: albumId, userId: currentUserId, rating: rating)
+    }
+
+    public func getCachedAlbum(albumId: String) async throws -> AlbumModel? {
+        return try await swiftDataManager.getCachedAlbum(id: albumId)
     }
     
     // MARK: - Private Helper Methods

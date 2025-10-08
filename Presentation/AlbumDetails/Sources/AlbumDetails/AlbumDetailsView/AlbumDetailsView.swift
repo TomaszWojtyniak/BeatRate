@@ -11,15 +11,20 @@ import CoreUI
 
 struct AlbumDetailsView: View {
 
-    let album: AlbumModel
-    @State private var dataModel = AlbumDetailsDataModel()
+    let _album: AlbumModel
+    @State private var dataModel: AlbumDetailsDataModel
+
+    init(album: AlbumModel) {
+        self._album = album
+        self._dataModel = State(initialValue: AlbumDetailsDataModel(album: album))
+    }
 
     var body: some View {
         ScrollView {
             VStack {
-                AlbumDetailsMainSectionView(album: album)
+                AlbumDetailsMainSectionView(album: dataModel.album)
 
-                AlbumDetailsTilesView(album: album)
+                AlbumDetailsTilesView(album: dataModel.album)
                     .padding(.top, 20)
 
                 RateAlbumView(myRating: $dataModel.myRating)
@@ -29,10 +34,10 @@ struct AlbumDetailsView: View {
         }
         .background(Color.backgroundColor)
         .loading(
-            dataModel.isFetchingRating
+            dataModel.isLoading
         )
         .task {
-            if let userRating = await dataModel.fetchUserRating(albumId: album.id) {
+            if let userRating = await dataModel.fetchUserRating() {
                 dataModel.myRating = userRating
             }
             dataModel.hasLoadedInitialRating = true
@@ -42,7 +47,7 @@ struct AlbumDetailsView: View {
             guard dataModel.hasLoadedInitialRating else { return }
 
             Task {
-                await self.dataModel.saveAlbumRating(albumId: self.album.id, rating: newValue)
+                await self.dataModel.saveAlbumRating(rating: newValue)
             }
         }
     }
