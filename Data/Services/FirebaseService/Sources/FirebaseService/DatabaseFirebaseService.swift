@@ -108,9 +108,14 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
         let allRatingsRef = db.child("album_ratings").child(albumId)
         let snapshot = try await allRatingsRef.getData()
 
-        guard let ratingsDict = snapshot.value as? [String: Double] else {
-            Logger.firebaseService.error("Failed to fetch ratings for album: \(albumId)")
-            return
+        // Handle both existing ratings and first rating case
+        let ratingsDict: [String: Double]
+        if snapshot.exists(), let existingRatings = snapshot.value as? [String: Double] {
+            ratingsDict = existingRatings
+        } else {
+            // First rating for this album
+            ratingsDict = [userId: rating]
+            Logger.firebaseService.info("First rating for album: \(albumId)")
         }
 
         let ratings = Array(ratingsDict.values)
@@ -121,6 +126,8 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
         let albumRef = db.child("albums").child(albumId)
         try await albumRef.child("avgRating").setValue(avgRating)
         try await albumRef.child("ratingCount").setValue(ratingCount)
+
+        Logger.firebaseService.info("Saved rating \(rating) for album: \(albumId). Avg: \(avgRating), Count: \(ratingCount)")
     }
 }
 

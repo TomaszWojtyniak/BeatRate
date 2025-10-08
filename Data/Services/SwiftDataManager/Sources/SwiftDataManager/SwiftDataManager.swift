@@ -68,22 +68,22 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
             
             var cachedAlbums: [CachedAlbum] = []
             for album in section.albums {
-                // Generate albumId from title and artist
-                let albumId = "\(album.appleMusicAlbumData.title)_\(album.appleMusicAlbumData.artist)".replacingOccurrences(of: " ", with: "_")
-                
+                // Use actual album ID (Apple Music catalog ID)
+                let albumId = album.id
+
                 // Check if album already exists
                 let descriptor = FetchDescriptor<CachedAlbum>(
                     predicate: #Predicate { $0.id == albumId }
                 )
-                
+
                 let existingAlbum = try context.fetch(descriptor).first
-                
+
                 let cachedAlbum = existingAlbum ?? CachedAlbum(
                     id: albumId,
                     appleMusicAlbumData: album.appleMusicAlbumData,
                     firebaseAlbumData: album.firebaseAlbumData
                 )
-                
+
                 if existingAlbum == nil {
                     context.insert(cachedAlbum)
                 }
