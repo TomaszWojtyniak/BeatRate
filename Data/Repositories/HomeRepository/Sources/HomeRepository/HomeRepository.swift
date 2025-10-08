@@ -19,6 +19,7 @@ private enum HomeRepositoryError: Error {
 
 public protocol HomeRepositoryProtocol: Sendable {
     func fetchHomeSections() async throws -> [HomeSection]
+    func getUserRating(albumId: String) async throws -> Double?
     func saveAlbumRating(albumId: String, rating: Double) async throws
 }
 
@@ -134,6 +135,17 @@ public actor HomeRepository: HomeRepositoryProtocol {
         return self.homeSections
     }
     
+    public func getUserRating(albumId: String) async throws -> Double? {
+        guard let currentUserId = try await swiftDataManager.getCurrentUserId(), !currentUserId.isEmpty else {
+            Logger.homeRepository.info("Cannot get rating: User not logged in")
+            return nil
+        }
+
+        let rating = try await databaseFirebaseService.getUserRating(userId: currentUserId, albumId: albumId)
+        Logger.homeRepository.info("Fetched user rating for album: \(albumId), rating: \(rating?.description ?? "none")")
+        return rating
+    }
+
     public func saveAlbumRating(albumId: String, rating: Double) async throws {
         guard let currentUserId = try await swiftDataManager.getCurrentUserId(), !currentUserId.isEmpty else {
             Logger.homeRepository.error("Cannot save rating: User not logged in")
