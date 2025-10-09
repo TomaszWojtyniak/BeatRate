@@ -15,6 +15,9 @@ public final class CachedAlbum {
     @Attribute(.externalStorage) public var appleMusicAlbumDataData: Data
     @Attribute(.externalStorage) public var firebaseAlbumDataData: Data?
 
+    public var userRating: Double?
+    public var userRatingUpdatedAt: Date?
+
     @MainActor
     public var appleMusicAlbumData: AppleMusicAlbumData {
         get {
@@ -54,26 +57,24 @@ public final class CachedAlbum {
         }
     }
 
-    public var userRating: Double?
     public var lastUpdated: Date
 
     @Relationship(inverse: \CachedSection.albums)
     public var sections: [CachedSection]?
 
-    public init(id: String, appleMusicAlbumDataData: Data, firebaseAlbumDataData: Data? = nil, userRating: Double? = nil) {
+    public init(id: String, appleMusicAlbumDataData: Data, firebaseAlbumDataData: Data? = nil) {
         self.id = id
         self.appleMusicAlbumDataData = appleMusicAlbumDataData
         self.firebaseAlbumDataData = firebaseAlbumDataData
-        self.userRating = userRating
         self.lastUpdated = Date()
     }
 
     @MainActor
-    public convenience init(id: String, appleMusicAlbumData: AppleMusicAlbumData, firebaseAlbumData: FirebaseAlbumData? = nil, userRating: Double? = nil) {
+    public convenience init(id: String, appleMusicAlbumData: AppleMusicAlbumData, firebaseAlbumData: FirebaseAlbumData? = nil) {
         do {
             let musicData = try JSONEncoder().encode(appleMusicAlbumData)
             let firebaseData = firebaseAlbumData != nil ? try JSONEncoder().encode(firebaseAlbumData) : nil
-            self.init(id: id, appleMusicAlbumDataData: musicData, firebaseAlbumDataData: firebaseData, userRating: userRating)
+            self.init(id: id, appleMusicAlbumDataData: musicData, firebaseAlbumDataData: firebaseData)
         } catch {
             fatalError("Failed to encode album data for init: \(error)")
         }
@@ -83,8 +84,7 @@ public final class CachedAlbum {
         AlbumModel(
             id: id,
             appleMusicAlbumData: appleMusicAlbumData,
-            firebaseAlbumData: firebaseAlbumData,
-            userRating: userRating
+            firebaseAlbumData: firebaseAlbumData
         )
     }
 }

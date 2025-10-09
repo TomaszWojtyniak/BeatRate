@@ -16,25 +16,31 @@ struct AlbumDetailsTilesView: View {
     var body: some View {
         HStack(spacing: 25) {
 
-            if let rating = album.firebaseAlbumData?.avgRating {
-                VStack(spacing: 10) {
-                    Text("Rating")
-                        .font(.system(.caption, design: .rounded, weight: .medium))
-                        .foregroundColor(.secondary)
-                    
-                    HStack {
-                        Image(systemName: "star.fill")
-                            .foregroundColor(.yellow)
-                            .font(.title3)
+            VStack(spacing: 10) {
+                Text("Rating")
+                    .font(.system(.caption, design: .rounded, weight: .medium))
+                    .foregroundColor(.secondary)
+
+                HStack {
+                    Image(systemName: "star.fill")
+                        .foregroundColor(.yellow)
+                        .font(.title3)
+
+                    if let ratingCount = album.firebaseAlbumData?.ratingCount, ratingCount > 0,
+                       let rating = album.firebaseAlbumData?.avgRating {
                         Text(String(format: "%.1f", rating))
                             .font(.system(.title2, design: .rounded, weight: .bold))
                             .foregroundColor(.primary)
+                    } else {
+                        Text("-")
+                            .font(.system(.title2, design: .rounded, weight: .bold))
+                            .foregroundColor(.secondary)
                     }
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
-                .roundedMaterialBackground()
             }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+            .roundedMaterialBackground()
             
             if let releaseDate = album.appleMusicAlbumData.releaseDate {
                 VStack(spacing: 10) {

@@ -16,7 +16,7 @@ public protocol DatabaseFirebaseServiceProtocol: Sendable {
     func fetchAlbumData(albumId: String) async throws -> FirebaseAlbumData?
     func saveAlbumData(albumId: String, albumData: FirebaseAlbumData) async throws
     func getUserRating(userId: String, albumId: String) async throws -> Double?
-    func saveUserRating(userId: String, albumId: String, rating: Double) async throws
+    func saveUserRating(userId: String, albumId: String, rating: Double) async throws -> (avgRating: Double, ratingCount: Int)
 }
 
 public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
@@ -93,7 +93,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     @MainActor
-    public func saveUserRating(userId: String, albumId: String, rating: Double) async throws {
+    public func saveUserRating(userId: String, albumId: String, rating: Double) async throws -> (avgRating: Double, ratingCount: Int) {
         let db = Database.database().reference()
 
         // 1. Save to user_ratings/{userId}/{albumId}
@@ -128,6 +128,9 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
         try await albumRef.child("ratingCount").setValue(ratingCount)
 
         Logger.firebaseService.info("Saved rating \(rating) for album: \(albumId). Avg: \(avgRating), Count: \(ratingCount)")
+
+        // Return the calculated values
+        return (avgRating: avgRating, ratingCount: ratingCount)
     }
 }
 

@@ -9,9 +9,10 @@ import SwiftUI
 import CoreUI
 
 struct RateAlbumView: View {
-    
+
     @Binding var myRating: Double
-    
+    var onRatingFinalized: ((Double) -> Void)?
+
     var body: some View {
         VStack(spacing: 10) {
             HStack {
@@ -22,8 +23,8 @@ struct RateAlbumView: View {
                     .font(.system(.headline, weight: .semibold))
                 Spacer()
             }
-            
-            StarRatingView(rating: $myRating)
+
+            StarRatingView(rating: $myRating, onRatingFinalized: onRatingFinalized)
                 .padding(.vertical, 5)
         }
         .padding(20)
