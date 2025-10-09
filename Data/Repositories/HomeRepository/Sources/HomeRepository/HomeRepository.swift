@@ -247,13 +247,13 @@ public actor HomeRepository: HomeRepositoryProtocol {
         try await swiftDataManager.cacheUserRating(albumId: albumId, rating: rating)
 
         // Update cache with new avgRating and ratingCount (no extra fetch needed)
-        if let currentFirebaseData = try await databaseFirebaseService.fetchAlbumData(albumId: albumId) {
+        if let cachedAlbum = try await swiftDataManager.getCachedAlbum(id: albumId)?.firebaseAlbumData {
             let updatedFirebaseData = await FirebaseAlbumData(
-                artist: currentFirebaseData.artist,
+                artist: cachedAlbum.artist,
                 avgRating: avgRating,
-                createdAt: currentFirebaseData.createdAt,
+                createdAt: cachedAlbum.createdAt,
                 ratingCount: ratingCount,
-                title: currentFirebaseData.title
+                title: cachedAlbum.title
             )
             try await swiftDataManager.updateCachedAlbum(albumId: albumId, firebaseData: updatedFirebaseData)
         }
