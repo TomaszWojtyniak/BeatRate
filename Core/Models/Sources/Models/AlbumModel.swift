@@ -19,9 +19,11 @@ public struct AlbumModel: Identifiable, Hashable, Sendable {
     }
     
     public static func == (lhs: AlbumModel, rhs: AlbumModel) -> Bool {
-        lhs.id == rhs.id
+        lhs.id == rhs.id &&
+        lhs.firebaseAlbumData?.avgRating == rhs.firebaseAlbumData?.avgRating &&
+        lhs.firebaseAlbumData?.ratingCount == rhs.firebaseAlbumData?.ratingCount
     }
-    
+
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }

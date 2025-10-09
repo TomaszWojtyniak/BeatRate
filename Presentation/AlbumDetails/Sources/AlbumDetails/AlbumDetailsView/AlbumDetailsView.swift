@@ -31,8 +31,9 @@ struct AlbumDetailsView: View {
                     // Only save if initial rating has been loaded
                     guard dataModel.hasLoadedInitialRating else { return }
 
-                    Task {
-                        await self.dataModel.saveAlbumRating(rating: finalRating)
+                    // Use detached task to ensure save completes even if view is dismissed
+                    Task.detached { [dataModel] in
+                        await dataModel.saveAlbumRating(rating: finalRating)
                     }
                 }
                 .padding(.top, 20)

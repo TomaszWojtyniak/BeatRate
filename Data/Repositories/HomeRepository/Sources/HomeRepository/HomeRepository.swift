@@ -240,16 +240,24 @@ public actor HomeRepository: HomeRepositoryProtocol {
 
     /// Writes user rating to Firebase and updates cache (including recalculated album avgRating)
     private func writeAndCacheUserRating(albumId: String, userId: String, rating: Double) async throws {
-        try await databaseFirebaseService.saveUserRating(userId: userId, albumId: albumId, rating: rating)
+        // Save rating and get calculated avgRating/ratingCount back
+        let (avgRating, ratingCount) = try await databaseFirebaseService.saveUserRating(userId: userId, albumId: albumId, rating: rating)
 
         // Cache the user rating
         try await swiftDataManager.cacheUserRating(albumId: albumId, rating: rating)
 
-        // Fetch and cache updated album data (avgRating, ratingCount)
-        if let updatedFirebaseData = try await databaseFirebaseService.fetchAlbumData(albumId: albumId) {
+        // Update cache with new avgRating and ratingCount (no extra fetch needed)
+        if let currentFirebaseData = try await databaseFirebaseService.fetchAlbumData(albumId: albumId) {
+            let updatedFirebaseData = await FirebaseAlbumData(
+                artist: currentFirebaseData.artist,
+                avgRating: avgRating,
+                createdAt: currentFirebaseData.createdAt,
+                ratingCount: ratingCount,
+                title: currentFirebaseData.title
+            )
             try await swiftDataManager.updateCachedAlbum(albumId: albumId, firebaseData: updatedFirebaseData)
         }
 
-        Logger.homeRepository.info("Wrote and cached user rating for album: \(albumId)")
+        Logger.homeRepository.info("Wrote and cached user rating for album: \(albumId), new avg: \(avgRating)")
     }
 }

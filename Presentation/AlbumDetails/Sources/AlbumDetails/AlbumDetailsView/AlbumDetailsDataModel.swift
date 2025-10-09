@@ -46,7 +46,7 @@ final class AlbumDetailsDataModel {
             try await self.getAlbumDetailsUseCase.saveAlbumRating(albumId: album.id, rating: rating)
             Logger.albumDetails.info("Successfully saved rating: \(rating)")
 
-            // Refresh album data to get updated avgRating
+            // Refresh album data to get updated avgRating from cache
             await refreshAlbumData()
         } catch let error {
             Logger.albumDetails.error("error saving album: \(error)")
