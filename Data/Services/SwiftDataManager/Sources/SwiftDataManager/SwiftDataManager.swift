@@ -141,7 +141,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
 
         // Check if user rating cache is valid (7 days)
         if let updatedAt = cachedAlbum.userRatingUpdatedAt {
-            let sevenDaysAgo = Date().addingTimeInterval(-604800) // 7 days in seconds
+            let sevenDaysAgo = Date().addingTimeInterval(-(7 * 24 * 60 * 60)) // 7 days in seconds
             if updatedAt > sevenDaysAgo {
                 return cachedAlbum.userRating
             }

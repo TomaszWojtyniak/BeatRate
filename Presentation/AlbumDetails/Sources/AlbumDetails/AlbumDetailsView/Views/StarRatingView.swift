@@ -10,11 +10,12 @@ import Models
 
 struct StarRatingView: View {
     @Binding var rating: Double
+    var onRatingFinalized: ((Double) -> Void)?
     let maxRating: Int = 10
     let totalScale: Double = 10.0
     @State private var lastTappedStar: Int = -1
     @State private var lastTapTime: Date = Date()
-    
+
     var body: some View {
         HStack(spacing: 8) {
             ForEach(0..<maxRating, id: \.self) { index in
@@ -30,13 +31,16 @@ struct StarRatingView: View {
                 .onChanged { value in
                     updateRating(from: value.location)
                 }
+                .onEnded { _ in
+                    onRatingFinalized?(rating)
+                }
         )
     }
     
     private func handleStarTap(index: Int) {
         let now = Date()
         let timeSinceLastTap = now.timeIntervalSince(lastTapTime)
-        
+
         if lastTappedStar == index && timeSinceLastTap < 0.5 {
             // Double tap - set to half star
             let newRating = Double(index) + 0.5
@@ -46,9 +50,12 @@ struct StarRatingView: View {
             let newRating = Double(index + 1)
             updateRatingWithHaptic(newRating)
         }
-        
+
         lastTappedStar = index
         lastTapTime = now
+
+        // Tap finalized immediately
+        onRatingFinalized?(rating)
     }
     
     private func updateRatingWithHaptic(_ newRating: Double) {

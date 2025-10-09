@@ -27,8 +27,15 @@ struct AlbumDetailsView: View {
                 AlbumDetailsTilesView(album: dataModel.album)
                     .padding(.top, 20)
 
-                RateAlbumView(myRating: $dataModel.myRating)
-                    .padding(.top, 20)
+                RateAlbumView(myRating: $dataModel.myRating) { finalRating in
+                    // Only save if initial rating has been loaded
+                    guard dataModel.hasLoadedInitialRating else { return }
+
+                    Task {
+                        await self.dataModel.saveAlbumRating(rating: finalRating)
+                    }
+                }
+                .padding(.top, 20)
             }
             .padding(.horizontal, 50)
         }
@@ -41,14 +48,6 @@ struct AlbumDetailsView: View {
                 dataModel.myRating = userRating
             }
             dataModel.hasLoadedInitialRating = true
-        }
-        .onChange(of: dataModel.myRating) { oldValue, newValue in
-            // Only save if initial rating has been loaded (to prevent saving initial fetch)
-            guard dataModel.hasLoadedInitialRating else { return }
-
-            Task {
-                await self.dataModel.saveAlbumRating(rating: newValue)
-            }
         }
     }
 }

@@ -41,8 +41,6 @@ final class AlbumDetailsDataModel {
     func saveAlbumRating(rating: Double) async {
         // Store previous rating for rollback in case of error
         previousRating = myRating
-        isLoading = true
-        defer { isLoading = false }
 
         do {
             try await self.getAlbumDetailsUseCase.saveAlbumRating(albumId: album.id, rating: rating)

@@ -14,7 +14,7 @@ import FirebaseService
 import SwiftDataManager
 
 private enum HomeRepositoryError: Error {
-    case userIdMissing
+    case albumDataMismatch
 }
 
 public protocol HomeRepositoryProtocol: Sendable {
@@ -79,7 +79,7 @@ public actor HomeRepository: HomeRepositoryProtocol {
     public func saveAlbumRating(albumId: String, rating: Double) async throws {
         guard let currentUserId = try await swiftDataManager.getCurrentUserId(), !currentUserId.isEmpty else {
             Logger.homeRepository.error("Cannot save rating: User not logged in")
-            throw HomeRepositoryError.userIdMissing
+            throw HomeRepositoryError.albumDataMismatch
         }
 
         // Write to Firebase and update cache
@@ -161,7 +161,7 @@ public actor HomeRepository: HomeRepositoryProtocol {
         }
 
         guard let validFirebaseData = firebaseData else {
-            throw HomeRepositoryError.userIdMissing // Better error needed
+            throw HomeRepositoryError.albumDataMismatch
         }
 
         // Build album model
@@ -208,7 +208,7 @@ public actor HomeRepository: HomeRepositoryProtocol {
         if firebaseTitle != musicTitle || firebaseArtist != musicArtist {
             let albumId = await album.id
             Logger.homeRepository.error("Wrong album data for album id: \(albumId)")
-            throw HomeRepositoryError.userIdMissing // Better error needed
+            throw HomeRepositoryError.albumDataMismatch
         }
     }
 
