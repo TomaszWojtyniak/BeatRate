@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-public struct AppleMusicAlbumData: Codable {
+public struct AppleMusicAlbumData: Codable, Hashable {
     public let title: String
     public let artist: String
     public let coverUrl: URL?
@@ -24,5 +24,11 @@ public struct AppleMusicAlbumData: Codable {
         self.coverUrl = coverUrl
         self.releaseDate = releaseDate
         self.genre = genre
+    }
+}
+
+extension AppleMusicAlbumData {
+    public static var albumPlaceholder: Self {
+        AppleMusicAlbumData(title: "Name", artist: "Artist", coverUrl: nil, releaseDate: nil, genre: nil)
     }
 }

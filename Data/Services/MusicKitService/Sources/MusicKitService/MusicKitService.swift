@@ -14,6 +14,7 @@ import Models
 public protocol MusicKitServiceProtocol: Sendable {
     func requestMusicAuthorization() async -> MusicAuthorization.Status
     func fetchAlbumData(by id: String) async throws -> AppleMusicAlbumData?
+    func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData]
 }
 
 public actor MusicKitService: MusicKitServiceProtocol {
@@ -54,6 +55,40 @@ public actor MusicKitService: MusicKitServiceProtocol {
                                              genre: genre)
         } else {
             return nil
+        }
+    }
+    
+    public func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData] {
+        guard !searchTerm.isEmpty else { return [] }
+
+        var request = MusicCatalogSearchRequest(term: searchTerm, types: [Album.self])
+        request.limit = 20
+
+        let response = try await request.response()
+
+        return await withTaskGroup(of: AppleMusicAlbumData?.self) { group in
+            for album in response.albums {
+                group.addTask {
+                    let coverUrl = album.artwork?.url(width: 300, height: 300)
+                    let genre: String? = album.genreNames.first
+
+                    return await AppleMusicAlbumData(
+                        title: album.title,
+                        artist: album.artistName,
+                        coverUrl: coverUrl,
+                        releaseDate: album.releaseDate,
+                        genre: genre
+                    )
+                }
+            }
+
+            var results: [AppleMusicAlbumData] = []
+            for await albumData in group {
+                if let albumData = albumData {
+                    results.append(albumData)
+                }
+            }
+            return results
         }
     }
 }

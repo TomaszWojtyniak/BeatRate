@@ -4,26 +4,27 @@
 import PackageDescription
 
 let package = Package(
-    name: "Search",
+    name: "SearchUse",
     defaultLocalization: "en",
     platforms: [.iOS(.v26)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "Search",
-            targets: ["Search"]),
+            name: "SearchUse",
+            targets: ["SearchUse"]
+        ),
     ],
     dependencies: [
-        .package(path: "../../Domain/SearchUse"),
-        .package(path: "../../Core/Models"),
+        .package(path: "../../Data/Repository/MusicRepository"),
+        .package(path: "../../Core/Models")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "Search",
+            name: "SearchUse",
             dependencies: [
-                "SearchUse",
+                "MusicRepository",
                 "Models"
             ],
             swiftSettings: [
@@ -31,8 +32,8 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "SearchTests",
-            dependencies: ["Search"]
+            name: "SearchUseTests",
+            dependencies: ["SearchUse"]
         ),
     ]
 )
