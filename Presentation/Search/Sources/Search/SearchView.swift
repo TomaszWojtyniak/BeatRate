@@ -30,12 +30,20 @@ public struct SearchView: View {
                         Text("No albums found for '\(searchText)'")
                     }
                 } else if dataModel.albums.isEmpty {
-                    ContentUnavailableView("Search music", systemImage: "magnifyingglass")
+                    RecentAlbumsSection(
+                        albums: dataModel.recentAlbums,
+                        onAlbumTap: { album in
+                            handleAlbumTap(album)
+                        },
+                        onClear: {
+                            dataModel.clearRecentAlbums()
+                        }
+                    )
                 } else {
                     List(dataModel.albums) { album in
                         SearchAlbumRow(album: album)
                             .onTapGesture {
-                                selectedAlbum = album
+                                handleAlbumTap(album)
                             }
                     }
                     .listStyle(.automatic)
@@ -54,6 +62,11 @@ public struct SearchView: View {
                 dataModel.searchAlbum(searchTerm: searchText)
             }
         }
+    }
+    
+    private func handleAlbumTap(_ album: AppleMusicAlbumData) {
+        dataModel.saveRecentAlbum(album)
+        selectedAlbum = album
     }
 }
 

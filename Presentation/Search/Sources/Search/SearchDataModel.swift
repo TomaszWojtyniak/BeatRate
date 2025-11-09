@@ -13,13 +13,29 @@ import Models
 @Observable
 public final class SearchDataModel {
     private let getSearchUseCase: GetSearchUseCaseProtocol
+    private let getRecentAlbumsUseCase: GetRecentAlbumsUseCaseProtocol
+    private let saveRecentAlbumUseCase: SaveRecentAlbumUseCaseProtocol
+    private let clearRecentAlbumsUseCase: ClearRecentAlbumsUseCaseProtocol
     private var searchTask: Task<Void, Never>?
 
     public var albums: [AppleMusicAlbumData] = []
+    public var recentAlbums: [AppleMusicAlbumData] = []
     public var isLoading: Bool = false
 
-    public init(getSearchUseCase: GetSearchUseCaseProtocol = GetSearchUseCase()) {
+    public init(
+        getSearchUseCase: GetSearchUseCaseProtocol = GetSearchUseCase(),
+        getRecentAlbumsUseCase: GetRecentAlbumsUseCaseProtocol = GetRecentAlbumsUseCase(),
+        saveRecentAlbumUseCase: SaveRecentAlbumUseCaseProtocol = SaveRecentAlbumUseCase(),
+        clearRecentAlbumsUseCase: ClearRecentAlbumsUseCaseProtocol = ClearRecentAlbumsUseCase()
+    ) {
         self.getSearchUseCase = getSearchUseCase
+        self.getRecentAlbumsUseCase = getRecentAlbumsUseCase
+        self.saveRecentAlbumUseCase = saveRecentAlbumUseCase
+        self.clearRecentAlbumsUseCase = clearRecentAlbumsUseCase
+
+        Task {
+            self.recentAlbums = await getRecentAlbumsUseCase.execute()
+        }
     }
 
     public func searchAlbum(searchTerm: String) {
@@ -64,6 +80,20 @@ public final class SearchDataModel {
                 albums = []
                 isLoading = false
             }
+        }
+    }
+    
+    public func saveRecentAlbum(_ album: AppleMusicAlbumData) {
+        Task {
+            await saveRecentAlbumUseCase.execute(album: album)
+            recentAlbums = await getRecentAlbumsUseCase.execute()
+        }
+    }
+
+    public func clearRecentAlbums() {
+        Task {
+            await clearRecentAlbumsUseCase.execute()
+            recentAlbums = []
         }
     }
 }

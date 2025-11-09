@@ -27,6 +27,11 @@ public protocol SwiftDataManagerProtocol: Sendable {
     func setUserLoggedIn(userId: String) async throws
     func setUserLoggedOut() async throws
     func isUserLoggedIn() async -> Bool
+
+    // Recent albums methods
+    func getRecentAlbums() async throws -> [AppleMusicAlbumData]
+    func saveRecentAlbum(_ album: AppleMusicAlbumData) async throws
+    func clearRecentAlbums() async throws
 }
 
 @Observable
@@ -37,7 +42,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
     
     private init() {
         do {
-            container = try ModelContainer(for: CachedAlbum.self, CachedSection.self, User.self)
+            container = try ModelContainer(for: CachedAlbum.self, CachedSection.self, User.self, RecentAlbum.self)
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }
@@ -214,6 +219,59 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
     public func getCurrentUserId() async throws -> String? {
         guard let user = try await getCurrentUser() else { return nil }
         return user.userId
+    }
+
+    // MARK: - Recent Albums Management
+
+    public func getRecentAlbums() async throws -> [AppleMusicAlbumData] {
+        let descriptor = FetchDescriptor<RecentAlbum>(
+            sortBy: [SortDescriptor(\.addedAt, order: .reverse)]
+        )
+        let recentAlbums = try context.fetch(descriptor)
+
+        // Return only the first 5
+        return Array(recentAlbums.prefix(5)).map { $0.toAppleMusicAlbumData() }
+    }
+
+    public func saveRecentAlbum(_ album: AppleMusicAlbumData) async throws {
+        // Extract albumId to avoid Sendable issues with Predicate
+        let albumId = album.id
+
+        // Check if album already exists
+        let descriptor = FetchDescriptor<RecentAlbum>(
+            predicate: #Predicate { $0.id == albumId }
+        )
+
+        if let existingAlbum = try context.fetch(descriptor).first {
+            // Update the addedAt timestamp to move it to the top
+            existingAlbum.appleMusicAlbumData = album
+            existingAlbum.addedAt = Date()
+        } else {
+            // Add new recent album
+            let recentAlbum = RecentAlbum(id: album.id, appleMusicAlbumData: album)
+            context.insert(recentAlbum)
+        }
+
+        try context.save()
+
+        // Keep only the most recent 5
+        let allDescriptor = FetchDescriptor<RecentAlbum>(
+            sortBy: [SortDescriptor(\.addedAt, order: .reverse)]
+        )
+        let allRecent = try context.fetch(allDescriptor)
+
+        // Delete albums beyond the first 5
+        if allRecent.count > 5 {
+            for recentAlbum in allRecent.dropFirst(5) {
+                context.delete(recentAlbum)
+            }
+            try context.save()
+        }
+    }
+
+    public func clearRecentAlbums() async throws {
+        try context.delete(model: RecentAlbum.self)
+        try context.save()
     }
 }
 
