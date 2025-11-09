@@ -6,14 +6,67 @@
 //
 
 import SwiftUI
+import Models
+import AlbumDetails
 
 @MainActor
 public struct SearchView: View {
-    
+
+    @State private var dataModel = SearchDataModel()
+    @State private var searchText: String = ""
+    @State var selectedAlbum: AppleMusicAlbumData?
+
     public init() {}
-    
+
     public var body: some View {
-        Text("Search View")
+        NavigationStack {
+            Group {
+                if dataModel.isLoading {
+                    ProgressView("Searching...")
+                } else if dataModel.albums.isEmpty && !searchText.isEmpty {
+                    ContentUnavailableView {
+                        Label("No Results", systemImage: "music.note.list")
+                    } description: {
+                        Text("No albums found for '\(searchText)'")
+                    }
+                } else if dataModel.albums.isEmpty {
+                    RecentAlbumsSection(
+                        albums: dataModel.recentAlbums,
+                        onAlbumTap: { album in
+                            handleAlbumTap(album)
+                        },
+                        onClear: {
+                            dataModel.clearRecentAlbums()
+                        }
+                    )
+                } else {
+                    List(dataModel.albums) { album in
+                        SearchAlbumRow(album: album)
+                            .onTapGesture {
+                                handleAlbumTap(album)
+                            }
+                    }
+                    .listStyle(.automatic)
+                }
+            }
+            .navigationTitle("Search")
+            .navigationDestination(item: $selectedAlbum) { album in
+                AlbumDetailsContainer(albumId: album.id)
+            }
+            .searchable(
+                text: $searchText,
+                placement: .automatic,
+                prompt: "Search"
+            )
+            .onChange(of: searchText) {
+                dataModel.searchAlbum(searchTerm: searchText)
+            }
+        }
+    }
+    
+    private func handleAlbumTap(_ album: AppleMusicAlbumData) {
+        dataModel.saveRecentAlbum(album)
+        selectedAlbum = album
     }
 }
 

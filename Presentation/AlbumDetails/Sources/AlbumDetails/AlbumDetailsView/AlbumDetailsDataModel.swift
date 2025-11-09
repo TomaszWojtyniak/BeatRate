@@ -43,7 +43,14 @@ final class AlbumDetailsDataModel {
         previousRating = myRating
 
         do {
-            try await self.getAlbumDetailsUseCase.saveAlbumRating(albumId: album.id, rating: rating)
+            // Pass album metadata (artist, title) for new albums
+            let metadata = (artist: album.appleMusicAlbumData.artist, title: album.appleMusicAlbumData.title)
+
+            try await self.getAlbumDetailsUseCase.saveAlbumRating(
+                albumId: album.id,
+                rating: rating,
+                albumMetadata: metadata
+            )
             Logger.albumDetails.info("Successfully saved rating: \(rating)")
 
             // Refresh album data to get updated avgRating from cache

@@ -22,6 +22,7 @@ struct AlbumNotFoundError: Error {
 public protocol MusicRepositoryProtocol: Sendable {
     func requestMusicAuthorization() async -> Bool
     func getAlbumDataById(_ id: String) async throws -> AppleMusicAlbumData
+    func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData]
 }
 
 public actor MusicRepository: MusicRepositoryProtocol {
@@ -66,5 +67,13 @@ public actor MusicRepository: MusicRepositoryProtocol {
             throw AlbumNotFoundError(id: id)
         }
         return album
+    }
+    
+    public func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData] {
+        Logger.musicRepository.info("Searching albums with query: '\(searchTerm)'")
+
+        let albums = try await musicKitService.searchAlbums(searchTerm: searchTerm)
+        Logger.musicRepository.info("Found \(albums.count) albums for query: '\(searchTerm)'")
+        return albums
     }
 }
