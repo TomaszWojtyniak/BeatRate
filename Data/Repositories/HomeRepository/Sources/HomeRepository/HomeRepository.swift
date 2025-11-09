@@ -20,8 +20,9 @@ private enum HomeRepositoryError: Error {
 public protocol HomeRepositoryProtocol: Sendable {
     func fetchHomeSections() async throws -> [HomeSection]
     func getUserRating(albumId: String) async throws -> Double?
-    func saveAlbumRating(albumId: String, rating: Double) async throws
+    func saveAlbumRating(albumId: String, rating: Double, albumMetadata: (artist: String, title: String)?) async throws
     func getCachedAlbum(albumId: String) async throws -> AlbumModel?
+    func getFirebaseAlbumData(albumId: String) async throws -> FirebaseAlbumData?
 }
 
 public actor HomeRepository: HomeRepositoryProtocol {
@@ -76,20 +77,24 @@ public actor HomeRepository: HomeRepositoryProtocol {
         return try await readAndCacheUserRating(albumId: albumId, userId: currentUserId)
     }
 
-    public func saveAlbumRating(albumId: String, rating: Double) async throws {
+    public func saveAlbumRating(albumId: String, rating: Double, albumMetadata: (artist: String, title: String)? = nil) async throws {
         guard let currentUserId = try await swiftDataManager.getCurrentUserId(), !currentUserId.isEmpty else {
             Logger.homeRepository.error("Cannot save rating: User not logged in")
             throw HomeRepositoryError.albumDataMismatch
         }
 
         // Write to Firebase and update cache
-        try await writeAndCacheUserRating(albumId: albumId, userId: currentUserId, rating: rating)
+        try await writeAndCacheUserRating(albumId: albumId, userId: currentUserId, rating: rating, albumMetadata: albumMetadata)
     }
 
     public func getCachedAlbum(albumId: String) async throws -> AlbumModel? {
         return try await swiftDataManager.getCachedAlbum(id: albumId)
     }
-    
+
+    public func getFirebaseAlbumData(albumId: String) async throws -> FirebaseAlbumData? {
+        return try await databaseFirebaseService.fetchAlbumData(albumId: albumId)
+    }
+
     // MARK: - Private Helper Methods
 
     /// Returns cached sections if cache is valid, nil otherwise
@@ -153,10 +158,11 @@ public actor HomeRepository: HomeRepositoryProtocol {
         async let firebaseAlbumDataTask = self.readAndCacheAlbumData(albumId: albumId)
 
         let musicData = try await appleMusicAlbumTask
-        var firebaseData = try await firebaseAlbumDataTask
+        var firebaseData = try? await firebaseAlbumDataTask  // Use try? to handle missing albums
 
         // If no Firebase data exists, create it with default values
         if firebaseData == nil {
+            Logger.homeRepository.info("No Firebase data found for album: \(albumId), creating new entry")
             firebaseData = try await createFirebaseAlbumData(for: albumId, musicData: musicData)
         }
 
@@ -186,7 +192,7 @@ public actor HomeRepository: HomeRepositoryProtocol {
 
         let newFirebaseData = await FirebaseAlbumData(
             artist: musicData.artist,
-            avgRating: nil,
+            avgRating: 0,  // Set to 0 for new albums with no ratings
             createdAt: Int64(Date().timeIntervalSince1970 * 1000),
             ratingCount: 0,
             title: musicData.title
@@ -239,9 +245,14 @@ public actor HomeRepository: HomeRepositoryProtocol {
     }
 
     /// Writes user rating to Firebase and updates cache (including recalculated album avgRating)
-    private func writeAndCacheUserRating(albumId: String, userId: String, rating: Double) async throws {
+    private func writeAndCacheUserRating(albumId: String, userId: String, rating: Double, albumMetadata: (artist: String, title: String)?) async throws {
         // Save rating and get calculated avgRating/ratingCount back
-        let (avgRating, ratingCount) = try await databaseFirebaseService.saveUserRating(userId: userId, albumId: albumId, rating: rating)
+        let (avgRating, ratingCount) = try await databaseFirebaseService.saveUserRating(
+            userId: userId,
+            albumId: albumId,
+            rating: rating,
+            albumMetadata: albumMetadata
+        )
 
         // Cache the user rating
         try await swiftDataManager.cacheUserRating(albumId: albumId, rating: rating)

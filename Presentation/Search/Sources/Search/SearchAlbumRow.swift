@@ -51,8 +51,11 @@ struct SearchAlbumRow: View {
                         .foregroundStyle(.tertiary)
                 }
             }
+
+            Spacer()
         }
         .padding(.vertical, 4)
+        .contentShape(Rectangle())
     }
 }
 

@@ -11,7 +11,7 @@ import Models
 
 public protocol GetAlbumDetailsUseCaseProtocol {
     func getUserRating(albumId: String) async throws -> Double?
-    func saveAlbumRating(albumId: String, rating: Double) async throws
+    func saveAlbumRating(albumId: String, rating: Double, albumMetadata: (artist: String, title: String)?) async throws
     func getUpdatedAlbum(albumId: String) async throws -> AlbumModel?
 }
 
@@ -26,8 +26,8 @@ public actor GetAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol {
         return try await self.homeRepository.getUserRating(albumId: albumId)
     }
 
-    public func saveAlbumRating(albumId: String, rating: Double) async throws {
-        try await self.homeRepository.saveAlbumRating(albumId: albumId, rating: rating)
+    public func saveAlbumRating(albumId: String, rating: Double, albumMetadata: (artist: String, title: String)? = nil) async throws {
+        try await self.homeRepository.saveAlbumRating(albumId: albumId, rating: rating, albumMetadata: albumMetadata)
     }
 
     public func getUpdatedAlbum(albumId: String) async throws -> AlbumModel? {

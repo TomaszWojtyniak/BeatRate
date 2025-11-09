@@ -15,7 +15,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../../Data/Repository/MusicRepository"),
+        .package(path: "../../Data/Repositories/MusicRepository"),
         .package(path: "../../Core/Models")
     ],
     targets: [

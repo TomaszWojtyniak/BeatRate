@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Models
+import AlbumDetails
 
 @MainActor
 public struct SearchView: View {
@@ -31,28 +32,26 @@ public struct SearchView: View {
                 } else if dataModel.albums.isEmpty {
                     ContentUnavailableView("Search music", systemImage: "magnifyingglass")
                 } else {
-                    List(dataModel.albums, id: \.title) { album in
+                    List(dataModel.albums) { album in
                         SearchAlbumRow(album: album)
                             .onTapGesture {
-                                self.selectedAlbum = album
+                                selectedAlbum = album
                             }
                     }
                     .listStyle(.automatic)
                 }
             }
             .navigationTitle("Search")
-        }
-        .navigationDestination(item: $selectedAlbum) { album in
-            
-        }
-        .searchable(
-            text: $searchText,
-            placement: .automatic,
-            prompt: "Search"
-        )
-        .onChange(of: searchText) {
-            Task {
-                try await dataModel.searchAlbum(searchTerm: searchText)
+            .navigationDestination(item: $selectedAlbum) { album in
+                AlbumDetailsContainer(albumId: album.id)
+            }
+            .searchable(
+                text: $searchText,
+                placement: .automatic,
+                prompt: "Search"
+            )
+            .onChange(of: searchText) {
+                dataModel.searchAlbum(searchTerm: searchText)
             }
         }
     }

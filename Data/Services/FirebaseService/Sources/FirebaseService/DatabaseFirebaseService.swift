@@ -16,7 +16,7 @@ public protocol DatabaseFirebaseServiceProtocol: Sendable {
     func fetchAlbumData(albumId: String) async throws -> FirebaseAlbumData?
     func saveAlbumData(albumId: String, albumData: FirebaseAlbumData) async throws
     func getUserRating(userId: String, albumId: String) async throws -> Double?
-    func saveUserRating(userId: String, albumId: String, rating: Double) async throws -> (avgRating: Double, ratingCount: Int)
+    func saveUserRating(userId: String, albumId: String, rating: Double, albumMetadata: (artist: String, title: String)?) async throws -> (avgRating: Double, ratingCount: Int)
 }
 
 public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
@@ -93,8 +93,28 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     @MainActor
-    public func saveUserRating(userId: String, albumId: String, rating: Double) async throws -> (avgRating: Double, ratingCount: Int) {
+    public func saveUserRating(userId: String, albumId: String, rating: Double, albumMetadata: (artist: String, title: String)? = nil) async throws -> (avgRating: Double, ratingCount: Int) {
         let db = Database.database().reference()
+
+        // 0. Ensure album exists in Firebase (create if needed)
+        let albumRef = db.child("albums").child(albumId)
+        let albumSnapshot = try await albumRef.getData()
+
+        if !albumSnapshot.exists(), let metadata = albumMetadata {
+            // Album doesn't exist - create it with required fields
+            Logger.firebaseService.info("Creating new album in Firebase: \(albumId)")
+
+            let newAlbumData: [String: Any] = [
+                "artist": metadata.artist,
+                "title": metadata.title,
+                "createdAt": ServerValue.timestamp(),
+                "avgRating": 0.0,
+                "ratingCount": 0
+            ]
+
+            try await albumRef.setValue(newAlbumData)
+            Logger.firebaseService.info("Created album: \(albumId) with artist: \(metadata.artist), title: \(metadata.title)")
+        }
 
         // 1. Save to user_ratings/{userId}/{albumId}
         let userRatingRef = db.child("user_ratings").child(userId).child(albumId)
@@ -123,7 +143,6 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
         let ratingCount = ratings.count
 
         // 4. Update album avgRating and ratingCount
-        let albumRef = db.child("albums").child(albumId)
         try await albumRef.child("avgRating").setValue(avgRating)
         try await albumRef.child("ratingCount").setValue(ratingCount)
 

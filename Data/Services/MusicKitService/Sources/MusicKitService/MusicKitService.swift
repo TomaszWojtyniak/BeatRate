@@ -46,13 +46,16 @@ public actor MusicKitService: MusicKitServiceProtocol {
         
         if let album = response.items.first {
             let coverUrl = album.artwork?.url(width: 300, height: 300)
-            
             let genre: String? = album.genreNames.first
-            return await AppleMusicAlbumData(title: album.title,
-                                             artist: album.artistName,
-                                             coverUrl: coverUrl,
-                                             releaseDate: album.releaseDate,
-                                             genre: genre)
+
+            return await AppleMusicAlbumData(
+                id: album.id.rawValue,
+                title: album.title,
+                artist: album.artistName,
+                coverUrl: coverUrl,
+                releaseDate: album.releaseDate,
+                genre: genre
+            )
         } else {
             return nil
         }
@@ -73,6 +76,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
                     let genre: String? = album.genreNames.first
 
                     return await AppleMusicAlbumData(
+                        id: album.id.rawValue,
                         title: album.title,
                         artist: album.artistName,
                         coverUrl: coverUrl,

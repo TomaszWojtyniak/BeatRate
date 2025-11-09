@@ -31,6 +31,6 @@ public struct AlbumModel: Identifiable, Hashable, Sendable {
 
 extension AlbumModel {
     public static var albumPlaceholder: Self {
-        AlbumModel(id: "1", appleMusicAlbumData: AppleMusicAlbumData(title: "Name", artist: "Artist", coverUrl: nil, releaseDate: nil, genre: nil), firebaseAlbumData: nil)
+        AlbumModel(id: "1", appleMusicAlbumData: AppleMusicAlbumData(id: "1", title: "Name", artist: "Artist", coverUrl: nil, releaseDate: nil, genre: nil), firebaseAlbumData: nil)
     }
 }
