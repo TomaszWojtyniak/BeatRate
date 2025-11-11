@@ -19,6 +19,7 @@ public protocol SwiftDataManagerProtocol: Sendable {
     func getCachedUserRating(albumId: String) async throws -> Double?
     func cacheUserRating(albumId: String, rating: Double) async throws
     func clearCache() async throws
+    func clearAllCacheForLogout() async throws
     func isCacheValid() async -> Bool
 
     // User management methods
@@ -53,16 +54,15 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
             container.mainContext
         }
     }
-    
-    public func cacheAlbum(id: String, album: AlbumModel) async throws {
-        let cachedAlbum = CachedAlbum(
-            id: id,
-            appleMusicAlbumData: album.appleMusicAlbumData,
-            firebaseAlbumData: album.firebaseAlbumData
-        )
-        context.insert(cachedAlbum)
+
+    public func clearAllCacheForLogout() async throws {
+        try context.delete(model: CachedAlbum.self)
+        try context.delete(model: CachedSection.self)
+        try context.delete(model: RecentAlbum.self)
         try context.save()
     }
+    
+    // MARK: - Home sections
     
     public func cacheSections(_ sections: [HomeSection]) async throws {
         // Clear existing sections
@@ -114,6 +114,35 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         return sections.map { $0.toHomeSection() }
     }
     
+    public func clearCache() async throws {
+        try context.delete(model: CachedAlbum.self)
+        try context.delete(model: CachedSection.self)
+        try context.save()
+    }
+    
+    public func isCacheValid() async -> Bool {
+        let descriptor = FetchDescriptor<CachedSection>()
+        let sections = try? context.fetch(descriptor)
+        
+        guard let sections, !sections.isEmpty else { return false }
+        
+        // Check if cache is less than 24 hours old
+        let dayAgo = Date().addingTimeInterval(-86400)
+        return sections.allSatisfy { $0.lastUpdated > dayAgo }
+    }
+    
+    // MARK: - Album
+    
+    public func cacheAlbum(id: String, album: AlbumModel) async throws {
+        let cachedAlbum = CachedAlbum(
+            id: id,
+            appleMusicAlbumData: album.appleMusicAlbumData,
+            firebaseAlbumData: album.firebaseAlbumData
+        )
+        context.insert(cachedAlbum)
+        try context.save()
+    }
+    
     public func getCachedAlbum(id: String) async throws -> AlbumModel? {
         let descriptor = FetchDescriptor<CachedAlbum>(
             predicate: #Predicate { $0.id == id }
@@ -134,6 +163,8 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         // Keep lastUpdated unchanged so cache remains valid
         try context.save()
     }
+    
+    // MARK: - User rating
 
     public func getCachedUserRating(albumId: String) async throws -> Double? {
         let descriptor = FetchDescriptor<CachedAlbum>(
@@ -167,23 +198,6 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         cachedAlbum.userRating = rating
         cachedAlbum.userRatingUpdatedAt = Date()
         try context.save()
-    }
-
-    public func clearCache() async throws {
-        try context.delete(model: CachedAlbum.self)
-        try context.delete(model: CachedSection.self)
-        try context.save()
-    }
-    
-    public func isCacheValid() async -> Bool {
-        let descriptor = FetchDescriptor<CachedSection>()
-        let sections = try? context.fetch(descriptor)
-        
-        guard let sections, !sections.isEmpty else { return false }
-        
-        // Check if cache is less than 24 hours old
-        let dayAgo = Date().addingTimeInterval(-86400)
-        return sections.allSatisfy { $0.lastUpdated > dayAgo }
     }
     
     // MARK: - User Management

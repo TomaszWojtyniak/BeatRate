@@ -8,6 +8,7 @@
 import SwiftUI
 import OSLog
 import Analytics
+import Models
 @preconcurrency import FirebaseAuth
 import AuthenticationServices
 
@@ -19,22 +20,83 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
     public static let shared = AuthFirebaseService()
     let analyticsManager: AnalyticsManager
     let crashLogger: CrashLogger
-    
+    let databaseService: DatabaseFirebaseServiceProtocol
+
     private init(analyticsManager: AnalyticsManager = .shared,
-                 crashLogger: CrashLogger = .shared) {
+                 crashLogger: CrashLogger = .shared,
+                 databaseService: DatabaseFirebaseService = .shared) {
         self.analyticsManager = analyticsManager
         self.crashLogger = crashLogger
+        self.databaseService = databaseService
     }
     
     public func setLoginData(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws -> String {
-        Logger.firebaseService.debug("Initialize a Firebase credential")
-        let credential = OAuthProvider.appleCredential(withIDToken: idTokenString,
-                                                          rawNonce: nonce,
-                                                          fullName: appleIDCredential.fullName)
-        
-        Logger.firebaseService.debug("Sign in with Firebase")
-        let userId = try await Auth.auth().signIn(with: credential).user.uid
-        Logger.firebaseService.debug("Firebase auth login successful")
+        let authResult = try await signInWithFirebase(idTokenString: idTokenString, nonce: nonce, appleIDCredential: appleIDCredential)
+        let userId = authResult.user.uid
+
+        await createUserProfileIfNeeded(userId: userId, appleIDCredential: appleIDCredential, firebaseUser: authResult.user)
+
         return userId
+    }
+
+    private func signInWithFirebase(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws -> AuthDataResult {
+        Logger.firebaseService.debug("Initialize a Firebase credential")
+        let credential = OAuthProvider.appleCredential(
+            withIDToken: idTokenString,
+            rawNonce: nonce,
+            fullName: appleIDCredential.fullName
+        )
+
+        Logger.firebaseService.debug("Sign in with Firebase")
+        let authResult = try await Auth.auth().signIn(with: credential)
+        Logger.firebaseService.debug("Firebase auth login successful")
+
+        return authResult
+    }
+
+    private func createUserProfileIfNeeded(userId: String, appleIDCredential: ASAuthorizationAppleIDCredential, firebaseUser: FirebaseAuth.User) async {
+        do {
+            let existingProfile = try await databaseService.getUserProfile(userId: userId)
+
+            if existingProfile == nil {
+                let userData = extractUserData(from: appleIDCredential, firebaseUser: firebaseUser)
+                await saveNewUserProfile(userId: userId, userData: userData)
+            } else {
+                Logger.firebaseService.debug("User profile already exists, skipping profile creation")
+            }
+        } catch {
+            Logger.firebaseService.error("Failed to check existing user profile: \(error.localizedDescription)")
+            await crashLogger.reportToCrashlytics(error: error)
+        }
+    }
+
+    private func extractUserData(from appleIDCredential: ASAuthorizationAppleIDCredential, firebaseUser: FirebaseAuth.User) -> (email: String?, firstName: String?, lastName: String?) {
+        let email = appleIDCredential.email ?? firebaseUser.email
+        let firstName = appleIDCredential.fullName?.givenName
+        let lastName = appleIDCredential.fullName?.familyName
+
+        return (email: email, firstName: firstName, lastName: lastName)
+    }
+
+    private func saveNewUserProfile(userId: String, userData: (email: String?, firstName: String?, lastName: String?)) async {
+        // Only save profile if we have at least one piece of information
+        guard userData.email != nil || userData.firstName != nil || userData.lastName != nil else {
+            Logger.firebaseService.debug("No user profile data available from Apple Sign In")
+            return
+        }
+
+        let profile = await FirebaseUserProfile(
+            email: userData.email,
+            firstName: userData.firstName,
+            lastName: userData.lastName
+        )
+
+        do {
+            try await databaseService.saveUserProfile(userId: userId, profile: profile)
+            Logger.firebaseService.debug("New user profile created successfully")
+        } catch {
+            Logger.firebaseService.error("Failed to save user profile: \(error.localizedDescription)")
+            await crashLogger.reportToCrashlytics(error: error)
+        }
     }
 }

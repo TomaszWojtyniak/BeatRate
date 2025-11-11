@@ -11,6 +11,7 @@ import Settings
 struct AccountView: View {
     
     @State private var showingSettings = false
+    @State private var dataModel = AccountDataModel()
     
     var body: some View {
         NavigationStack {
