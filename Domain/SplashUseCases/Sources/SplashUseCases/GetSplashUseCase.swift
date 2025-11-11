@@ -76,24 +76,20 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
             // Credentials are valid
             return true
         case .revoked:
-            // User revoked access - log them out and clear Keychain
+            // User revoked access
             try await swiftDataManager.setUserLoggedOut()
-            try await keychainManager.deleteAppleUserID()
             return false
         case .notFound:
-            // Credentials not found - log them out and clear Keychain
+            // Credentials not found
             try await swiftDataManager.setUserLoggedOut()
-            try await keychainManager.deleteAppleUserID()
             return false
         case .transferred:
-            // Credentials transferred to another device - log them out and clear Keychain
+            // Credentials transferred to another device
             try await swiftDataManager.setUserLoggedOut()
-            try await keychainManager.deleteAppleUserID()
             return false
         @unknown default:
-            // Unknown state - log them out for safety and clear Keychain
+            // Unknown state
             try await swiftDataManager.setUserLoggedOut()
-            try await keychainManager.deleteAppleUserID()
             return false
         }
     }

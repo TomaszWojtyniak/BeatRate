@@ -29,6 +29,7 @@ final class SplashDataModel {
                 Logger.splash.info("User credentials are valid")
             } else {
                 Logger.splash.info("User credentials invalid or not logged in")
+                return
             }
         } catch {
             Logger.splash.error("Error checking user credentials: \(error.localizedDescription)")

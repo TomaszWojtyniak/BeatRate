@@ -9,34 +9,38 @@ import SwiftUI
 import TabBar
 import Login
 import Models
-import SwiftData
 import Splash
 
 @MainActor
 struct AppView: View {
     @State private var dataModel = AppDataModel()
-    
-    @Query private var user: [User]
+
     @State private var selection: TabBarScreen? = .home
-    @State private var showingSplash = true
-    
+
     var body: some View {
-        if let currentUser = user.first, currentUser.isLoggedIn {
-            if showingSplash {
-                SplashView {
-                    withAnimation {
-                        showingSplash = false
+        Group {
+            if dataModel.isUserLoggedIn {
+                if dataModel.showingSplash {
+                    SplashView {
+                        withAnimation {
+                            dataModel.showingSplash = false
+                        }
                     }
-                }
-                .transition(.opacity)
-                .onAppear {
-                    dataModel.setUserId()
+                    .transition(.opacity)
+                    .task {
+                        await dataModel.getCurrentUser()
+                        dataModel.setUserId()
+                    }
+                } else {
+                    TabBarView(selection: $selection)
                 }
             } else {
-                TabBarView(selection: $selection)
+                LoginNavigationStack()
             }
-        } else {
-            LoginNavigationStack()
+        }
+        .task {
+            await dataModel.checkInitialLoginStatus()
+            dataModel.startObservingLoginState()
         }
     }
 }

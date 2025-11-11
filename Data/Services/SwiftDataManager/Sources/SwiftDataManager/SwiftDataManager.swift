@@ -8,6 +8,7 @@
 import SwiftData
 import SwiftUI
 import Models
+import CoreApp
 
 public protocol SwiftDataManagerProtocol: Sendable {
     var context: ModelContext { get }
@@ -28,6 +29,7 @@ public protocol SwiftDataManagerProtocol: Sendable {
     func setUserLoggedIn(userId: String) async throws
     func setUserLoggedOut() async throws
     func isUserLoggedIn() async -> Bool
+    func observeLoginState() -> AsyncStream<Bool>
 
     // Recent albums methods
     func getRecentAlbums() async throws -> [AppleMusicAlbumData]
@@ -40,13 +42,30 @@ public protocol SwiftDataManagerProtocol: Sendable {
 public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol {
     public static let shared = SwiftDataManager()
     public let container: ModelContainer
-    
-    private init() {
+    private let keychainManager: KeychainManager
+
+    private let loginStateStream: AsyncStream<Bool>
+    private let loginStateContinuation: AsyncStream<Bool>.Continuation
+
+    private init(keychainManager: KeychainManager = .shared) {
+        self.keychainManager = keychainManager
+
+        // Create AsyncStream for login state changes
+        var continuation: AsyncStream<Bool>.Continuation!
+        self.loginStateStream = AsyncStream { cont in
+            continuation = cont
+        }
+        self.loginStateContinuation = continuation
+
         do {
             container = try ModelContainer(for: CachedAlbum.self, CachedSection.self, User.self, RecentAlbum.self)
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }
+    }
+
+    public func observeLoginState() -> AsyncStream<Bool> {
+        return loginStateStream
     }
     
     public var context: ModelContext {
@@ -216,6 +235,9 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
             context.insert(newUser)
         }
         try context.save()
+
+        // Emit login state change to stream
+        loginStateContinuation.yield(true)
     }
     
     public func setUserLoggedOut() async throws {
@@ -223,6 +245,25 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
             existingUser.isLoggedIn = false
             try context.save()
         }
+
+        // Clear Apple user ID from Keychain
+        do {
+            try await keychainManager.deleteAppleUserID()
+        } catch {
+            // Log but don't fail - user is still logged out in SwiftData
+            print("Failed to delete Apple user ID from Keychain: \(error)")
+        }
+
+        // Clear all cached data
+        do {
+            try await clearAllCacheForLogout()
+        } catch {
+            // Log but don't fail - user is still logged out
+            print("Failed to clear cache during logout: \(error)")
+        }
+
+        // Emit login state change to stream
+        loginStateContinuation.yield(false)
     }
     
     public func isUserLoggedIn() async -> Bool {
