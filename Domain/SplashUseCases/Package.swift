@@ -17,7 +17,8 @@ let package = Package(
     dependencies: [
         .package(path: "../../Data/Repositories/MusicRepository"),
         .package(path: "../../Data/Repositories/HomeRepository"),
-        .package(path: "../../Data/Services/SwiftDataManager")
+        .package(path: "../../Data/Services/SwiftDataManager"),
+        .package(path: "../../Domain/LoginUseCases")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -27,7 +28,8 @@ let package = Package(
             dependencies: [
                 "MusicRepository",
                 "HomeRepository",
-                "SwiftDataManager"
+                "SwiftDataManager",
+                "LoginUseCases"
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)

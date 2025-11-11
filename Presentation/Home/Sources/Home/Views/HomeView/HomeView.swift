@@ -10,7 +10,6 @@ import Models
 import AlbumDetails
 import Account
 import CoreUI
-import SwiftDataManager
 
 @MainActor
 public struct HomeView: View {

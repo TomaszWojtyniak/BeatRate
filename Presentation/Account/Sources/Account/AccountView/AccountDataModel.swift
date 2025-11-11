@@ -6,12 +6,22 @@
 //
 
 import SwiftUI
+import LoginUseCases
+import Models
+import OSLog
 
 @MainActor
 @Observable
 final class AccountDataModel {
-    
-    init() {
-        
+    private let getLoginUseCase: GetLoginUseCaseProtocol
+
+    var errorMessage: String?
+
+    init(getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase()) {
+        self.getLoginUseCase = getLoginUseCase
+    }
+
+    func loadUserProfile() async {
+
     }
 }

@@ -10,6 +10,7 @@ import AuthenticationServices
 import OSLog
 import Analytics
 import FirebaseService
+import Models
 
 public enum LoginError: Error {
     case wrongData
@@ -18,17 +19,22 @@ public enum LoginError: Error {
 public protocol LoginRepositoryProtocol: Sendable {
     func setLoginData(authResult: ASAuthorization) async throws -> String
     func getCurrentNonce() async -> String
+    func getUserProfile(userId: String) async throws -> FirebaseUserProfile?
+    func checkUserCredentialState(userId: String) async -> ASAuthorizationAppleIDProvider.CredentialState
 }
 
 public actor LoginRepository: LoginRepositoryProtocol {
     public static let shared = LoginRepository()
-    
+
     let authFirebaseService: AuthFirebaseServiceProtocol
-    
+    let databaseFirebaseService: DatabaseFirebaseServiceProtocol
+
     var currentNonce: String?
-    
-    private init(authFirebaseService: AuthFirebaseServiceProtocol = AuthFirebaseService.shared) {
+
+    private init(authFirebaseService: AuthFirebaseServiceProtocol = AuthFirebaseService.shared,
+                 databaseFirebaseService: DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared) {
         self.authFirebaseService = authFirebaseService
+        self.databaseFirebaseService = databaseFirebaseService
     }
     
     public func getCurrentNonce() async -> String {
@@ -78,6 +84,23 @@ public actor LoginRepository: LoginRepositoryProtocol {
             return try await self.authFirebaseService.setLoginData(idTokenString: idTokenString, nonce: nonce, appleIDCredential: appleIDCredential)
         } else {
             throw LoginError.wrongData
+        }
+    }
+
+    public func getUserProfile(userId: String) async throws -> FirebaseUserProfile? {
+        return try await databaseFirebaseService.getUserProfile(userId: userId)
+    }
+
+    public func checkUserCredentialState(userId: String) async -> ASAuthorizationAppleIDProvider.CredentialState {
+        let appleIDProvider = ASAuthorizationAppleIDProvider()
+
+        do {
+            let credentialState = try await appleIDProvider.credentialState(forUserID: userId)
+            Logger.loginRepository.info("Credential state for user \(userId): \(String(describing: credentialState))")
+            return credentialState
+        } catch {
+            Logger.loginRepository.error("Error checking credential state: \(error.localizedDescription)")
+            return .notFound
         }
     }
 }

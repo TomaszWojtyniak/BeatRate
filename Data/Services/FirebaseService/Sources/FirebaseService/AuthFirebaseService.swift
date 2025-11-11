@@ -9,6 +9,7 @@ import SwiftUI
 import OSLog
 import Analytics
 import Models
+import CoreApp
 @preconcurrency import FirebaseAuth
 import AuthenticationServices
 
@@ -21,18 +22,30 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
     let analyticsManager: AnalyticsManager
     let crashLogger: CrashLogger
     let databaseService: DatabaseFirebaseServiceProtocol
+    let keychainManager: KeychainManager
 
     private init(analyticsManager: AnalyticsManager = .shared,
                  crashLogger: CrashLogger = .shared,
-                 databaseService: DatabaseFirebaseService = .shared) {
+                 databaseService: DatabaseFirebaseService = .shared,
+                 keychainManager: KeychainManager = .shared) {
         self.analyticsManager = analyticsManager
         self.crashLogger = crashLogger
         self.databaseService = databaseService
+        self.keychainManager = keychainManager
     }
     
     public func setLoginData(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws -> String {
         let authResult = try await signInWithFirebase(idTokenString: idTokenString, nonce: nonce, appleIDCredential: appleIDCredential)
         let userId = authResult.user.uid
+
+        // Save Apple user ID to Keychain for credential validation
+        do {
+            try await keychainManager.saveAppleUserID(appleIDCredential.user)
+            Logger.firebaseService.debug("Saved Apple user ID to Keychain")
+        } catch {
+            Logger.firebaseService.error("Failed to save Apple user ID to Keychain: \(error.localizedDescription)")
+            await crashLogger.reportToCrashlytics(error: error)
+        }
 
         await createUserProfileIfNeeded(userId: userId, appleIDCredential: appleIDCredential, firebaseUser: authResult.user)
 

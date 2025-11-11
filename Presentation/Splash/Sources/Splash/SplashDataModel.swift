@@ -22,6 +22,18 @@ final class SplashDataModel {
     }
     
     func loadInitialData() async {
+        // Check user credentials first
+        do {
+            let credentialsValid = try await getSplashUseCase.checkUserCredentials()
+            if credentialsValid {
+                Logger.splash.info("User credentials are valid")
+            } else {
+                Logger.splash.info("User credentials invalid or not logged in")
+            }
+        } catch {
+            Logger.splash.error("Error checking user credentials: \(error.localizedDescription)")
+        }
+
         if await getSplashUseCase.isCacheValid() {
             Logger.splash.info("Cache is valid")
             do {
