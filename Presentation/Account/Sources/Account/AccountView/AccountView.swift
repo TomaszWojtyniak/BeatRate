@@ -6,10 +6,27 @@
 //
 
 import SwiftUI
+import Settings
 
 struct AccountView: View {
+    
+    @State private var showingSettings = false
+    
     var body: some View {
-        Text("Account view")
+        NavigationStack {
+            Text("Account view")
+        }
+        .navigationBarTitle("Account", displayMode: .automatic)
+        .toolbar {
+            ToolbarItem {
+                Button("Settings", systemImage: "gear") {
+                    showingSettings = true
+                }
+            }
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
     }
 }
 
