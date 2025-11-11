@@ -16,7 +16,6 @@ struct AccountView: View {
         NavigationStack {
             Text("Account view")
         }
-        .navigationBarTitle("Account", displayMode: .automatic)
         .toolbar {
             ToolbarItem {
                 Button("Settings", systemImage: "gear") {

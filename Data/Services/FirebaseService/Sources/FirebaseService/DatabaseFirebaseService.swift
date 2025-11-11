@@ -77,8 +77,9 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     @MainActor
     public func getUserRating(userId: String, albumId: String) async throws -> Double? {
         let ref = Database.database().reference()
-            .child("user_ratings")
+            .child("users")
             .child(userId)
+            .child("user_ratings")
             .child(albumId)
 
         let snapshot = try await ref.getData()
@@ -116,8 +117,8 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
             Logger.firebaseService.info("Created album: \(albumId) with artist: \(metadata.artist), title: \(metadata.title)")
         }
 
-        // 1. Save to user_ratings/{userId}/{albumId}
-        let userRatingRef = db.child("user_ratings").child(userId).child(albumId)
+        // 1. Save to users/{userId}/user_ratings/{albumId}
+        let userRatingRef = db.child("users").child(userId).child("user_ratings").child(albumId)
         try await userRatingRef.setValue(rating)
 
         // 2. Save to album_ratings/{albumId}/{userId}
