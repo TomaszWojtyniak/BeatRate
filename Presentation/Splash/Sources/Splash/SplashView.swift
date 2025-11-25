@@ -55,16 +55,47 @@ public struct SplashView: View {
         .background(Color.backgroundGradient)
         .task {
             await dataModel.loadInitialData()
-            onComplete()
+            // Only proceed if there are no critical errors
+            if dataModel.shouldComplete {
+                onComplete()
+            }
+            // If shouldComplete is false, we stay on splash screen with error alert
         }
-        .errorAlert(isPresented: $dataModel.showError, title: "Connection Error", message: dataModel.errorMessage)
-        .alert("Apple Music Access Required", isPresented: $dataModel.showMusicKitDeniedError) {
-            Button("Open Settings") {
-                if let url = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(url)
+        .alert(
+            dataModel.alertType == .connectionError ? "Connection Error" : "Apple Music Access Required",
+            isPresented: Binding(
+                get: { dataModel.alertType != nil },
+                set: { if !$0 { dataModel.alertType = nil } }
+            )
+        ) {
+            if dataModel.alertType == .musicKitDenied {
+                Button("Open Settings") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+                Button("Try Again") {
+                    Task {
+                        await dataModel.retryAfterSettingsChange()
+                        if dataModel.shouldComplete {
+                            onComplete()
+                        }
+                    }
+                }
+                Button("Cancel", role: .cancel) {
+                    Task {
+                        await dataModel.logout()
+                        onComplete()
+                    }
+                }
+            } else {
+                Button("OK", role: .cancel) {
+                    Task {
+                        await dataModel.logout()
+                        onComplete()
+                    }
                 }
             }
-            Button("Cancel", role: .cancel) { }
         } message: {
             Text(dataModel.errorMessage)
         }

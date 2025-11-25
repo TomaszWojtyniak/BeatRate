@@ -11,26 +11,60 @@ import Analytics
 import OSLog
 import Models
 
+enum AlertType: Identifiable {
+    case connectionError
+    case musicKitDenied
+
+    var id: String {
+        switch self {
+            case .connectionError: return "connectionError"
+            case .musicKitDenied: return "musicKitDenied"
+        }
+    }
+}
+
 @Observable
 @MainActor
 final class SplashDataModel {
     private let getSplashUseCase: GetSplashUseCaseProtocol
 
-    var showError: Bool = false
+    var alertType: AlertType? = nil
     var errorMessage: String = "Unable to load data. Retrying..."
-    var isRetrying: Bool = false
-    var showMusicKitDeniedError: Bool = false
+    var shouldComplete: Bool = true  // Controls whether onComplete() should be called
 
     private var retryCount: Int = 0
     private let maxRetries: Int = 3
-    private let retryDelaySeconds: Int = 2
-    private let successDelayMilliseconds: Int = 600
+
+    var isRetrying: Bool {
+        retryCount > 0
+    }
 
     init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase()) {
         self.getSplashUseCase = getSplashUseCase
     }
 
     // MARK: - Public Interface
+
+    func logout() async {
+        do {
+            try await getSplashUseCase.logout()
+            Logger.splash.info("User logged out successfully")
+        } catch {
+            Logger.splash.error("Logout failed: \(error.localizedDescription)")
+            // Even if logout fails, we still want to proceed to login screen
+            // The login screen will handle re-authentication
+        }
+    }
+
+    func retryAfterSettingsChange() async {
+        // Reset state for retry
+        shouldComplete = true
+        alertType = nil
+        retryCount = 0
+
+        // Retry the full initialization
+        await loadInitialData()
+    }
 
     func loadInitialData() async {
         // Step 1: Validate user credentials
@@ -40,10 +74,11 @@ final class SplashDataModel {
 
         // Step 2: Request MusicKit authorization (MANDATORY - app cannot function without it)
         guard await requestMusicKitAuthorization() else {
-            // MusicKit denied - show error and stop
+            // MusicKit denied - show error and STAY on splash screen
             Logger.splash.error("MusicKit authorization denied - app cannot function")
             errorMessage = "BeatRate requires access to Apple Music to discover and rate albums."
-            showMusicKitDeniedError = true
+            alertType = .musicKitDenied
+            shouldComplete = false  // Prevent onComplete() from being called
             // Don't proceed - user must enable MusicKit or can't use the app
             return
         }
@@ -66,9 +101,8 @@ final class SplashDataModel {
         } else {
             Logger.splash.info("User credentials invalid or not logged in")
             // Credentials invalid - setUserLoggedOut() was called in use case
-            // AsyncStream will trigger navigation to LoginView
-            // Give time for state to propagate before allowing onComplete() to be called
-            await delayForStateTransition()
+            // AsyncStream will trigger navigation to LoginView automatically
+            // We DO want onComplete() to be called so navigation can happen
             return false
         }
     }
@@ -95,7 +129,6 @@ final class SplashDataModel {
     private func loadFromCache() async -> Bool {
         if await isCacheValid() {
             Logger.splash.info("Cache is valid, using cached data")
-            await delayForSuccess()
             return true
         }
         Logger.splash.info("Cache not valid, will fetch fresh data")
@@ -175,11 +208,9 @@ final class SplashDataModel {
             Logger.splash.info("Caching \(sections.count) sections")
             try await getSplashUseCase.cacheSections(sections)
             Logger.splash.info("Data cached successfully")
-            await delayForSuccess()
         } catch {
             // Caching failed but we have the data - proceed anyway
             Logger.splash.error("Failed to cache sections: \(error.localizedDescription). Proceeding anyway.")
-            await delayForSuccess()
         }
     }
 
@@ -191,7 +222,6 @@ final class SplashDataModel {
 
     private func performRetry(reason: String) async {
         retryCount += 1
-        isRetrying = true
         errorMessage = "\(reason). Retrying (\(retryCount)/\(maxRetries))..."
         Logger.splash.info("Retry attempt \(self.retryCount) of \(self.maxRetries): \(reason)")
 
@@ -200,30 +230,17 @@ final class SplashDataModel {
     }
 
     private func handleMaxRetriesReached(errorType: String, userMessage: String) async {
-        Logger.splash.error("Max retries reached, \(errorType). Proceeding anyway.")
+        Logger.splash.error("Max retries reached, \(errorType). Logging out user.")
         errorMessage = userMessage
-        showError = true
 
-        // Brief delay to show error message, then proceed to app
-        await delayForError()
-        // After this delay, onComplete() will be called and user proceeds to main app
+        // Logout user and return to login screen
+        await logout()
+        // AsyncStream will trigger navigation to LoginView automatically
     }
 
     // MARK: - Delay Helpers
 
-    private func delayForStateTransition() async {
-        try? await Task.sleep(for: .milliseconds(300))
-    }
-
-    private func delayForSuccess() async {
-        try? await Task.sleep(for: .milliseconds(successDelayMilliseconds))
-    }
-
     private func delayForRetry() async {
-        try? await Task.sleep(for: .seconds(retryDelaySeconds))
-    }
-
-    private func delayForError() async {
         try? await Task.sleep(for: .seconds(2))
     }
 }

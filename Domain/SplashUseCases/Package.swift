@@ -17,6 +17,7 @@ let package = Package(
     dependencies: [
         .package(path: "../../Data/Repositories/MusicRepository"),
         .package(path: "../../Data/Repositories/HomeRepository"),
+        .package(path: "../../Data/Repositories/LoginRepository"),
         .package(path: "../../Data/Services/SwiftDataManager"),
         .package(path: "../../Domain/LoginUseCases")
     ],
@@ -28,6 +29,7 @@ let package = Package(
             dependencies: [
                 "MusicRepository",
                 "HomeRepository",
+                "LoginRepository",
                 "SwiftDataManager",
                 "LoginUseCases"
             ],

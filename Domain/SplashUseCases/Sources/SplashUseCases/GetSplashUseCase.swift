@@ -8,6 +8,7 @@
 import SwiftUI
 import MusicRepository
 import HomeRepository
+import LoginRepository
 import SwiftDataManager
 import LoginUseCases
 import CoreApp
@@ -21,22 +22,26 @@ public protocol GetSplashUseCaseProtocol: Sendable {
     func cacheSections(_ sections: [HomeSection]) async throws
     func isCacheValid() async -> Bool
     func areCredentialsValid() async -> Bool
+    func logout() async throws
 }
 
 public actor GetSplashUseCase: GetSplashUseCaseProtocol {
     private let musicRepository: MusicRepositoryProtocol
     private let homeRepository: HomeRepositoryProtocol
+    private let loginRepository: LoginRepositoryProtocol
     private let swiftDataManager: SwiftDataManagerProtocol
     private let getLoginUseCase: GetLoginUseCaseProtocol
     private let keychainManager: KeychainManager
 
     public init(musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
          homeRepository: HomeRepositoryProtocol = HomeRepository.shared,
+         loginRepository: LoginRepositoryProtocol = LoginRepository.shared,
          swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared,
          getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),
          keychainManager: KeychainManager = .shared) {
         self.musicRepository = musicRepository
         self.homeRepository = homeRepository
+        self.loginRepository = loginRepository
         self.swiftDataManager = swiftDataManager
         self.getLoginUseCase = getLoginUseCase
         self.keychainManager = keychainManager
@@ -111,6 +116,17 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
                 continuation.resume(returning: state)
             }
         }
+    }
+
+    public func logout() async throws {
+        // Step 1: Sign out from Firebase
+        try await loginRepository.signOut()
+
+        // Step 2: Clear the Keychain
+        try await keychainManager.deleteAppleUserID()
+
+        // Step 3: Set user as logged out in local storage
+        try await swiftDataManager.setUserLoggedOut()
     }
 }
 
