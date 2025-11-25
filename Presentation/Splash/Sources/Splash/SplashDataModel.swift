@@ -19,6 +19,7 @@ final class SplashDataModel {
     var showError: Bool = false
     var errorMessage: String = "Unable to load data. Retrying..."
     var isRetrying: Bool = false
+    var showMusicKitDeniedError: Bool = false
 
     private var retryCount: Int = 0
     private let maxRetries: Int = 3
@@ -37,12 +38,22 @@ final class SplashDataModel {
             return
         }
 
-        // Step 2: Try to load from cache
+        // Step 2: Request MusicKit authorization (MANDATORY - app cannot function without it)
+        guard await requestMusicKitAuthorization() else {
+            // MusicKit denied - show error and stop
+            Logger.splash.error("MusicKit authorization denied - app cannot function")
+            errorMessage = "BeatRate requires access to Apple Music to discover and rate albums."
+            showMusicKitDeniedError = true
+            // Don't proceed - user must enable MusicKit or can't use the app
+            return
+        }
+
+        // Step 3: Try to load from cache
         if await loadFromCache() {
             return
         }
 
-        // Step 3: Fetch fresh data with retry logic
+        // Step 4: Fetch fresh data with retry logic
         await fetchFreshData()
     }
 
@@ -58,6 +69,23 @@ final class SplashDataModel {
             // AsyncStream will trigger navigation to LoginView
             // Give time for state to propagate before allowing onComplete() to be called
             await delayForStateTransition()
+            return false
+        }
+    }
+
+    // MARK: - MusicKit Authorization
+
+    private func requestMusicKitAuthorization() async -> Bool {
+        Logger.splash.info("Requesting MusicKit authorization")
+
+        let isAuthorized = await getSplashUseCase.authorizeMusicKit()
+
+        if isAuthorized {
+            Logger.splash.info("MusicKit authorization granted")
+            return true
+        } else {
+            Logger.splash.error("MusicKit authorization was not granted")
+            // The error message is already set in loadInitialData() when this returns false
             return false
         }
     }

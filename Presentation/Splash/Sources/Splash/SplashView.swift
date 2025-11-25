@@ -58,6 +58,16 @@ public struct SplashView: View {
             onComplete()
         }
         .errorAlert(isPresented: $dataModel.showError, title: "Connection Error", message: dataModel.errorMessage)
+        .alert("Apple Music Access Required", isPresented: $dataModel.showMusicKitDeniedError) {
+            Button("Open Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text(dataModel.errorMessage)
+        }
     }
 }
 
