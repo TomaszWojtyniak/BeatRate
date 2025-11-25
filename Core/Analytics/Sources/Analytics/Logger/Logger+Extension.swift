@@ -22,6 +22,8 @@ public extension Logger {
 
     static let loginRepository = Logger(subsystem: subsystem, category: "loginRepository")
 
+    static let loginUseCases = Logger(subsystem: subsystem, category: "loginUseCases")
+
     static let firebaseService = Logger(subsystem: subsystem, category: "firebaseService")
     
     static let home = Logger(subsystem: subsystem, category: "home")

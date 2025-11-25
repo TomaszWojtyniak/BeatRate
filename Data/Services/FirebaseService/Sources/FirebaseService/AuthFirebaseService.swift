@@ -15,6 +15,7 @@ import AuthenticationServices
 
 public protocol AuthFirebaseServiceProtocol: Sendable {
     func setLoginData(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws -> String
+    func signOut() async throws
 }
 
 public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
@@ -38,18 +39,46 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
         let authResult = try await signInWithFirebase(idTokenString: idTokenString, nonce: nonce, appleIDCredential: appleIDCredential)
         let userId = authResult.user.uid
 
-        // Save Apple user ID to Keychain for credential validation
+        // CRITICAL: Save Apple user ID to Keychain for credential validation
+        // This is a hard requirement - if it fails, we must not continue
         do {
             try await keychainManager.saveAppleUserID(appleIDCredential.user)
             Logger.firebaseService.debug("Saved Apple user ID to Keychain")
         } catch {
-            Logger.firebaseService.error("Failed to save Apple user ID to Keychain: \(error.localizedDescription)")
+            Logger.firebaseService.error("CRITICAL: Failed to save Apple user ID to Keychain: \(error.localizedDescription)")
             await crashLogger.reportToCrashlytics(error: error)
+
+            // Rollback Firebase authentication since we can't save credentials
+            Logger.firebaseService.warning("Rolling back Firebase authentication due to Keychain failure")
+            do {
+                try Auth.auth().signOut()
+                Logger.firebaseService.debug("Successfully rolled back Firebase authentication")
+            } catch {
+                Logger.firebaseService.error("Failed to rollback Firebase auth: \(error.localizedDescription)")
+            }
+
+            // Throw the original Keychain error
+            throw error
         }
 
         await createUserProfileIfNeeded(userId: userId, appleIDCredential: appleIDCredential, firebaseUser: authResult.user)
 
         return userId
+    }
+
+    public func signOut() async throws {
+        Logger.firebaseService.debug("Signing out from Firebase")
+        try Auth.auth().signOut()
+        Logger.firebaseService.debug("Firebase sign out successful")
+
+        // Clean up Keychain
+        do {
+            try await keychainManager.deleteAppleUserID()
+            Logger.firebaseService.debug("Deleted Apple user ID from Keychain")
+        } catch {
+            Logger.firebaseService.error("Failed to delete Apple user ID from Keychain: \(error.localizedDescription)")
+            // Don't throw - Keychain cleanup is not critical for sign out
+        }
     }
 
     private func signInWithFirebase(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws -> AuthDataResult {

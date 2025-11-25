@@ -35,6 +35,19 @@ public struct SplashView: View {
                 .foregroundStyle(Color.primaryText)
             
             Spacer()
+
+            // Show retry status if retrying
+            if dataModel.isRetrying {
+                VStack(spacing: 8) {
+                    ProgressView()
+                        .tint(.white)
+                    Text(dataModel.errorMessage)
+                        .font(.caption)
+                        .foregroundStyle(Color.primaryText)
+                        .multilineTextAlignment(.center)
+                }
+                .padding()
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal)
@@ -44,7 +57,7 @@ public struct SplashView: View {
             await dataModel.loadInitialData()
             onComplete()
         }
-        .errorAlert(isPresented: $dataModel.showError, title: "Error", message: "Error")
+        .errorAlert(isPresented: $dataModel.showError, title: "Connection Error", message: dataModel.errorMessage)
     }
 }
 

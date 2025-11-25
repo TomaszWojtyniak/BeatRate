@@ -20,7 +20,7 @@ public protocol LoginRepositoryProtocol: Sendable {
     func setLoginData(authResult: ASAuthorization) async throws -> String
     func getCurrentNonce() async -> String
     func getUserProfile(userId: String) async throws -> FirebaseUserProfile?
-    func checkUserCredentialState(userId: String) async -> ASAuthorizationAppleIDProvider.CredentialState
+    func signOut() async throws
 }
 
 public actor LoginRepository: LoginRepositoryProtocol {
@@ -91,16 +91,9 @@ public actor LoginRepository: LoginRepositoryProtocol {
         return try await databaseFirebaseService.getUserProfile(userId: userId)
     }
 
-    public func checkUserCredentialState(userId: String) async -> ASAuthorizationAppleIDProvider.CredentialState {
-        let appleIDProvider = ASAuthorizationAppleIDProvider()
-
-        do {
-            let credentialState = try await appleIDProvider.credentialState(forUserID: userId)
-            Logger.loginRepository.info("Credential state for user \(userId): \(String(describing: credentialState))")
-            return credentialState
-        } catch {
-            Logger.loginRepository.error("Error checking credential state: \(error.localizedDescription)")
-            return .notFound
-        }
+    public func signOut() async throws {
+        Logger.loginRepository.info("Signing out user from Firebase")
+        try await authFirebaseService.signOut()
+        Logger.loginRepository.info("User signed out successfully")
     }
 }

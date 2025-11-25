@@ -31,13 +31,11 @@ final class LoginDataModel {
         self.analyticsManager = analyticsManager
         self.crashLogger = crashLogger
     }
-    
-    func setUserLoggedIn(userId: String) async throws {
-        try await self.postLoginUseCase.setUserLoggedIn(userId: userId)
-    }
-    
-    func handleLoginFlow(authResult: ASAuthorization) async throws -> String {
-        return try await self.postLoginUseCase.setLoginData(authResult: authResult)
+
+    /// Performs complete login with automatic rollback if local storage fails.
+    /// This is the recommended method for login flow.
+    func performCompleteLogin(authResult: ASAuthorization) async throws {
+        _ = try await self.postLoginUseCase.performCompleteLogin(authResult: authResult)
     }
     
     func handleLoginFailure(error: Error) async {

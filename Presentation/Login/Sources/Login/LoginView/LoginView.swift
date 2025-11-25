@@ -45,13 +45,10 @@ struct LoginView: View {
                     switch result {
                     case .success(let authResult):
                         do {
-                            let userId = try await self.dataModel.handleLoginFlow(authResult: authResult)
-                            Logger.login.debug("User login successful")
-                            
-                            try await self.dataModel.setUserLoggedIn(userId: userId)
-                            Logger.login.debug("User login state saved successfully")
+                            try await self.dataModel.performCompleteLogin(authResult: authResult)
+                            Logger.login.debug("Complete login successful (Firebase + local storage)")
                         } catch let error {
-                            Logger.login.error("Failed to save user login state: \(error)")
+                            Logger.login.error("Login failed: \(error.localizedDescription)")
                             await self.dataModel.handleLoginFailure(error: error)
                         }
                     case .failure(let error):

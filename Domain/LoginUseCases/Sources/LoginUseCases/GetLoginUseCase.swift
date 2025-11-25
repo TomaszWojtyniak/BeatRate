@@ -13,7 +13,6 @@ import AuthenticationServices
 public protocol GetLoginUseCaseProtocol: Sendable {
     func getCurrentNonce() async -> String
     func getUserProfile(userId: String) async throws -> FirebaseUserProfile?
-    func checkUserCredentialState(userId: String) async -> ASAuthorizationAppleIDProvider.CredentialState
 }
 
 public actor GetLoginUseCase: GetLoginUseCaseProtocol {
@@ -29,9 +28,5 @@ public actor GetLoginUseCase: GetLoginUseCaseProtocol {
 
     public func getUserProfile(userId: String) async throws -> FirebaseUserProfile? {
         return try await loginRepository.getUserProfile(userId: userId)
-    }
-
-    public func checkUserCredentialState(userId: String) async -> ASAuthorizationAppleIDProvider.CredentialState {
-        return await loginRepository.checkUserCredentialState(userId: userId)
     }
 }
