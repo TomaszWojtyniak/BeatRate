@@ -20,7 +20,7 @@ public protocol GetSplashUseCaseProtocol: Sendable {
     func authorizeMusicKit() async -> Bool
     func cacheSections(_ sections: [HomeSection]) async throws
     func isCacheValid() async -> Bool
-    func checkUserCredentials() async throws -> Bool
+    func areCredentialsValid() async -> Bool
 }
 
 public actor GetSplashUseCase: GetSplashUseCaseProtocol {
@@ -61,8 +61,22 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
     public func isCacheValid() async -> Bool {
         return await swiftDataManager.isCacheValid()
     }
+    
+    public func areCredentialsValid() async -> Bool {
+        do {
+            if try await checkUserCredentials() {
+                return true
+            } else {
+                try? await swiftDataManager.setUserLoggedOut()
+                return false
+            }
+        } catch {
+            try? await swiftDataManager.setUserLoggedOut()
+            return false
+        }
+    }
 
-    public func checkUserCredentials() async throws -> Bool {
+    private func checkUserCredentials() async throws -> Bool {
         // Get Apple user ID from Keychain (not Firebase userId)
         guard let appleUserID = try await keychainManager.loadAppleUserID() else {
             // No Apple user ID in Keychain - user not logged in with Apple
@@ -77,19 +91,15 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
             return true
         case .revoked:
             // User revoked access
-            try await swiftDataManager.setUserLoggedOut()
             return false
         case .notFound:
             // Credentials not found
-            try await swiftDataManager.setUserLoggedOut()
             return false
         case .transferred:
             // Credentials transferred to another device
-            try await swiftDataManager.setUserLoggedOut()
             return false
         @unknown default:
             // Unknown state
-            try await swiftDataManager.setUserLoggedOut()
             return false
         }
     }
