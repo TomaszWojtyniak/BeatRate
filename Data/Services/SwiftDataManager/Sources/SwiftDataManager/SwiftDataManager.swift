@@ -223,14 +223,40 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
     
     public func getCurrentUser() async throws -> User? {
         let descriptor = FetchDescriptor<User>()
-        return try context.fetch(descriptor).first
+        let users = try context.fetch(descriptor)
+
+        // Safety check: If multiple Users exist (shouldn't happen), clean up duplicates
+        if users.count > 1 {
+            print("⚠️ SwiftDataManager: Found \(users.count) User models, expected 1. Cleaning up duplicates.")
+            // Keep the first one, delete the rest
+            for user in users.dropFirst() {
+                context.delete(user)
+            }
+            try context.save()
+        }
+
+        return users.first
     }
-    
+
     public func setUserLoggedIn(userId: String) async throws {
-        if let existingUser = try await getCurrentUser() {
+        // Ensure singleton pattern - should only ever be one User
+        let descriptor = FetchDescriptor<User>()
+        let allUsers = try context.fetch(descriptor)
+
+        if let existingUser = allUsers.first {
+            // Update existing user
             existingUser.isLoggedIn = true
             existingUser.userId = userId
+
+            // Clean up any duplicate Users (shouldn't happen, but safety check)
+            if allUsers.count > 1 {
+                print("⚠️ SwiftDataManager: Found \(allUsers.count) User models during login, removing duplicates")
+                for duplicate in allUsers.dropFirst() {
+                    context.delete(duplicate)
+                }
+            }
         } else {
+            // Create new user
             let newUser = User(isLoggedIn: true, userId: userId)
             context.insert(newUser)
         }

@@ -52,11 +52,14 @@ class AppDataModel {
     func startObservingLoginState() {
         Task {
             for await isLoggedIn in getAppUseCase.observeLoginState() {
+                let wasLoggedOut = !self.isUserLoggedIn
                 self.isUserLoggedIn = isLoggedIn
 
-                // Reset splash screen when user logs in
-                if isLoggedIn {
+                // Only reset splash screen on state transition from logged out to logged in
+                // This prevents splash from appearing when user is already in the app
+                if isLoggedIn && wasLoggedOut {
                     self.showingSplash = true
+                    Logger.app.debug("User logged in - showing splash screen")
                 }
 
                 Logger.app.debug("Login state changed: \(isLoggedIn)")
