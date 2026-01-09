@@ -9,6 +9,8 @@ import SwiftData
 import SwiftUI
 import Models
 import CoreApp
+import Analytics
+import OSLog
 
 public protocol SwiftDataManagerProtocol: Sendable {
     var context: ModelContext { get }
@@ -227,7 +229,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
 
         // Safety check: If multiple Users exist (shouldn't happen), clean up duplicates
         if users.count > 1 {
-            print("⚠️ SwiftDataManager: Found \(users.count) User models, expected 1. Cleaning up duplicates.")
+            Logger.swiftDataManager.debug("⚠️ SwiftDataManager: Found \(users.count) User models, expected 1. Cleaning up duplicates.")
             // Keep the first one, delete the rest
             for user in users.dropFirst() {
                 context.delete(user)
@@ -250,7 +252,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
 
             // Clean up any duplicate Users (shouldn't happen, but safety check)
             if allUsers.count > 1 {
-                print("⚠️ SwiftDataManager: Found \(allUsers.count) User models during login, removing duplicates")
+                Logger.swiftDataManager.debug("⚠️ SwiftDataManager: Found \(allUsers.count) User models during login, removing duplicates")
                 for duplicate in allUsers.dropFirst() {
                     context.delete(duplicate)
                 }
@@ -277,7 +279,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
             try await keychainManager.deleteAppleUserID()
         } catch {
             // Log but don't fail - user is still logged out in SwiftData
-            print("Failed to delete Apple user ID from Keychain: \(error)")
+            Logger.swiftDataManager.error("Failed to delete Apple user ID from Keychain: \(error)")
         }
 
         // Clear all cached data
@@ -285,7 +287,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
             try await clearAllCacheForLogout()
         } catch {
             // Log but don't fail - user is still logged out
-            print("Failed to clear cache during logout: \(error)")
+            Logger.swiftDataManager.error("Failed to clear cache during logout: \(error)")
         }
 
         // Emit login state change to stream
