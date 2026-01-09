@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-public struct AppleMusicAlbumData: Codable, Hashable, Identifiable {
+public struct AppleMusicAlbumData: Codable, Hashable, Identifiable, Sendable {
     public let id: String
     public let title: String
     public let artist: String
