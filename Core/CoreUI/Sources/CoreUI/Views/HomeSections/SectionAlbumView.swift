@@ -7,13 +7,12 @@
 
 import SwiftUI
 import Models
-import CoreUI
 
-struct SectionAlbumView: View {
+public struct SectionAlbumView: View {
     
     let album: AlbumModel
     
-    var body: some View {
+    public var body: some View {
         VStack(alignment: .leading) {
             AsyncImage(url: album.appleMusicAlbumData.coverUrl) { image in
                 image

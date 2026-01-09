@@ -16,8 +16,11 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../../Presentation/Settings"),
+        .package(path: "../../Presentation/AlbumDetails"),
         .package(path: "../../Core/Models"),
+        .package(path: "../../Core/CoreUI"),
         .package(path: "../../Domain/LoginUseCases"),
+        .package(path: "../../Domain/AccountUseCases")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -26,8 +29,11 @@ let package = Package(
             name: "Account",
             dependencies: [
                 "Settings",
+                "AlbumDetails",
                 "Models",
-                "LoginUseCases"
+                "CoreUI",
+                "LoginUseCases",
+                "AccountUseCases",
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)
