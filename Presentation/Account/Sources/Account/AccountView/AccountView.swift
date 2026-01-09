@@ -23,7 +23,7 @@ public struct AccountView: View {
         NavigationStack {
             List {
                 if !dataModel.isLoading {
-                    Text(dataModel.fullName ?? "Tomasz Wojtyniak")
+                    Text((dataModel.fullName ?? dataModel.userProfile?.email) ?? "")
                         .font(.system(.title, weight: .semibold))
                         .frame(maxWidth: .infinity, alignment: .center)
                         .listRowBackground(Color.clear)
