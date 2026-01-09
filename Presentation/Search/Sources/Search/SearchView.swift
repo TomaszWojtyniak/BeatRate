@@ -50,6 +50,7 @@ public struct SearchView: View {
                 }
             }
             .navigationTitle("Search")
+            .toolbarTitleDisplayMode(.inlineLarge)
             .navigationDestination(item: $selectedAlbum) { album in
                 AlbumDetailsContainer(albumId: album.id)
             }

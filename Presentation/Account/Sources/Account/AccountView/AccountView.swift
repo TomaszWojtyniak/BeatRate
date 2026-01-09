@@ -17,6 +17,8 @@ struct AccountView: View {
         NavigationStack {
             Text("Account view")
         }
+        .navigationTitle("Account")
+        .toolbarTitleDisplayMode(.inlineLarge)
         .toolbar {
             ToolbarItem {
                 Button("Settings", systemImage: "gear") {
