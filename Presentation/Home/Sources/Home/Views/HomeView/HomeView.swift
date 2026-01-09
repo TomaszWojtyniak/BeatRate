@@ -46,7 +46,8 @@ public struct HomeView: View {
             AlbumDetailsNavigationStack(album: album)
         }
         .navigationBarTitle(String(localized: "home.navigation.title", bundle: .module), displayMode: .automatic)
-        .task {
+        .task(priority: .userInitiated) {
+            // High priority - user is waiting for initial home screen load
             await self.dataModel.loadInitialData()
         }
     }

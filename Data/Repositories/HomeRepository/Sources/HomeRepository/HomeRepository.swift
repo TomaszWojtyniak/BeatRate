@@ -43,11 +43,21 @@ public actor HomeRepository: HomeRepositoryProtocol {
     }
     
     public func fetchHomeSections() async throws -> [HomeSection] {
+        // Performance measurement signpost
+        let signpostID = OSSignpostID(log: Logger.homeRepository)
+        os_signpost(.begin, log: Logger.homeRepository, name: "Fetch Home Sections", signpostID: signpostID)
+        defer {
+            os_signpost(.end, log: Logger.homeRepository, name: "Fetch Home Sections", signpostID: signpostID)
+        }
+
         // Try to get from cache first if valid
         if let cachedSections = try await getCachedSectionsIfValid() {
+            os_signpost(.event, log: Logger.homeRepository, name: "Cache Hit", signpostID: signpostID)
             self.homeSections = cachedSections
             return cachedSections
         }
+
+        os_signpost(.event, log: Logger.homeRepository, name: "Cache Miss - Fetching Fresh", signpostID: signpostID)
 
         // Fetch fresh data if cache miss or invalid
         let firebaseSections = try await databaseFirebaseService.fetchSections()
@@ -78,6 +88,13 @@ public actor HomeRepository: HomeRepositoryProtocol {
     }
 
     public func saveAlbumRating(albumId: String, rating: Double, albumMetadata: (artist: String, title: String)? = nil) async throws {
+        // Performance measurement signpost
+        let signpostID = OSSignpostID(log: Logger.homeRepository)
+        os_signpost(.begin, log: Logger.homeRepository, name: "Save Album Rating", signpostID: signpostID, "Album: %{public}s, Rating: %.1f", albumId, rating)
+        defer {
+            os_signpost(.end, log: Logger.homeRepository, name: "Save Album Rating", signpostID: signpostID)
+        }
+
         guard let currentUserId = try await swiftDataManager.getCurrentUserId(), !currentUserId.isEmpty else {
             Logger.homeRepository.error("Cannot save rating: User not logged in")
             throw HomeRepositoryError.albumDataMismatch
@@ -200,8 +217,8 @@ public actor HomeRepository: HomeRepositoryProtocol {
             firebaseAlbumData: validFirebaseData
         )
 
-        // Validate album data matches
-        try await validateAlbumData(album)
+        // Validate album data matches (no await needed - synchronous validation)
+        try validateAlbumData(album)
 
         // Cache the fetched album
         try await swiftDataManager.cacheAlbum(id: albumId, album: album)
@@ -228,7 +245,8 @@ public actor HomeRepository: HomeRepositoryProtocol {
     }
 
     /// Validates that Firebase and MusicKit data match for an album
-    private func validateAlbumData(_ album: AlbumModel) async throws {
+    /// Performance: Made nonisolated and synchronous - no suspension point needed for simple validation
+    private nonisolated func validateAlbumData(_ album: AlbumModel) throws {
         let firebaseTitle = album.firebaseAlbumData?.title
         let firebaseArtist = album.firebaseAlbumData?.artist
         let musicTitle = album.appleMusicAlbumData.title
