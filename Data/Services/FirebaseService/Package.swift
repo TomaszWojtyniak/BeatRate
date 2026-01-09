@@ -17,7 +17,8 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "11.13.0"),
         .package(path: "../../Core/Analytics"),
-        .package(path: "../../Core/Models")
+        .package(path: "../../Core/Models"),
+        .package(path: "../../Core/CoreApp")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -28,7 +29,8 @@ let package = Package(
                 .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
                 .product(name: "FirebaseDatabase", package: "firebase-ios-sdk"),
                 "Analytics",
-                "Models"
+                "Models",
+                "CoreApp"
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)

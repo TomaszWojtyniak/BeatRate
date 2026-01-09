@@ -121,8 +121,8 @@ public actor HomeRepository: HomeRepositoryProtocol {
         var newHomeSections: [HomeSection] = []
 
         for section in firebaseSections {
-            let albumModels = try await fetchAlbumsForSection(albumIds: await section.albums)
-            let homeSection = await HomeSection(sectionName: section.name, albums: albumModels)
+            let albumModels = try await fetchAlbumsForSection(albumIds: section.albums)
+            let homeSection = HomeSection(sectionName: section.name, albums: albumModels)
             newHomeSections.append(homeSection)
         }
 
@@ -171,7 +171,7 @@ public actor HomeRepository: HomeRepositoryProtocol {
         }
 
         // Build album model
-        let album = await AlbumModel(
+        let album = AlbumModel(
             id: albumId,
             appleMusicAlbumData: musicData,
             firebaseAlbumData: validFirebaseData
@@ -190,7 +190,7 @@ public actor HomeRepository: HomeRepositoryProtocol {
     private func createFirebaseAlbumData(for albumId: String, musicData: AppleMusicAlbumData) async throws -> FirebaseAlbumData {
         Logger.homeRepository.info("Creating new Firebase album entry for: \(albumId)")
 
-        let newFirebaseData = await FirebaseAlbumData(
+        let newFirebaseData = FirebaseAlbumData(
             artist: musicData.artist,
             avgRating: 0,  // Set to 0 for new albums with no ratings
             createdAt: Int64(Date().timeIntervalSince1970 * 1000),
@@ -206,13 +206,13 @@ public actor HomeRepository: HomeRepositoryProtocol {
 
     /// Validates that Firebase and MusicKit data match for an album
     private func validateAlbumData(_ album: AlbumModel) async throws {
-        let firebaseTitle = await album.firebaseAlbumData?.title
-        let firebaseArtist = await album.firebaseAlbumData?.artist
-        let musicTitle = await album.appleMusicAlbumData.title
-        let musicArtist = await album.appleMusicAlbumData.artist
+        let firebaseTitle = album.firebaseAlbumData?.title
+        let firebaseArtist = album.firebaseAlbumData?.artist
+        let musicTitle = album.appleMusicAlbumData.title
+        let musicArtist = album.appleMusicAlbumData.artist
 
         if firebaseTitle != musicTitle || firebaseArtist != musicArtist {
-            let albumId = await album.id
+            let albumId = album.id
             Logger.homeRepository.error("Wrong album data for album id: \(albumId)")
             throw HomeRepositoryError.albumDataMismatch
         }
@@ -259,7 +259,7 @@ public actor HomeRepository: HomeRepositoryProtocol {
 
         // Update cache with new avgRating and ratingCount (no extra fetch needed)
         if let cachedAlbum = try await swiftDataManager.getCachedAlbum(id: albumId)?.firebaseAlbumData {
-            let updatedFirebaseData = await FirebaseAlbumData(
+            let updatedFirebaseData = FirebaseAlbumData(
                 artist: cachedAlbum.artist,
                 avgRating: avgRating,
                 createdAt: cachedAlbum.createdAt,

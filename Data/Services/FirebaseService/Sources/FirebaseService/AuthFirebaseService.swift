@@ -130,7 +130,7 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
             return
         }
 
-        let profile = await FirebaseUserProfile(
+        let profile = FirebaseUserProfile(
             email: userData.email,
             firstName: userData.firstName,
             lastName: userData.lastName

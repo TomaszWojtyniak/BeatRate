@@ -47,7 +47,7 @@ public actor GetAlbumByIdUseCase: GetAlbumByIdUseCaseProtocol {
         let firebaseData = try? await firebaseDataTask  // Firebase data is optional (may not exist yet)
 
         // Create AlbumModel with both Apple Music and Firebase data
-        let albumModel = await AlbumModel(
+        let albumModel = AlbumModel(
             id: albumId,
             appleMusicAlbumData: appleMusicData,
             firebaseAlbumData: firebaseData

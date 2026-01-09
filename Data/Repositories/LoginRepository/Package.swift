@@ -15,7 +15,8 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../../Core/Analytics"),
-        .package(path: "../../Data/FirebaseService")
+        .package(path: "../../Data/FirebaseService"),
+        .package(path: "../../Core/Models"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -24,7 +25,8 @@ let package = Package(
             name: "LoginRepository",
             dependencies: [
                 "Analytics",
-                "FirebaseService"
+                "FirebaseService",
+                "Models"
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)
