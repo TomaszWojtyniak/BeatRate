@@ -93,8 +93,12 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
 
     public func saveUserRating(userId: String, albumId: String, rating: Double, albumMetadata: (artist: String, title: String)? = nil) async throws -> (avgRating: Double, ratingCount: Int) {
         try await ensureAlbumExists(albumId: albumId, albumMetadata: albumMetadata)
-        try await saveRatingToUserNode(userId: userId, albumId: albumId, rating: rating)
-        try await saveRatingToAlbumNode(userId: userId, albumId: albumId, rating: rating)
+
+        // Write to both Firebase nodes in parallel
+        async let userNodeTask = saveRatingToUserNode(userId: userId, albumId: albumId, rating: rating)
+        async let albumNodeTask = saveRatingToAlbumNode(userId: userId, albumId: albumId, rating: rating)
+        try await userNodeTask
+        try await albumNodeTask
 
         let stats = try await calculateAlbumStats(userId: userId, albumId: albumId, rating: rating)
         try await updateAlbumStats(albumId: albumId, avgRating: stats.avgRating, ratingCount: stats.ratingCount)
@@ -163,8 +167,12 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     private func updateAlbumStats(albumId: String, avgRating: Double, ratingCount: Int) async throws {
         let db = Database.database().reference()
         let albumRef = db.child("albums").child(albumId)
-        try await albumRef.child("avgRating").setValue(avgRating)
-        try await albumRef.child("ratingCount").setValue(ratingCount)
+
+        // Update both stats in parallel
+        async let avgRatingTask = albumRef.child("avgRating").setValue(avgRating)
+        async let ratingCountTask = albumRef.child("ratingCount").setValue(ratingCount)
+        try await avgRatingTask
+        try await ratingCountTask
     }
 
     public func getUserProfile(userId: String) async throws -> FirebaseUserProfile? {
