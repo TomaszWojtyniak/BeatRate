@@ -118,37 +118,60 @@ public actor HomeRepository: HomeRepositoryProtocol {
 
     /// Builds home sections from Firebase section data
     private func buildHomeSections(from firebaseSections: [FirebaseAlbumSection]) async throws -> [HomeSection] {
-        var newHomeSections: [HomeSection] = []
+        // Use task group to fetch all sections in parallel
+        return try await withThrowingTaskGroup(of: (order: Int, section: HomeSection).self) { group in
+            for (index, section) in firebaseSections.enumerated() {
+                group.addTask {
+                    try Task.checkCancellation()
+                    let albumModels = try await self.fetchAlbumsForSection(albumIds: section.albums)
+                    let homeSection = HomeSection(sectionName: section.name, albums: albumModels)
+                    return (order: index, section: homeSection)
+                }
+            }
 
-        for section in firebaseSections {
-            let albumModels = try await fetchAlbumsForSection(albumIds: section.albums)
-            let homeSection = HomeSection(sectionName: section.name, albums: albumModels)
-            newHomeSections.append(homeSection)
+            // Collect results and sort by original order
+            var results: [(order: Int, section: HomeSection)] = []
+            for try await result in group {
+                results.append(result)
+            }
+
+            return results.sorted { $0.order < $1.order }.map { $0.section }
         }
-
-        return newHomeSections
     }
 
     /// Fetches albums for a section, trying cache first then fetching from remote
     private func fetchAlbumsForSection(albumIds: [String]) async throws -> [AlbumModel] {
-        var albumModels: [AlbumModel] = []
-
-        for albumId in albumIds {
-            do {
-                // Try cache first
-                if let cachedAlbum = try await swiftDataManager.getCachedAlbum(id: albumId) {
-                    albumModels.append(cachedAlbum)
-                } else {
-                    // Fetch and cache album
-                    let album = try await fetchAndCacheAlbum(albumId: albumId)
-                    albumModels.append(album)
+        // Use task group to fetch all albums in parallel
+        return await withTaskGroup(of: (order: Int, album: AlbumModel?).self) { group in
+            for (index, albumId) in albumIds.enumerated() {
+                group.addTask {
+                    do {
+                        try Task.checkCancellation()
+                        // Try cache first
+                        if let cachedAlbum = try await self.swiftDataManager.getCachedAlbum(id: albumId) {
+                            return (order: index, album: cachedAlbum)
+                        } else {
+                            // Fetch and cache album
+                            let album = try await self.fetchAndCacheAlbum(albumId: albumId)
+                            return (order: index, album: album)
+                        }
+                    } catch {
+                        Logger.homeRepository.error("Album not found for id: \(albumId) — \(error)")
+                        return (order: index, album: nil)
+                    }
                 }
-            } catch {
-                Logger.homeRepository.error("Album not found for id: \(albumId) — \(error)")
             }
-        }
 
-        return albumModels
+            // Collect results, sort by original order, and filter out nil albums
+            var results: [(order: Int, album: AlbumModel?)] = []
+            for await result in group {
+                results.append(result)
+            }
+
+            return results
+                .sorted { $0.order < $1.order }
+                .compactMap { $0.album }
+        }
     }
 
     /// Fetches album from MusicKit and Firebase, validates, and caches it

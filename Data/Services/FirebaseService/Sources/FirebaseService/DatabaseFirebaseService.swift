@@ -93,8 +93,17 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
 
     public func saveUserRating(userId: String, albumId: String, rating: Double, albumMetadata: (artist: String, title: String)? = nil) async throws -> (avgRating: Double, ratingCount: Int) {
         try await ensureAlbumExists(albumId: albumId, albumMetadata: albumMetadata)
-        try await saveRatingToUserNode(userId: userId, albumId: albumId, rating: rating)
-        try await saveRatingToAlbumNode(userId: userId, albumId: albumId, rating: rating)
+
+        // Write to both Firebase nodes in parallel using task group
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            group.addTask {
+                try await self.saveRatingToUserNode(userId: userId, albumId: albumId, rating: rating)
+            }
+            group.addTask {
+                try await self.saveRatingToAlbumNode(userId: userId, albumId: albumId, rating: rating)
+            }
+            try await group.waitForAll()
+        }
 
         let stats = try await calculateAlbumStats(userId: userId, albumId: albumId, rating: rating)
         try await updateAlbumStats(albumId: albumId, avgRating: stats.avgRating, ratingCount: stats.ratingCount)
@@ -161,10 +170,27 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     private func updateAlbumStats(albumId: String, avgRating: Double, ratingCount: Int) async throws {
-        let db = Database.database().reference()
-        let albumRef = db.child("albums").child(albumId)
-        try await albumRef.child("avgRating").setValue(avgRating)
-        try await albumRef.child("ratingCount").setValue(ratingCount)
+        // Update both stats in parallel using task group
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            group.addTask {
+                try await self.updateAvgRating(albumId: albumId, avgRating: avgRating)
+            }
+            group.addTask {
+                try await self.updateRatingCount(albumId: albumId, ratingCount: ratingCount)
+            }
+            // Wait for both tasks to complete
+            try await group.waitForAll()
+        }
+    }
+
+    private func updateAvgRating(albumId: String, avgRating: Double) async throws {
+        let ref = Database.database().reference().child("albums").child(albumId).child("avgRating")
+        try await ref.setValue(avgRating)
+    }
+
+    private func updateRatingCount(albumId: String, ratingCount: Int) async throws {
+        let ref = Database.database().reference().child("albums").child(albumId).child("ratingCount")
+        try await ref.setValue(ratingCount)
     }
 
     public func getUserProfile(userId: String) async throws -> FirebaseUserProfile? {
