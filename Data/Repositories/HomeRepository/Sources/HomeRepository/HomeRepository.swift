@@ -199,7 +199,6 @@ public actor HomeRepository: HomeRepositoryProtocol {
             }
 
             return results
-                .sorted { $0.order < $1.order }
                 .compactMap { $0.album }
         }
     }
