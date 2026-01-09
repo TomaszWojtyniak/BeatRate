@@ -8,6 +8,9 @@
 import SwiftData
 import SwiftUI
 import Models
+import CoreApp
+import Analytics
+import OSLog
 
 public protocol SwiftDataManagerProtocol: Sendable {
     var context: ModelContext { get }
@@ -19,6 +22,7 @@ public protocol SwiftDataManagerProtocol: Sendable {
     func getCachedUserRating(albumId: String) async throws -> Double?
     func cacheUserRating(albumId: String, rating: Double) async throws
     func clearCache() async throws
+    func clearAllCacheForLogout() async throws
     func isCacheValid() async -> Bool
 
     // User management methods
@@ -27,6 +31,7 @@ public protocol SwiftDataManagerProtocol: Sendable {
     func setUserLoggedIn(userId: String) async throws
     func setUserLoggedOut() async throws
     func isUserLoggedIn() async -> Bool
+    func observeLoginState() -> AsyncStream<Bool>
 
     // Recent albums methods
     func getRecentAlbums() async throws -> [AppleMusicAlbumData]
@@ -39,13 +44,30 @@ public protocol SwiftDataManagerProtocol: Sendable {
 public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol {
     public static let shared = SwiftDataManager()
     public let container: ModelContainer
-    
-    private init() {
+    private let keychainManager: KeychainManager
+
+    private let loginStateStream: AsyncStream<Bool>
+    private let loginStateContinuation: AsyncStream<Bool>.Continuation
+
+    private init(keychainManager: KeychainManager = .shared) {
+        self.keychainManager = keychainManager
+
+        // Create AsyncStream for login state changes
+        var continuation: AsyncStream<Bool>.Continuation!
+        self.loginStateStream = AsyncStream { cont in
+            continuation = cont
+        }
+        self.loginStateContinuation = continuation
+
         do {
             container = try ModelContainer(for: CachedAlbum.self, CachedSection.self, User.self, RecentAlbum.self)
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }
+    }
+
+    public func observeLoginState() -> AsyncStream<Bool> {
+        return loginStateStream
     }
     
     public var context: ModelContext {
@@ -53,16 +75,15 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
             container.mainContext
         }
     }
-    
-    public func cacheAlbum(id: String, album: AlbumModel) async throws {
-        let cachedAlbum = CachedAlbum(
-            id: id,
-            appleMusicAlbumData: album.appleMusicAlbumData,
-            firebaseAlbumData: album.firebaseAlbumData
-        )
-        context.insert(cachedAlbum)
+
+    public func clearAllCacheForLogout() async throws {
+        try context.delete(model: CachedAlbum.self)
+        try context.delete(model: CachedSection.self)
+        try context.delete(model: RecentAlbum.self)
         try context.save()
     }
+    
+    // MARK: - Home sections
     
     public func cacheSections(_ sections: [HomeSection]) async throws {
         // Clear existing sections
@@ -114,6 +135,35 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         return sections.map { $0.toHomeSection() }
     }
     
+    public func clearCache() async throws {
+        try context.delete(model: CachedAlbum.self)
+        try context.delete(model: CachedSection.self)
+        try context.save()
+    }
+    
+    public func isCacheValid() async -> Bool {
+        let descriptor = FetchDescriptor<CachedSection>()
+        let sections = try? context.fetch(descriptor)
+        
+        guard let sections, !sections.isEmpty else { return false }
+        
+        // Check if cache is less than 24 hours old
+        let dayAgo = Date().addingTimeInterval(-86400)
+        return sections.allSatisfy { $0.lastUpdated > dayAgo }
+    }
+    
+    // MARK: - Album
+    
+    public func cacheAlbum(id: String, album: AlbumModel) async throws {
+        let cachedAlbum = CachedAlbum(
+            id: id,
+            appleMusicAlbumData: album.appleMusicAlbumData,
+            firebaseAlbumData: album.firebaseAlbumData
+        )
+        context.insert(cachedAlbum)
+        try context.save()
+    }
+    
     public func getCachedAlbum(id: String) async throws -> AlbumModel? {
         let descriptor = FetchDescriptor<CachedAlbum>(
             predicate: #Predicate { $0.id == id }
@@ -134,6 +184,8 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         // Keep lastUpdated unchanged so cache remains valid
         try context.save()
     }
+    
+    // MARK: - User rating
 
     public func getCachedUserRating(albumId: String) async throws -> Double? {
         let descriptor = FetchDescriptor<CachedAlbum>(
@@ -168,40 +220,52 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         cachedAlbum.userRatingUpdatedAt = Date()
         try context.save()
     }
-
-    public func clearCache() async throws {
-        try context.delete(model: CachedAlbum.self)
-        try context.delete(model: CachedSection.self)
-        try context.save()
-    }
-    
-    public func isCacheValid() async -> Bool {
-        let descriptor = FetchDescriptor<CachedSection>()
-        let sections = try? context.fetch(descriptor)
-        
-        guard let sections, !sections.isEmpty else { return false }
-        
-        // Check if cache is less than 24 hours old
-        let dayAgo = Date().addingTimeInterval(-86400)
-        return sections.allSatisfy { $0.lastUpdated > dayAgo }
-    }
     
     // MARK: - User Management
     
     public func getCurrentUser() async throws -> User? {
         let descriptor = FetchDescriptor<User>()
-        return try context.fetch(descriptor).first
+        let users = try context.fetch(descriptor)
+
+        // Safety check: If multiple Users exist (shouldn't happen), clean up duplicates
+        if users.count > 1 {
+            Logger.swiftDataManager.debug("⚠️ SwiftDataManager: Found \(users.count) User models, expected 1. Cleaning up duplicates.")
+            // Keep the first one, delete the rest
+            for user in users.dropFirst() {
+                context.delete(user)
+            }
+            try context.save()
+        }
+
+        return users.first
     }
-    
+
     public func setUserLoggedIn(userId: String) async throws {
-        if let existingUser = try await getCurrentUser() {
+        // Ensure singleton pattern - should only ever be one User
+        let descriptor = FetchDescriptor<User>()
+        let allUsers = try context.fetch(descriptor)
+
+        if let existingUser = allUsers.first {
+            // Update existing user
             existingUser.isLoggedIn = true
             existingUser.userId = userId
+
+            // Clean up any duplicate Users (shouldn't happen, but safety check)
+            if allUsers.count > 1 {
+                Logger.swiftDataManager.debug("⚠️ SwiftDataManager: Found \(allUsers.count) User models during login, removing duplicates")
+                for duplicate in allUsers.dropFirst() {
+                    context.delete(duplicate)
+                }
+            }
         } else {
+            // Create new user
             let newUser = User(isLoggedIn: true, userId: userId)
             context.insert(newUser)
         }
         try context.save()
+
+        // Emit login state change to stream
+        loginStateContinuation.yield(true)
     }
     
     public func setUserLoggedOut() async throws {
@@ -209,6 +273,25 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
             existingUser.isLoggedIn = false
             try context.save()
         }
+
+        // Clear Apple user ID from Keychain
+        do {
+            try await keychainManager.deleteAppleUserID()
+        } catch {
+            // Log but don't fail - user is still logged out in SwiftData
+            Logger.swiftDataManager.error("Failed to delete Apple user ID from Keychain: \(error)")
+        }
+
+        // Clear all cached data
+        do {
+            try await clearAllCacheForLogout()
+        } catch {
+            // Log but don't fail - user is still logged out
+            Logger.swiftDataManager.error("Failed to clear cache during logout: \(error)")
+        }
+
+        // Emit login state change to stream
+        loginStateContinuation.yield(false)
     }
     
     public func isUserLoggedIn() async -> Bool {

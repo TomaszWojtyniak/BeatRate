@@ -15,7 +15,9 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../../Core/Models")
+        .package(path: "../../Core/Models"),
+        .package(path: "../../Core/Analytics"),
+        .package(path: "../../Core/CoreApp")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -23,7 +25,9 @@ let package = Package(
         .target(
             name: "SwiftDataManager",
             dependencies: [
-                "Models"
+                "Models",
+                "Analytics",
+                "CoreApp"
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)

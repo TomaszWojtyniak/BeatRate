@@ -18,6 +18,7 @@ let package = Package(
         .package(path: "../../Domain/SplashUseCases"),
         .package(path: "../../Core/Analytics"),
         .package(path: "../../Core/CoreUI"),
+        .package(path: "../../Core/Models"),
         
     ],
     targets: [
@@ -28,7 +29,8 @@ let package = Package(
             dependencies: [
                 "SplashUseCases",
                 "Analytics",
-                "CoreUI"
+                "CoreUI",
+                "Models"
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)

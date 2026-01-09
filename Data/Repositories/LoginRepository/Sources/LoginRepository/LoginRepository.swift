@@ -10,6 +10,7 @@ import AuthenticationServices
 import OSLog
 import Analytics
 import FirebaseService
+import Models
 
 public enum LoginError: Error {
     case wrongData
@@ -18,17 +19,22 @@ public enum LoginError: Error {
 public protocol LoginRepositoryProtocol: Sendable {
     func setLoginData(authResult: ASAuthorization) async throws -> String
     func getCurrentNonce() async -> String
+    func getUserProfile(userId: String) async throws -> FirebaseUserProfile?
+    func signOut() async throws
 }
 
 public actor LoginRepository: LoginRepositoryProtocol {
     public static let shared = LoginRepository()
-    
+
     let authFirebaseService: AuthFirebaseServiceProtocol
-    
+    let databaseFirebaseService: DatabaseFirebaseServiceProtocol
+
     var currentNonce: String?
-    
-    private init(authFirebaseService: AuthFirebaseServiceProtocol = AuthFirebaseService.shared) {
+
+    private init(authFirebaseService: AuthFirebaseServiceProtocol = AuthFirebaseService.shared,
+                 databaseFirebaseService: DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared) {
         self.authFirebaseService = authFirebaseService
+        self.databaseFirebaseService = databaseFirebaseService
     }
     
     public func getCurrentNonce() async -> String {
@@ -79,5 +85,15 @@ public actor LoginRepository: LoginRepositoryProtocol {
         } else {
             throw LoginError.wrongData
         }
+    }
+
+    public func getUserProfile(userId: String) async throws -> FirebaseUserProfile? {
+        return try await databaseFirebaseService.getUserProfile(userId: userId)
+    }
+
+    public func signOut() async throws {
+        Logger.loginRepository.info("Signing out user from Firebase")
+        try await authFirebaseService.signOut()
+        Logger.loginRepository.info("User signed out successfully")
     }
 }

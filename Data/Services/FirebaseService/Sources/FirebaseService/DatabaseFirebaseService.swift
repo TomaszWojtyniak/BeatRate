@@ -17,6 +17,8 @@ public protocol DatabaseFirebaseServiceProtocol: Sendable {
     func saveAlbumData(albumId: String, albumData: FirebaseAlbumData) async throws
     func getUserRating(userId: String, albumId: String) async throws -> Double?
     func saveUserRating(userId: String, albumId: String, rating: Double, albumMetadata: (artist: String, title: String)?) async throws -> (avgRating: Double, ratingCount: Int)
+    func getUserProfile(userId: String) async throws -> FirebaseUserProfile?
+    func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws
 }
 
 public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
@@ -77,8 +79,9 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     @MainActor
     public func getUserRating(userId: String, albumId: String) async throws -> Double? {
         let ref = Database.database().reference()
-            .child("user_ratings")
+            .child("users")
             .child(userId)
+            .child("user_ratings")
             .child(albumId)
 
         let snapshot = try await ref.getData()
@@ -94,41 +97,58 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
 
     @MainActor
     public func saveUserRating(userId: String, albumId: String, rating: Double, albumMetadata: (artist: String, title: String)? = nil) async throws -> (avgRating: Double, ratingCount: Int) {
-        let db = Database.database().reference()
+        try await ensureAlbumExists(albumId: albumId, albumMetadata: albumMetadata)
+        try await saveRatingToUserNode(userId: userId, albumId: albumId, rating: rating)
+        try await saveRatingToAlbumNode(userId: userId, albumId: albumId, rating: rating)
 
-        // 0. Ensure album exists in Firebase (create if needed)
+        let stats = try await calculateAlbumStats(userId: userId, albumId: albumId, rating: rating)
+        try await updateAlbumStats(albumId: albumId, avgRating: stats.avgRating, ratingCount: stats.ratingCount)
+
+        Logger.firebaseService.info("Saved rating \(rating) for album: \(albumId). Avg: \(stats.avgRating), Count: \(stats.ratingCount)")
+
+        return stats
+    }
+
+    private func ensureAlbumExists(albumId: String, albumMetadata: (artist: String, title: String)?) async throws {
+        let db = Database.database().reference()
         let albumRef = db.child("albums").child(albumId)
         let albumSnapshot = try await albumRef.getData()
 
-        if !albumSnapshot.exists(), let metadata = albumMetadata {
-            // Album doesn't exist - create it with required fields
-            Logger.firebaseService.info("Creating new album in Firebase: \(albumId)")
-
-            let newAlbumData: [String: Any] = [
-                "artist": metadata.artist,
-                "title": metadata.title,
-                "createdAt": ServerValue.timestamp(),
-                "avgRating": 0.0,
-                "ratingCount": 0
-            ]
-
-            try await albumRef.setValue(newAlbumData)
-            Logger.firebaseService.info("Created album: \(albumId) with artist: \(metadata.artist), title: \(metadata.title)")
+        guard !albumSnapshot.exists(), let metadata = albumMetadata else {
+            return
         }
 
-        // 1. Save to user_ratings/{userId}/{albumId}
-        let userRatingRef = db.child("user_ratings").child(userId).child(albumId)
-        try await userRatingRef.setValue(rating)
+        Logger.firebaseService.info("Creating new album in Firebase: \(albumId)")
 
-        // 2. Save to album_ratings/{albumId}/{userId}
+        let newAlbumData: [String: Any] = [
+            "artist": metadata.artist,
+            "title": metadata.title,
+            "createdAt": ServerValue.timestamp(),
+            "avgRating": 0.0,
+            "ratingCount": 0
+        ]
+
+        try await albumRef.setValue(newAlbumData)
+        Logger.firebaseService.info("Created album: \(albumId) with artist: \(metadata.artist), title: \(metadata.title)")
+    }
+
+    private func saveRatingToUserNode(userId: String, albumId: String, rating: Double) async throws {
+        let db = Database.database().reference()
+        let userRatingRef = db.child("users").child(userId).child("user_ratings").child(albumId)
+        try await userRatingRef.setValue(rating)
+    }
+
+    private func saveRatingToAlbumNode(userId: String, albumId: String, rating: Double) async throws {
+        let db = Database.database().reference()
         let albumRatingRef = db.child("album_ratings").child(albumId).child(userId)
         try await albumRatingRef.setValue(rating)
+    }
 
-        // 3. Recalculate album average rating
+    private func calculateAlbumStats(userId: String, albumId: String, rating: Double) async throws -> (avgRating: Double, ratingCount: Int) {
+        let db = Database.database().reference()
         let allRatingsRef = db.child("album_ratings").child(albumId)
         let snapshot = try await allRatingsRef.getData()
 
-        // Handle both existing ratings and first rating case
         let ratingsDict: [String: Double]
         if snapshot.exists(), let existingRatings = snapshot.value as? [String: Double] {
             ratingsDict = existingRatings
@@ -142,14 +162,68 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
         let avgRating = ratings.reduce(0.0, +) / Double(ratings.count)
         let ratingCount = ratings.count
 
-        // 4. Update album avgRating and ratingCount
+        return (avgRating: avgRating, ratingCount: ratingCount)
+    }
+
+    private func updateAlbumStats(albumId: String, avgRating: Double, ratingCount: Int) async throws {
+        let db = Database.database().reference()
+        let albumRef = db.child("albums").child(albumId)
         try await albumRef.child("avgRating").setValue(avgRating)
         try await albumRef.child("ratingCount").setValue(ratingCount)
+    }
 
-        Logger.firebaseService.info("Saved rating \(rating) for album: \(albumId). Avg: \(avgRating), Count: \(ratingCount)")
+    @MainActor
+    public func getUserProfile(userId: String) async throws -> FirebaseUserProfile? {
+        let ref = Database.database().reference()
+            .child("users")
+            .child(userId)
+            .child("profile")
 
-        // Return the calculated values
-        return (avgRating: avgRating, ratingCount: ratingCount)
+        let snapshot = try await ref.getData()
+
+        guard snapshot.exists(), let value = snapshot.value as? [String: Any] else {
+            Logger.firebaseService.info("No user profile found for user: \(userId)")
+            return nil
+        }
+
+        let jsonData = try JSONSerialization.data(withJSONObject: value)
+        let decoded = try JSONDecoder().decode(FirebaseUserProfile.self, from: jsonData)
+
+        Logger.firebaseService.info("Fetched user profile for user: \(userId)")
+        return decoded
+    }
+
+    @MainActor
+    public func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws {
+        let db = Database.database().reference()
+        let userRef = db.child("users").child(userId)
+
+        // Encode profile data
+        let encoder = JSONEncoder()
+        let jsonData = try encoder.encode(profile)
+        let profileJson = try JSONSerialization.jsonObject(with: jsonData)
+
+        // Create complete user structure if it doesn't exist
+        let updates: [String: Any] = [
+            "profile": profileJson,
+            // Initialize user_ratings as empty object if it doesn't exist
+            // This won't overwrite existing ratings
+        ]
+
+        // Check if user_ratings exists, if not create it
+        let ratingsRef = userRef.child("user_ratings")
+        let ratingsSnapshot = try await ratingsRef.getData()
+
+        var allUpdates = updates
+        if !ratingsSnapshot.exists() {
+            // Create empty user_ratings node
+            allUpdates["user_ratings"] = [String: Any]()
+            Logger.firebaseService.info("Creating user_ratings node for user: \(userId)")
+        }
+
+        // Update all fields atomically
+        try await userRef.updateChildValues(allUpdates)
+        Logger.firebaseService.info("Saved user profile to Firebase for user: \(userId)")
     }
 }
 

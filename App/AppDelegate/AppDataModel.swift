@@ -8,9 +8,9 @@
 import SwiftUI
 import Analytics
 import OSLog
-import SwiftData
 import AppUseCases
 import Models
+import CoreApp
 
 @Observable
 @MainActor
@@ -18,9 +18,11 @@ class AppDataModel {
     private let analyticsManager: AnalyticsManager
     private let crashLogger: CrashLogger
     private let getAppUseCase: GetAppUseCaseProtocol
-    
+
     var user: User?
-    
+    var isUserLoggedIn: Bool = false
+    var showingSplash = true
+
     init(analyticsManager: AnalyticsManager = .shared,
          crashLogger: CrashLogger = .shared,
          getAppUseCase: GetAppUseCaseProtocol = GetAppUseCase()) {
@@ -45,5 +47,28 @@ class AppDataModel {
         } catch let error {
             Logger.app.error("Cant get current user: \(error)")
         }
+    }
+
+    func startObservingLoginState() {
+        Task {
+            for await isLoggedIn in getAppUseCase.observeLoginState() {
+                let wasLoggedOut = !self.isUserLoggedIn
+                self.isUserLoggedIn = isLoggedIn
+
+                // Only reset splash screen on state transition from logged out to logged in
+                // This prevents splash from appearing when user is already in the app
+                if isLoggedIn && wasLoggedOut {
+                    self.showingSplash = true
+                    Logger.app.debug("User logged in - showing splash screen")
+                }
+
+                Logger.app.debug("Login state changed: \(isLoggedIn)")
+            }
+        }
+    }
+
+    func checkInitialLoginStatus() async {
+        isUserLoggedIn = await getAppUseCase.isUserLoggedIn()
+        Logger.app.debug("Initial user logged in status: \(self.isUserLoggedIn)")
     }
 }

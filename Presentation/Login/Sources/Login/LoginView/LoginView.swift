@@ -33,8 +33,20 @@ struct LoginView: View {
                 .foregroundStyle(Color.primaryText)
             
             Spacer()
-            
-            SignInWithAppleButton(onRequest: { request in
+
+            if dataModel.isLoading {
+                VStack(spacing: 16) {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .tint(.white)
+                    Text("Signing in...")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.primaryText)
+                }
+                .frame(maxWidth: .infinity, maxHeight: 50)
+                .padding()
+            } else {
+                SignInWithAppleButton(onRequest: { request in
                 Task {
                     let nonce = await self.dataModel.getCurrentNonce()
                     request.requestedScopes = [.fullName, .email]
@@ -45,28 +57,33 @@ struct LoginView: View {
                     switch result {
                     case .success(let authResult):
                         do {
-                            let userId = try await self.dataModel.handleLoginFlow(authResult: authResult)
-                            Logger.login.debug("User login successful")
-                            
-                            try await self.dataModel.setUserLoggedIn(userId: userId)
-                            Logger.login.debug("User login state saved successfully")
+                            try await self.dataModel.performCompleteLogin(authResult: authResult)
+                            Logger.login.debug("Complete login successful (Firebase + local storage)")
                         } catch let error {
-                            Logger.login.error("Failed to save user login state: \(error)")
+                            Logger.login.error("Login failed: \(error.localizedDescription)")
                             await self.dataModel.handleLoginFailure(error: error)
                         }
                     case .failure(let error):
-                        await self.dataModel.handleLoginFailure(error: error)
+                        // Check if user simply cancelled - handle silently
+                        if let authError = error as? ASAuthorizationError,
+                           authError.code == .canceled {
+                            Logger.login.debug("User cancelled sign in - no error shown")
+                        } else {
+                            // Actual error - show to user
+                            await self.dataModel.handleLoginFailure(error: error)
+                        }
                     }
                 }
             })
-            .signInWithAppleButtonStyle(.white)
-            .frame(maxWidth: .infinity, maxHeight: 50)
-            .padding()
-                
+                .signInWithAppleButtonStyle(.white)
+                .frame(maxWidth: .infinity, maxHeight: 50)
+                .padding()
+            }
+
         }
         .errorAlert(isPresented: $dataModel.isShowingErrorAlert,
-                    title: String(localized: "login.alert.error.title", bundle: .module),
-                    message: String(localized: "login.alert.error.description", bundle: .module))
+                    title: dataModel.errorTitle,
+                    message: dataModel.errorMessage)
         .padding(.horizontal)
         .padding(.vertical, 40)
         .background(Color.backgroundGradient)

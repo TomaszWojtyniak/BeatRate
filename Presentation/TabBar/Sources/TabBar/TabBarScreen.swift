@@ -8,11 +8,11 @@
 import SwiftUI
 import Home
 import Search
-import Settings
+import Account
 
 public enum TabBarScreen: Codable, Hashable, Identifiable, CaseIterable {
     case home
-    case settings
+    case account
     case search
     
     public var id: TabBarScreen { self }
@@ -27,8 +27,8 @@ extension TabBarScreen {
             Label("Home", systemImage: "house.fill")
         case .search:
             Label("Search", systemImage: "magnifyingglass")
-        case .settings:
-            Label("Settings", systemImage: "gear")
+        case .account:
+            Label("Account", systemImage: "person.crop.circle")
         }
     }
     
@@ -39,8 +39,8 @@ extension TabBarScreen {
             HomeNavigationStack()
         case .search:
             SearchView()
-        case .settings:
-            SettingsView()
+        case .account:
+            AccountNavigationStack()
         }
     }
 }
