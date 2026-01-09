@@ -23,6 +23,7 @@ public protocol HomeRepositoryProtocol: Sendable {
     func saveAlbumRating(albumId: String, rating: Double, albumMetadata: (artist: String, title: String)?) async throws
     func getCachedAlbum(albumId: String) async throws -> AlbumModel?
     func getFirebaseAlbumData(albumId: String) async throws -> FirebaseAlbumData?
+    func invalidateUserCache() async
 }
 
 public actor HomeRepository: HomeRepositoryProtocol {
@@ -33,6 +34,11 @@ public actor HomeRepository: HomeRepositoryProtocol {
     let swiftDataManager: SwiftDataManager
 
     private var homeSections: [HomeSection] = []
+
+    // Performance optimization: Cache user ID to avoid repeated MainActor hops
+    private var cachedUserId: String?
+    private var userIdCacheTime: Date?
+    private let userIdCacheDuration: TimeInterval = 300 // 5 minutes
 
     public init(databaseFirebaseService: DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared,
                 musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
@@ -61,7 +67,8 @@ public actor HomeRepository: HomeRepositoryProtocol {
     }
     
     public func getUserRating(albumId: String) async throws -> Double? {
-        guard let currentUserId = try await swiftDataManager.getCurrentUserId(), !currentUserId.isEmpty else {
+        // Use cached user ID to avoid MainActor hop
+        guard let currentUserId = try await getCurrentUserId(), !currentUserId.isEmpty else {
             Logger.homeRepository.info("Cannot get rating: User not logged in")
             return nil
         }
@@ -77,7 +84,8 @@ public actor HomeRepository: HomeRepositoryProtocol {
     }
 
     public func saveAlbumRating(albumId: String, rating: Double, albumMetadata: (artist: String, title: String)? = nil) async throws {
-        guard let currentUserId = try await swiftDataManager.getCurrentUserId(), !currentUserId.isEmpty else {
+        // Use cached user ID to avoid MainActor hop
+        guard let currentUserId = try await getCurrentUserId(), !currentUserId.isEmpty else {
             Logger.homeRepository.error("Cannot save rating: User not logged in")
             throw HomeRepositoryError.albumDataMismatch
         }
@@ -94,7 +102,30 @@ public actor HomeRepository: HomeRepositoryProtocol {
         return try await databaseFirebaseService.fetchAlbumData(albumId: albumId)
     }
 
+    /// Invalidate cached user ID (call on logout)
+    public func invalidateUserCache() async {
+        cachedUserId = nil
+        userIdCacheTime = nil
+    }
+
     // MARK: - Private Helper Methods
+
+    /// Get current user ID with caching to reduce MainActor hops
+    /// Performance: Caches user ID for 5 minutes to avoid repeated SwiftDataManager calls
+    private func getCurrentUserId() async throws -> String? {
+        // Check cache first
+        if let cached = cachedUserId,
+           let cacheTime = userIdCacheTime,
+           Date().timeIntervalSince(cacheTime) < userIdCacheDuration {
+            return cached
+        }
+
+        // Fetch and cache
+        let userId = try await swiftDataManager.getCurrentUserId()
+        cachedUserId = userId
+        userIdCacheTime = Date()
+        return userId
+    }
 
     /// Returns cached sections if cache is valid, nil otherwise
     private func getCachedSectionsIfValid() async throws -> [HomeSection]? {
