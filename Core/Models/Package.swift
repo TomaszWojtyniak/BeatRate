@@ -17,10 +17,10 @@ let package = Package(
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "Models",
-            swiftSettings: [
-                .defaultIsolation(MainActor.self)
-            ]
+            name: "Models"
+            // NOTE: No default isolation - data models should be isolation-agnostic
+            // SwiftData @Model classes get proper isolation from the @Model macro
+            // Plain structs (FirebaseAlbumData, etc.) can be used across any isolation boundary
         ),
         .testTarget(
             name: "ModelsTests",

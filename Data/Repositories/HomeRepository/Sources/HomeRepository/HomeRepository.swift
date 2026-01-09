@@ -23,6 +23,7 @@ public protocol HomeRepositoryProtocol: Sendable {
     func saveAlbumRating(albumId: String, rating: Double, albumMetadata: (artist: String, title: String)?) async throws
     func getCachedAlbum(albumId: String) async throws -> AlbumModel?
     func getFirebaseAlbumData(albumId: String) async throws -> FirebaseAlbumData?
+    func invalidateUserCache() async
 }
 
 public actor HomeRepository: HomeRepositoryProtocol {
@@ -33,6 +34,11 @@ public actor HomeRepository: HomeRepositoryProtocol {
     let swiftDataManager: SwiftDataManager
 
     private var homeSections: [HomeSection] = []
+
+    // Performance optimization: Cache user ID to avoid repeated MainActor hops
+    private var cachedUserId: String?
+    private var userIdCacheTime: Date?
+    private let userIdCacheDuration: TimeInterval = 300 // 5 minutes
 
     public init(databaseFirebaseService: DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared,
                 musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
@@ -48,7 +54,6 @@ public actor HomeRepository: HomeRepositoryProtocol {
             self.homeSections = cachedSections
             return cachedSections
         }
-
         // Fetch fresh data if cache miss or invalid
         let firebaseSections = try await databaseFirebaseService.fetchSections()
         let newHomeSections = try await buildHomeSections(from: firebaseSections)
@@ -62,7 +67,8 @@ public actor HomeRepository: HomeRepositoryProtocol {
     }
     
     public func getUserRating(albumId: String) async throws -> Double? {
-        guard let currentUserId = try await swiftDataManager.getCurrentUserId(), !currentUserId.isEmpty else {
+        // Use cached user ID to avoid MainActor hop
+        guard let currentUserId = try await getCurrentUserId(), !currentUserId.isEmpty else {
             Logger.homeRepository.info("Cannot get rating: User not logged in")
             return nil
         }
@@ -78,7 +84,8 @@ public actor HomeRepository: HomeRepositoryProtocol {
     }
 
     public func saveAlbumRating(albumId: String, rating: Double, albumMetadata: (artist: String, title: String)? = nil) async throws {
-        guard let currentUserId = try await swiftDataManager.getCurrentUserId(), !currentUserId.isEmpty else {
+        // Use cached user ID to avoid MainActor hop
+        guard let currentUserId = try await getCurrentUserId(), !currentUserId.isEmpty else {
             Logger.homeRepository.error("Cannot save rating: User not logged in")
             throw HomeRepositoryError.albumDataMismatch
         }
@@ -95,7 +102,30 @@ public actor HomeRepository: HomeRepositoryProtocol {
         return try await databaseFirebaseService.fetchAlbumData(albumId: albumId)
     }
 
+    /// Invalidate cached user ID (call on logout)
+    public func invalidateUserCache() async {
+        cachedUserId = nil
+        userIdCacheTime = nil
+    }
+
     // MARK: - Private Helper Methods
+
+    /// Get current user ID with caching to reduce MainActor hops
+    /// Performance: Caches user ID for 5 minutes to avoid repeated SwiftDataManager calls
+    private func getCurrentUserId() async throws -> String? {
+        // Check cache first
+        if let cached = cachedUserId,
+           let cacheTime = userIdCacheTime,
+           Date().timeIntervalSince(cacheTime) < userIdCacheDuration {
+            return cached
+        }
+
+        // Fetch and cache
+        let userId = try await swiftDataManager.getCurrentUserId()
+        cachedUserId = userId
+        userIdCacheTime = Date()
+        return userId
+    }
 
     /// Returns cached sections if cache is valid, nil otherwise
     private func getCachedSectionsIfValid() async throws -> [HomeSection]? {
@@ -118,37 +148,59 @@ public actor HomeRepository: HomeRepositoryProtocol {
 
     /// Builds home sections from Firebase section data
     private func buildHomeSections(from firebaseSections: [FirebaseAlbumSection]) async throws -> [HomeSection] {
-        var newHomeSections: [HomeSection] = []
+        // Use task group to fetch all sections in parallel
+        return try await withThrowingTaskGroup(of: (order: Int, section: HomeSection).self) { group in
+            for (index, section) in firebaseSections.enumerated() {
+                group.addTask {
+                    try Task.checkCancellation()
+                    let albumModels = try await self.fetchAlbumsForSection(albumIds: section.albums)
+                    let homeSection = HomeSection(sectionName: section.name, albums: albumModels)
+                    return (order: index, section: homeSection)
+                }
+            }
 
-        for section in firebaseSections {
-            let albumModels = try await fetchAlbumsForSection(albumIds: await section.albums)
-            let homeSection = await HomeSection(sectionName: section.name, albums: albumModels)
-            newHomeSections.append(homeSection)
+            // Collect results and sort by original order
+            var results: [(order: Int, section: HomeSection)] = []
+            for try await result in group {
+                results.append(result)
+            }
+
+            return results.sorted { $0.order < $1.order }.map { $0.section }
         }
-
-        return newHomeSections
     }
 
     /// Fetches albums for a section, trying cache first then fetching from remote
     private func fetchAlbumsForSection(albumIds: [String]) async throws -> [AlbumModel] {
-        var albumModels: [AlbumModel] = []
-
-        for albumId in albumIds {
-            do {
-                // Try cache first
-                if let cachedAlbum = try await swiftDataManager.getCachedAlbum(id: albumId) {
-                    albumModels.append(cachedAlbum)
-                } else {
-                    // Fetch and cache album
-                    let album = try await fetchAndCacheAlbum(albumId: albumId)
-                    albumModels.append(album)
+        // Use task group to fetch all albums in parallel
+        return await withTaskGroup(of: (order: Int, album: AlbumModel?).self) { group in
+            for (index, albumId) in albumIds.enumerated() {
+                group.addTask {
+                    do {
+                        try Task.checkCancellation()
+                        // Try cache first
+                        if let cachedAlbum = try await self.swiftDataManager.getCachedAlbum(id: albumId) {
+                            return (order: index, album: cachedAlbum)
+                        } else {
+                            // Fetch and cache album
+                            let album = try await self.fetchAndCacheAlbum(albumId: albumId)
+                            return (order: index, album: album)
+                        }
+                    } catch {
+                        Logger.homeRepository.error("Album not found for id: \(albumId) — \(error)")
+                        return (order: index, album: nil)
+                    }
                 }
-            } catch {
-                Logger.homeRepository.error("Album not found for id: \(albumId) — \(error)")
             }
-        }
 
-        return albumModels
+            // Collect results, sort by original order, and filter out nil albums
+            var results: [(order: Int, album: AlbumModel?)] = []
+            for await result in group {
+                results.append(result)
+            }
+
+            return results
+                .compactMap { $0.album }
+        }
     }
 
     /// Fetches album from MusicKit and Firebase, validates, and caches it
@@ -171,14 +223,14 @@ public actor HomeRepository: HomeRepositoryProtocol {
         }
 
         // Build album model
-        let album = await AlbumModel(
+        let album = AlbumModel(
             id: albumId,
             appleMusicAlbumData: musicData,
             firebaseAlbumData: validFirebaseData
         )
 
-        // Validate album data matches
-        try await validateAlbumData(album)
+        // Validate album data matches (no await needed - synchronous validation)
+        try validateAlbumData(album)
 
         // Cache the fetched album
         try await swiftDataManager.cacheAlbum(id: albumId, album: album)
@@ -190,7 +242,7 @@ public actor HomeRepository: HomeRepositoryProtocol {
     private func createFirebaseAlbumData(for albumId: String, musicData: AppleMusicAlbumData) async throws -> FirebaseAlbumData {
         Logger.homeRepository.info("Creating new Firebase album entry for: \(albumId)")
 
-        let newFirebaseData = await FirebaseAlbumData(
+        let newFirebaseData = FirebaseAlbumData(
             artist: musicData.artist,
             avgRating: 0,  // Set to 0 for new albums with no ratings
             createdAt: Int64(Date().timeIntervalSince1970 * 1000),
@@ -205,14 +257,15 @@ public actor HomeRepository: HomeRepositoryProtocol {
     }
 
     /// Validates that Firebase and MusicKit data match for an album
-    private func validateAlbumData(_ album: AlbumModel) async throws {
-        let firebaseTitle = await album.firebaseAlbumData?.title
-        let firebaseArtist = await album.firebaseAlbumData?.artist
-        let musicTitle = await album.appleMusicAlbumData.title
-        let musicArtist = await album.appleMusicAlbumData.artist
+    /// Performance: Made nonisolated and synchronous - no suspension point needed for simple validation
+    private nonisolated func validateAlbumData(_ album: AlbumModel) throws {
+        let firebaseTitle = album.firebaseAlbumData?.title
+        let firebaseArtist = album.firebaseAlbumData?.artist
+        let musicTitle = album.appleMusicAlbumData.title
+        let musicArtist = album.appleMusicAlbumData.artist
 
         if firebaseTitle != musicTitle || firebaseArtist != musicArtist {
-            let albumId = await album.id
+            let albumId = album.id
             Logger.homeRepository.error("Wrong album data for album id: \(albumId)")
             throw HomeRepositoryError.albumDataMismatch
         }
@@ -259,7 +312,7 @@ public actor HomeRepository: HomeRepositoryProtocol {
 
         // Update cache with new avgRating and ratingCount (no extra fetch needed)
         if let cachedAlbum = try await swiftDataManager.getCachedAlbum(id: albumId)?.firebaseAlbumData {
-            let updatedFirebaseData = await FirebaseAlbumData(
+            let updatedFirebaseData = FirebaseAlbumData(
                 artist: cachedAlbum.artist,
                 avgRating: avgRating,
                 createdAt: cachedAlbum.createdAt,

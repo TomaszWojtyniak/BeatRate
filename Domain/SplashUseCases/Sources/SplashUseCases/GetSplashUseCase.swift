@@ -125,7 +125,10 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
         // Step 2: Clear the Keychain
         try await keychainManager.deleteAppleUserID()
 
-        // Step 3: Set user as logged out in local storage
+        // Step 3: Invalidate cached user ID in HomeRepository
+        await homeRepository.invalidateUserCache()
+
+        // Step 4: Set user as logged out in local storage
         try await swiftDataManager.setUserLoggedOut()
     }
 }

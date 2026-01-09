@@ -48,7 +48,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
             let coverUrl = album.artwork?.url(width: 300, height: 300)
             let genre: String? = album.genreNames.first
 
-            return await AppleMusicAlbumData(
+            return AppleMusicAlbumData(
                 id: album.id.rawValue,
                 title: album.title,
                 artist: album.artistName,
@@ -75,7 +75,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
                     let coverUrl = album.artwork?.url(width: 300, height: 300)
                     let genre: String? = album.genreNames.first
 
-                    return await AppleMusicAlbumData(
+                    return AppleMusicAlbumData(
                         id: album.id.rawValue,
                         title: album.title,
                         artist: album.artistName,

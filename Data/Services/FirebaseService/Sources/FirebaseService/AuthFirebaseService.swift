@@ -10,6 +10,9 @@ import OSLog
 import Analytics
 import Models
 import CoreApp
+// FIXME: Remove @preconcurrency once Firebase SDK adopts Swift 6 Sendable conformance
+// Safety: FirebaseAuth operations are internally thread-safe, though not marked Sendable
+// Tracking: Firebase SDK Swift 6 migration (https://github.com/firebase/firebase-ios-sdk/issues)
 @preconcurrency import FirebaseAuth
 import AuthenticationServices
 
@@ -127,7 +130,7 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
             return
         }
 
-        let profile = await FirebaseUserProfile(
+        let profile = FirebaseUserProfile(
             email: userData.email,
             firstName: userData.firstName,
             lastName: userData.lastName
