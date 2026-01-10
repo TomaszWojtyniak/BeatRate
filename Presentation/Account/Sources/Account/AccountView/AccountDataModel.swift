@@ -20,6 +20,7 @@ final class AccountDataModel {
     var userProfile: FirebaseUserProfile?
     var ratedAlbums: [AlbumModel] = []
     var isLoading = false
+    var isShowingEditSheet = false
     var errorMessage: String?
 
     var fullName: String? {
@@ -58,6 +59,28 @@ final class AccountDataModel {
         } catch {
             Logger.account.error("Failed to load user data: \(error)")
             errorMessage = "Failed to load user data"
+        }
+    }
+
+    func saveUserProfile(firstName: String, lastName: String) async {
+        do {
+            guard let userId = try await getAccountUseCase.getCurrentUserId() else {
+                Logger.account.error("No user ID found")
+                return
+            }
+
+            let updatedProfile = FirebaseUserProfile(
+                email: userProfile?.email,
+                firstName: firstName.isEmpty ? nil : firstName,
+                lastName: lastName.isEmpty ? nil : lastName
+            )
+
+            try await getLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
+            self.userProfile = updatedProfile
+            Logger.account.info("User profile updated successfully")
+        } catch {
+            Logger.account.error("Failed to save user profile: \(error)")
+            errorMessage = "Failed to save profile"
         }
     }
 }

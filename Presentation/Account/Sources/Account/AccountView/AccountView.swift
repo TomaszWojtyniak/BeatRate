@@ -23,14 +23,21 @@ public struct AccountView: View {
         NavigationStack {
             List {
                 if !dataModel.isLoading {
-                    Text((dataModel.fullName ?? dataModel.userProfile?.email) ?? "")
-                        .font(.system(.title, weight: .semibold))
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                        .padding(.top, 20)
-                        .padding(.bottom, 10)
-                    
+                    VStack(spacing: 8) {
+                        Text((dataModel.fullName ?? dataModel.userProfile?.email) ?? "")
+                            .font(.system(.title, weight: .semibold))
+                            .frame(maxWidth: .infinity, alignment: .center)
+                        
+                        Button("Edit") {
+                            dataModel.isShowingEditSheet = true
+                        }
+                          .buttonStyle(.borderedProminent)
+                    }
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .padding(.top, 20)
+                    .padding(.bottom, 10)
+
                     HomeSectionView(name: "Ratings", albums: dataModel.ratedAlbums, selectedAlbum: $selectedAlbum)
                         .padding(20)
                         .roundedMaterialBackground()
@@ -59,6 +66,14 @@ public struct AccountView: View {
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
+        }
+        .sheet(isPresented: $dataModel.isShowingEditSheet) {
+            EditProfileView(
+                firstName: dataModel.userProfile?.firstName,
+                lastName: dataModel.userProfile?.lastName
+            ) { firstName, lastName in
+                await dataModel.saveUserProfile(firstName: firstName, lastName: lastName)
+            }
         }
         .task {
             await dataModel.loadUserData()
