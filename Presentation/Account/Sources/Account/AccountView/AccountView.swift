@@ -31,7 +31,7 @@ public struct AccountView: View {
                         Button("Edit") {
                             dataModel.isShowingEditSheet = true
                         }
-                          .buttonStyle(.borderedProminent)
+                        .buttonStyle(.borderedProminent)
                     }
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
