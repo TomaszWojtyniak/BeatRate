@@ -167,6 +167,7 @@
 		8BED08822DE0FD1600838DD7 /* Exceptions for "Domain" folder in "BeatRate" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				AccountUseCases,
 				AppUseCases,
 				HomeUseCases,
 				LoginUseCases,
@@ -177,6 +178,7 @@
 		8BED08832DE0FD1600838DD7 /* Exceptions for "Domain" folder in "BeatRate Development" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				AccountUseCases,
 				AppUseCases,
 				HomeUseCases,
 				LoginUseCases,

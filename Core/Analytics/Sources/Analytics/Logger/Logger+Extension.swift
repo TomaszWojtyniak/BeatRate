@@ -37,6 +37,8 @@ public extension Logger {
     static let albumDetails = Logger(subsystem: subsystem, category: "albumDetails")
 
     static let account = Logger(subsystem: subsystem, category: "account")
-    
+
+    static let settings = Logger(subsystem: subsystem, category: "settings")
+
     static let swiftDataManager = Logger(subsystem: subsystem, category: "swiftDataManager")
 }

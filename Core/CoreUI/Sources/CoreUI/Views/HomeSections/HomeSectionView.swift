@@ -8,13 +8,19 @@
 import SwiftUI
 import Models
 
-struct HomeSectionView: View {
+public struct HomeSectionView: View {
     
     let name: String
     let albums: [AlbumModel]
     @Binding var selectedAlbum: AlbumModel?
     
-    var body: some View {
+    public init(name: String, albums: [AlbumModel], selectedAlbum: Binding<AlbumModel?>) {
+        self.name = name
+        self.albums = albums
+        self._selectedAlbum = selectedAlbum
+    }
+    
+    public var body: some View {
         VStack(alignment: .leading) {
             Text(name)
                 .font(.system(.title2, weight: .medium))

@@ -101,13 +101,22 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
 
     private func createUserProfileIfNeeded(userId: String, appleIDCredential: ASAuthorizationAppleIDCredential, firebaseUser: FirebaseAuth.User) async {
         do {
+            let userData = extractUserData(from: appleIDCredential, firebaseUser: firebaseUser)
+
+            // Only proceed if we have name data from Apple (only available on first sign-in)
+            let hasNameData = userData.firstName != nil || userData.lastName != nil
+
             let existingProfile = try await databaseService.getUserProfile(userId: userId)
 
             if existingProfile == nil {
-                let userData = extractUserData(from: appleIDCredential, firebaseUser: firebaseUser)
+                // No profile exists - create new one
+                await saveNewUserProfile(userId: userId, userData: userData)
+            } else if hasNameData {
+                // Profile exists but Apple provided name data (first sign-in) - update it
+                Logger.firebaseService.debug("Updating existing profile with name data from Apple Sign In")
                 await saveNewUserProfile(userId: userId, userData: userData)
             } else {
-                Logger.firebaseService.debug("User profile already exists, skipping profile creation")
+                Logger.firebaseService.debug("User profile already exists, no new data to update")
             }
         } catch {
             Logger.firebaseService.error("Failed to check existing user profile: \(error.localizedDescription)")

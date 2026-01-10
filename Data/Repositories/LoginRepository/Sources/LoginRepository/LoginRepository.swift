@@ -20,6 +20,7 @@ public protocol LoginRepositoryProtocol: Sendable {
     func setLoginData(authResult: ASAuthorization) async throws -> String
     func getCurrentNonce() async -> String
     func getUserProfile(userId: String) async throws -> FirebaseUserProfile?
+    func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws
     func signOut() async throws
 }
 
@@ -89,6 +90,11 @@ public actor LoginRepository: LoginRepositoryProtocol {
 
     public func getUserProfile(userId: String) async throws -> FirebaseUserProfile? {
         return try await databaseFirebaseService.getUserProfile(userId: userId)
+    }
+
+    public func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws {
+        try await databaseFirebaseService.saveUserProfile(userId: userId, profile: profile)
+        Logger.loginRepository.info("User profile saved successfully for user: \(userId)")
     }
 
     public func signOut() async throws {

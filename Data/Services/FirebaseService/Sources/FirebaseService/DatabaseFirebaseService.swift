@@ -16,6 +16,7 @@ public protocol DatabaseFirebaseServiceProtocol: Sendable {
     func fetchAlbumData(albumId: String) async throws -> FirebaseAlbumData?
     func saveAlbumData(albumId: String, albumData: FirebaseAlbumData) async throws
     func getUserRating(userId: String, albumId: String) async throws -> Double?
+    func getUserRatedAlbumIds(userId: String) async throws -> [String]
     func saveUserRating(userId: String, albumId: String, rating: Double, albumMetadata: (artist: String, title: String)?) async throws -> (avgRating: Double, ratingCount: Int)
     func getUserProfile(userId: String) async throws -> FirebaseUserProfile?
     func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws
@@ -89,6 +90,23 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
 
         Logger.firebaseService.info("Fetched user rating for user: \(userId), album: \(albumId)")
         return rating
+    }
+
+    public func getUserRatedAlbumIds(userId: String) async throws -> [String] {
+        let ref = Database.database().reference()
+            .child("users")
+            .child(userId)
+            .child("user_ratings")
+
+        let snapshot = try await ref.getData()
+
+        guard snapshot.exists(), let ratings = snapshot.value as? [String: Double] else {
+            Logger.firebaseService.info("No rated albums found for user: \(userId)")
+            return []
+        }
+
+        Logger.firebaseService.info("Fetched \(ratings.count) rated albums for user: \(userId)")
+        return Array(ratings.keys)
     }
 
     public func saveUserRating(userId: String, albumId: String, rating: Double, albumMetadata: (artist: String, title: String)? = nil) async throws -> (avgRating: Double, ratingCount: Int) {
