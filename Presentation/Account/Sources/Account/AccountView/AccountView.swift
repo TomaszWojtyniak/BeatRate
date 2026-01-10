@@ -25,7 +25,7 @@ public struct AccountView: View {
                 if !dataModel.isLoading {
                     VStack(spacing: 8) {
                         Text((dataModel.fullName ?? dataModel.userProfile?.email) ?? "")
-                            .font(.system(.title, weight: .semibold))
+                            .font(.system(.largeTitle, weight: .bold))
                             .frame(maxWidth: .infinity, alignment: .center)
                         
                         Button("Edit") {
