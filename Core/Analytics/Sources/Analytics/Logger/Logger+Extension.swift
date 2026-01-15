@@ -38,6 +38,8 @@ public extension Logger {
 
     static let account = Logger(subsystem: subsystem, category: "account")
 
+    static let accountRepository = Logger(subsystem: subsystem, category: "accountRepository")
+
     static let settings = Logger(subsystem: subsystem, category: "settings")
 
     static let swiftDataManager = Logger(subsystem: subsystem, category: "swiftDataManager")

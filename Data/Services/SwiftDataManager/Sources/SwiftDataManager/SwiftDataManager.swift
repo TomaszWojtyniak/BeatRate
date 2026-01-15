@@ -90,12 +90,16 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         try context.delete(model: CachedSection.self)
         
         for (index, section) in sections.enumerated() {
+            // Extract album IDs to preserve order
+            let orderedAlbumIds = section.albums.map { $0.id }
+
             let cachedSection = CachedSection(
                 sectionId: "section_\(index)",
                 name: section.sectionName,
-                order: index
+                order: index,
+                orderedAlbumIds: orderedAlbumIds
             )
-            
+
             var cachedAlbums: [CachedAlbum] = []
             for album in section.albums {
                 // Use actual album ID (Apple Music catalog ID)

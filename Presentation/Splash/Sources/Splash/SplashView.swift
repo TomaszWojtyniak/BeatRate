@@ -89,11 +89,23 @@ public struct SplashView: View {
                     }
                 }
             } else {
-                Button("OK", role: .cancel) {
+                // Connection error - offer retry
+                Button("Retry") {
+                    Task {
+                        await dataModel.retryAfterSettingsChange()
+                        if dataModel.shouldComplete {
+                            onComplete()
+                        }
+                    }
+                }
+                Button("Logout", role: .destructive) {
                     Task {
                         await dataModel.logout()
                         onComplete()
                     }
+                }
+                Button("Cancel", role: .cancel) {
+                    // Stay on splash screen with error showing
                 }
             }
         } message: {
