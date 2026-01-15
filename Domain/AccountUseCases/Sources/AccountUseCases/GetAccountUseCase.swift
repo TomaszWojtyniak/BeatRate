@@ -7,7 +7,7 @@
 
 import SwiftUI
 import Models
-import HomeRepository
+import AccountRepository
 import SwiftDataManager
 
 public protocol GetAccountUseCaseProtocol: Sendable {
@@ -16,12 +16,12 @@ public protocol GetAccountUseCaseProtocol: Sendable {
 }
 
 public actor GetAccountUseCase: GetAccountUseCaseProtocol {
-    private let homeRepository: HomeRepositoryProtocol
+    private let accountRepository: AccountRepositoryProtocol
     private let swiftDataManager: SwiftDataManagerProtocol
 
-    public init(homeRepository: HomeRepositoryProtocol = HomeRepository.shared,
+    public init(accountRepository: AccountRepositoryProtocol = AccountRepository.shared,
                 swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared) {
-        self.homeRepository = homeRepository
+        self.accountRepository = accountRepository
         self.swiftDataManager = swiftDataManager
     }
 
@@ -30,6 +30,6 @@ public actor GetAccountUseCase: GetAccountUseCaseProtocol {
     }
 
     public func getUserRatedAlbums() async throws -> [AlbumModel] {
-        return try await homeRepository.getUserRatedAlbums()
+        return try await accountRepository.getUserRatedAlbums()
     }
 }

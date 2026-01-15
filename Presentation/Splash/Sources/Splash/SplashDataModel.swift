@@ -230,12 +230,13 @@ final class SplashDataModel {
     }
 
     private func handleMaxRetriesReached(errorType: String, userMessage: String) async {
-        Logger.splash.error("Max retries reached, \(errorType). Logging out user.")
+        Logger.splash.error("Max retries reached, \(errorType). Showing error to user.")
         errorMessage = userMessage
+        alertType = .connectionError
+        shouldComplete = false  // Stay on splash screen to allow user to retry
 
-        // Logout user and return to login screen
-        await logout()
-        // AsyncStream will trigger navigation to LoginView automatically
+        // Don't automatically logout - let the user decide what to do
+        // The user can manually retry or choose to logout from settings
     }
 
     // MARK: - Delay Helpers

@@ -35,16 +35,46 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     
     public func fetchSections() async throws -> [FirebaseAlbumSection] {
         let ref = Database.database().reference().child("sections")
+
+        Logger.firebaseService.info("Fetching sections from Firebase...")
         let snapshot = try await ref.getData()
 
+        Logger.firebaseService.debug("Snapshot exists: \(snapshot.exists())")
+
         guard let value = snapshot.value as? [String: Any] else {
+            Logger.firebaseService.warning("No sections data found in Firebase or data format invalid")
             return []
         }
 
-        let jsonData = try JSONSerialization.data(withJSONObject: value)
-        let decoded = try JSONDecoder().decode([String: FirebaseAlbumSection].self, from: jsonData)
+        Logger.firebaseService.debug("Found \(value.keys.count) section keys in Firebase")
 
-        return decoded.values.filter { $0.isActive }.sorted(by: { $0.id < $1.id })
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: value)
+            let decoded = try JSONDecoder().decode([String: FirebaseAlbumSection].self, from: jsonData)
+
+            let activeSections = decoded.values.filter { $0.isActive }.sorted(by: { $0.id < $1.id })
+            Logger.firebaseService.info("Successfully decoded \(activeSections.count) active sections")
+
+            return activeSections
+        } catch let error as DecodingError {
+            Logger.firebaseService.error("Failed to decode sections from Firebase")
+            switch error {
+            case .keyNotFound(let key, let context):
+                Logger.firebaseService.error("Missing key '\(key.stringValue)' at path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
+            case .typeMismatch(let type, let context):
+                Logger.firebaseService.error("Type mismatch for type '\(type)' at path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
+            case .valueNotFound(let type, let context):
+                Logger.firebaseService.error("Value not found for type '\(type)' at path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
+            case .dataCorrupted(let context):
+                Logger.firebaseService.error("Data corrupted at path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
+            @unknown default:
+                Logger.firebaseService.error("Unknown decoding error: \(error)")
+            }
+            throw error
+        } catch {
+            Logger.firebaseService.error("Failed to process sections data: \(error.localizedDescription)")
+            throw error
+        }
     }
 
     public func fetchAlbumData(albumId: String) async throws -> FirebaseAlbumData? {
@@ -80,6 +110,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
             .child(userId)
             .child("user_ratings")
             .child(albumId)
+            .child("rating")
 
         let snapshot = try await ref.getData()
 
@@ -100,13 +131,42 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
 
         let snapshot = try await ref.getData()
 
-        guard snapshot.exists(), let ratings = snapshot.value as? [String: Double] else {
+        guard snapshot.exists(), let ratingsData = snapshot.value as? [String: Any] else {
             Logger.firebaseService.info("No rated albums found for user: \(userId)")
             return []
         }
 
-        Logger.firebaseService.info("Fetched \(ratings.count) rated albums for user: \(userId)")
-        return Array(ratings.keys)
+        Logger.firebaseService.info("Fetched \(ratingsData.count) rated albums for user: \(userId)")
+
+        // Parse ratings with timestamps, handling both old (Double) and new (Dictionary) formats
+        var ratingsWithTimestamp: [(albumId: String, timestamp: TimeInterval)] = []
+
+        for (albumId, value) in ratingsData {
+            let timestamp: TimeInterval
+
+            if let ratingDict = value as? [String: Any],
+               let storedTimestamp = ratingDict["timestamp"] as? TimeInterval {
+                // New format: {rating: X, timestamp: Y}
+                timestamp = storedTimestamp
+            } else if value is Double {
+                // Old format: just the rating number (no timestamp)
+                // Use a default old timestamp so these appear last
+                timestamp = 0
+            } else {
+                Logger.firebaseService.warning("Unknown format for album \(albumId), skipping")
+                continue
+            }
+
+            ratingsWithTimestamp.append((albumId: albumId, timestamp: timestamp))
+        }
+
+        // Sort by timestamp descending (newest first)
+        let sortedAlbumIds = ratingsWithTimestamp
+            .sorted { $0.timestamp > $1.timestamp }
+            .map { $0.albumId }
+
+        Logger.firebaseService.debug("Sorted \(sortedAlbumIds.count) albums by timestamp (newest first)")
+        return sortedAlbumIds
     }
 
     public func saveUserRating(userId: String, albumId: String, rating: Double, albumMetadata: (artist: String, title: String)? = nil) async throws -> (avgRating: Double, ratingCount: Int) {
@@ -157,7 +217,16 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     private func saveRatingToUserNode(userId: String, albumId: String, rating: Double) async throws {
         let db = Database.database().reference()
         let userRatingRef = db.child("users").child(userId).child("user_ratings").child(albumId)
-        try await userRatingRef.setValue(rating)
+
+        // Save rating with timestamp for proper ordering
+        let timestamp = Date().timeIntervalSince1970
+        let ratingData: [String: Any] = [
+            "rating": rating,
+            "timestamp": timestamp
+        ]
+
+        try await userRatingRef.setValue(ratingData)
+        Logger.firebaseService.debug("Saved rating \(rating) with timestamp \(timestamp) for album \(albumId)")
     }
 
     private func saveRatingToAlbumNode(userId: String, albumId: String, rating: Double) async throws {

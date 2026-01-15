@@ -21,8 +21,8 @@ public protocol HomeRepositoryProtocol: Sendable {
     func fetchHomeSections() async throws -> [HomeSection]
     func getUserRating(albumId: String) async throws -> Double?
     func saveAlbumRating(albumId: String, rating: Double, albumMetadata: (artist: String, title: String)?) async throws
-    func getUserRatedAlbums() async throws -> [AlbumModel]
     func getCachedAlbum(albumId: String) async throws -> AlbumModel?
+    func fetchAndCacheAlbum(albumId: String) async throws -> AlbumModel
     func getFirebaseAlbumData(albumId: String) async throws -> FirebaseAlbumData?
     func invalidateUserCache() async
 }
@@ -93,45 +93,6 @@ public actor HomeRepository: HomeRepositoryProtocol {
 
         // Write to Firebase and update cache
         try await writeAndCacheUserRating(albumId: albumId, userId: currentUserId, rating: rating, albumMetadata: albumMetadata)
-    }
-
-    public func getUserRatedAlbums() async throws -> [AlbumModel] {
-        // Use cached user ID to avoid MainActor hop
-        guard let currentUserId = try await getCurrentUserId(), !currentUserId.isEmpty else {
-            Logger.homeRepository.info("Cannot get rated albums: User not logged in")
-            return []
-        }
-
-        // Fetch rated album IDs from Firebase
-        let albumIds = try await databaseFirebaseService.getUserRatedAlbumIds(userId: currentUserId)
-
-        // Fetch albums in parallel using task group
-        return await withTaskGroup(of: AlbumModel?.self) { group in
-            for albumId in albumIds {
-                group.addTask {
-                    do {
-                        // Try cache first
-                        if let cachedAlbum = try await self.swiftDataManager.getCachedAlbum(id: albumId) {
-                            return cachedAlbum
-                        } else {
-                            // Fetch and cache album
-                            return try await self.fetchAndCacheAlbum(albumId: albumId)
-                        }
-                    } catch {
-                        Logger.homeRepository.error("Failed to fetch rated album: \(albumId) — \(error)")
-                        return nil
-                    }
-                }
-            }
-
-            var results: [AlbumModel] = []
-            for await album in group {
-                if let album = album {
-                    results.append(album)
-                }
-            }
-            return results
-        }
     }
 
     public func getCachedAlbum(albumId: String) async throws -> AlbumModel? {
@@ -211,9 +172,20 @@ public actor HomeRepository: HomeRepositoryProtocol {
 
     /// Fetches albums for a section, trying cache first then fetching from remote
     private func fetchAlbumsForSection(albumIds: [String]) async throws -> [AlbumModel] {
+        // Remove duplicate album IDs while preserving first occurrence order
+        var seenIds = Set<String>()
+        let uniqueAlbumIds = albumIds.filter { albumId in
+            if seenIds.contains(albumId) {
+                Logger.homeRepository.warning("Skipping duplicate album ID: \(albumId)")
+                return false
+            }
+            seenIds.insert(albumId)
+            return true
+        }
+
         // Use task group to fetch all albums in parallel
         return await withTaskGroup(of: (order: Int, album: AlbumModel?).self) { group in
-            for (index, albumId) in albumIds.enumerated() {
+            for (index, albumId) in uniqueAlbumIds.enumerated() {
                 group.addTask {
                     do {
                         try Task.checkCancellation()
@@ -239,12 +211,13 @@ public actor HomeRepository: HomeRepositoryProtocol {
             }
 
             return results
+                .sorted { $0.order < $1.order }
                 .compactMap { $0.album }
         }
     }
 
     /// Fetches album from MusicKit and Firebase, validates, and caches it
-    private func fetchAndCacheAlbum(albumId: String) async throws -> AlbumModel {
+    public func fetchAndCacheAlbum(albumId: String) async throws -> AlbumModel {
         // Fetch from MusicKit and Firebase in parallel
         async let appleMusicAlbumTask = self.musicRepository.getAlbumDataById(albumId)
         async let firebaseAlbumDataTask = self.readAndCacheAlbumData(albumId: albumId)
