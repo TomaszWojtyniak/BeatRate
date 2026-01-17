@@ -7,9 +7,13 @@
 
 import SwiftUI
 import Analytics
-import FirebaseDatabase
+// TODO: Remove @preconcurrency when Firebase SDK adds Sendable support
+// Firebase SDK is internally thread-safe but DatabaseReference is not marked Sendable
+// Last checked: 2025-01 (firebase-ios-sdk 11.13.0)
+@preconcurrency import FirebaseDatabase
 import OSLog
 import Models
+import CoreApp
 
 public protocol DatabaseFirebaseServiceProtocol: Sendable {
     func fetchSections() async throws -> [FirebaseAlbumSection]
@@ -32,9 +36,14 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
         self.analyticsManager = analyticsManager
         self.crashLogger = crashLogger
     }
+
+    /// Returns the Firebase Database instance configured for the current environment
+    private var database: Database {
+        Database.database(url: AppEnvironment.current.firebaseDatabaseUrl)
+    }
     
     public func fetchSections() async throws -> [FirebaseAlbumSection] {
-        let ref = Database.database().reference().child("sections")
+        let ref = database.reference().child("sections")
 
         Logger.firebaseService.info("Fetching sections from Firebase...")
         let snapshot = try await ref.getData()
@@ -78,7 +87,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     public func fetchAlbumData(albumId: String) async throws -> FirebaseAlbumData? {
-        let ref = Database.database().reference().child("albums").child(albumId)
+        let ref = database.reference().child("albums").child(albumId)
         let snapshot = try await ref.getData()
 
         guard snapshot.exists(), let value = snapshot.value as? [String: Any] else {
@@ -94,7 +103,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     public func saveAlbumData(albumId: String, albumData: FirebaseAlbumData) async throws {
-        let ref = Database.database().reference().child("albums").child(albumId)
+        let ref = database.reference().child("albums").child(albumId)
 
         let encoder = JSONEncoder()
         let jsonData = try encoder.encode(albumData)
@@ -105,7 +114,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     public func getUserRating(userId: String, albumId: String) async throws -> Double? {
-        let ref = Database.database().reference()
+        let ref = database.reference()
             .child("users")
             .child(userId)
             .child("user_ratings")
@@ -124,7 +133,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     public func getUserRatedAlbumIds(userId: String) async throws -> [String] {
-        let ref = Database.database().reference()
+        let ref = database.reference()
             .child("users")
             .child(userId)
             .child("user_ratings")
@@ -192,7 +201,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     private func ensureAlbumExists(albumId: String, albumMetadata: (artist: String, title: String)?) async throws {
-        let db = Database.database().reference()
+        let db = database.reference()
         let albumRef = db.child("albums").child(albumId)
         let albumSnapshot = try await albumRef.getData()
 
@@ -215,7 +224,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     private func saveRatingToUserNode(userId: String, albumId: String, rating: Double) async throws {
-        let db = Database.database().reference()
+        let db = database.reference()
         let userRatingRef = db.child("users").child(userId).child("user_ratings").child(albumId)
 
         // Save rating with timestamp for proper ordering
@@ -230,13 +239,13 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     private func saveRatingToAlbumNode(userId: String, albumId: String, rating: Double) async throws {
-        let db = Database.database().reference()
+        let db = database.reference()
         let albumRatingRef = db.child("album_ratings").child(albumId).child(userId)
         try await albumRatingRef.setValue(rating)
     }
 
     private func calculateAlbumStats(userId: String, albumId: String, rating: Double) async throws -> (avgRating: Double, ratingCount: Int) {
-        let db = Database.database().reference()
+        let db = database.reference()
         let allRatingsRef = db.child("album_ratings").child(albumId)
         let snapshot = try await allRatingsRef.getData()
 
@@ -271,17 +280,17 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     private func updateAvgRating(albumId: String, avgRating: Double) async throws {
-        let ref = Database.database().reference().child("albums").child(albumId).child("avgRating")
+        let ref = database.reference().child("albums").child(albumId).child("avgRating")
         try await ref.setValue(avgRating)
     }
 
     private func updateRatingCount(albumId: String, ratingCount: Int) async throws {
-        let ref = Database.database().reference().child("albums").child(albumId).child("ratingCount")
+        let ref = database.reference().child("albums").child(albumId).child("ratingCount")
         try await ref.setValue(ratingCount)
     }
 
     public func getUserProfile(userId: String) async throws -> FirebaseUserProfile? {
-        let ref = Database.database().reference()
+        let ref = database.reference()
             .child("users")
             .child(userId)
             .child("profile")
@@ -301,7 +310,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     public func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws {
-        let db = Database.database().reference()
+        let db = database.reference()
         let userRef = db.child("users").child(userId)
 
         // Encode profile data
