@@ -17,10 +17,46 @@ public struct SettingsView: View {
     public var body: some View {
         NavigationStack {
             ZStack(alignment: .bottom) {
-                Form {
-                    // Empty for now - ready for future settings
+                List {
+                    Section {
+                        HStack {
+                            Image("apple_music_logo_icon", bundle: .module)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(height: 25)
+                                .clipShape(Circle())
+                                
+                            
+                            Text("Apple Music")
+                            
+                            Spacer()
+                            
+                            Button("Connect") {
+                                
+                            }
+                        }
+                        HStack {
+                            Image("spotify_logo_icon", bundle: .module)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(height: 25)
+                                .clipShape(Circle())
+                            
+                            Text("Spotify")
+                            
+                            Spacer()
+                            
+                            Button("Connect") {
+                                
+                            }
+                        }
+                    } header: {
+                        Text("Accounts")
+                    }
+                    
                 }
-                .scrollContentBackground(.hidden)
+                .listStyle(.automatic)
+                .background(.secondary)
 
                 VStack(spacing: 0) {
                     Spacer()

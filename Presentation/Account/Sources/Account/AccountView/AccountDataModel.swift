@@ -22,6 +22,7 @@ final class AccountDataModel {
     var isLoading = false
     var isShowingEditSheet = false
     var errorMessage: String?
+    var isShowingAlbumRatingsSection: Bool = false
 
     var fullName: String? {
         guard let firstName = userProfile?.firstName,
@@ -54,6 +55,12 @@ final class AccountDataModel {
 
             self.userProfile = profile
             self.ratedAlbums = albums
+            
+            if self.ratedAlbums.isEmpty {
+                self.isShowingAlbumRatingsSection = false
+            } else {
+                self.isShowingAlbumRatingsSection = true
+            }
 
             Logger.account.info("Loaded user profile and \(albums.count) rated albums")
         } catch {

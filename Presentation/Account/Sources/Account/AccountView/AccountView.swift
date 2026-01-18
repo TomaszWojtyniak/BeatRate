@@ -37,13 +37,15 @@ public struct AccountView: View {
                     .listRowSeparator(.hidden)
                     .padding(.top, 20)
                     .padding(.bottom, 10)
-
-                    HomeSectionView(name: "Ratings", albums: dataModel.ratedAlbums, selectedAlbum: $selectedAlbum)
-                        .padding(20)
-                        .roundedMaterialBackground()
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .padding(.top, 5)
+                    
+                    if self.dataModel.isShowingAlbumRatingsSection {
+                        HomeSectionView(name: "Ratings", albums: dataModel.ratedAlbums, selectedAlbum: $selectedAlbum)
+                            .padding(20)
+                            .roundedMaterialBackground()
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                            .padding(.top, 5)
+                    }
                 }
             }
             .listStyle(.inset)
