@@ -177,3 +177,16 @@ Add to `Core/Models/Sources/Models/`. Models should:
 - The app uses Swift 6.2's strict concurrency checking
 - SwiftData models are in `Core/Models` and must be compatible with the schema
 - Album ratings are stored both locally (SwiftData) and remotely (Firebase)
+
+### `.defaultIsolation(MainActor.self)` and struct inits
+
+Because every package uses `.defaultIsolation(MainActor.self)`, **all declarations in those packages are `@MainActor`-isolated by default** — including struct initializers. This means calling a struct init from a non-`@MainActor` actor (e.g., a custom `actor` like `MusicKitService` or `MusicRepository`) requires `await`, which performs a genuine actor hop to the main actor's executor.
+
+```swift
+// MusicKitService is a custom actor, not @MainActor.
+// MusicAuthorizationResult.init is @MainActor-isolated due to defaultIsolation.
+// The await hops to the main actor to run the init, then returns the value.
+return await MusicAuthorizationResult(status: status, hasSubscription: false)
+```
+
+Do not remove these `await` keywords — they are required for correctness, not style.

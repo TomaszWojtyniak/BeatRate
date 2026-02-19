@@ -56,7 +56,8 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
     }
     
     public func authorizeMusicKit() async -> Bool {
-        return await musicRepository.requestMusicAuthorization()
+        let result = await musicRepository.requestMusicAuthorization()
+        return await result.isAuthorized
     }
     
     public func cacheSections(_ sections: [HomeSection]) async throws {

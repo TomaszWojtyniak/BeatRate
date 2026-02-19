@@ -25,14 +25,20 @@ public struct SettingsView: View {
                                 .aspectRatio(contentMode: .fit)
                                 .frame(height: 25)
                                 .clipShape(Circle())
-                                
-                            
+
                             Text("Apple Music")
-                            
+
                             Spacer()
-                            
-                            Button("Connect") {
-                                
+
+                            if dataModel.isAppleMusicConnected {
+                                Text("Connected")
+                            } else {
+                                Button("Connect") {
+                                    Task {
+                                        await dataModel.connectAppleMusic()
+                                    }
+                                }
+                                .disabled(dataModel.isConnectingAppleMusic)
                             }
                         }
                         HStack {
@@ -56,7 +62,9 @@ public struct SettingsView: View {
                     
                 }
                 .listStyle(.automatic)
-                .background(.secondary)
+                .safeAreaInset(edge: .bottom) {
+                    Color.clear.frame(height: 88)
+                }
 
                 VStack(spacing: 0) {
                     Spacer()
@@ -82,6 +90,9 @@ public struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .toolbarTitleDisplayMode(.inlineLarge)
+            .task {
+                await dataModel.loadUserProfile()
+            }
         }
         .alert("Are you sure you want to logout?", isPresented: $dataModel.showLogoutConfirmation) {
             Button("Cancel", role: .cancel) {}

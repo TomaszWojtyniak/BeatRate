@@ -79,7 +79,8 @@ final class AccountDataModel {
             let updatedProfile = FirebaseUserProfile(
                 email: userProfile?.email,
                 firstName: firstName.isEmpty ? nil : firstName,
-                lastName: lastName.isEmpty ? nil : lastName
+                lastName: lastName.isEmpty ? nil : lastName,
+                hasAppleMusicSubscription: userProfile?.hasAppleMusicSubscription
             )
 
             try await getLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)

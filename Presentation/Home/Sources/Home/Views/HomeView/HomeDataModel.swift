@@ -56,8 +56,8 @@ final class HomeDataModel {
     }
     
     func authorizeMusicKit() async {
-        let isAuthorized = await self.getHomeUseCase.authorizeMusicKit()
-        Logger.home.debug("MusicKit authorization status: \(isAuthorized)")
+        let musicAuthorizationInfo = await self.getHomeUseCase.authorizeMusicKit()
+        Logger.home.debug("MusicKit authorization status: \(musicAuthorizationInfo.isAuthorized)")
     }
     
     func refreshData() async {
