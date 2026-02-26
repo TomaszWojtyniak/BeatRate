@@ -9,7 +9,7 @@ import MusicRepository
 import LoginUseCases
 import SwiftDataManager
 import Models
-import OSLog
+import Analytics
 
 public protocol SetSettingsUseCaseProtocol: Sendable {
     func connectAppleMusic() async throws -> Bool

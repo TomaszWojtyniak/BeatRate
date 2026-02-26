@@ -27,6 +27,6 @@ public actor GetSettingsUseCase: GetSettingsUseCaseProtocol {
             return false
         }
         let profile = try await getLoginUseCase.getUserProfile(userId: userId)
-        return profile?.hasAppleMusicSubscription != nil
+        return profile?.hasAppleMusicSubscription == true
     }
 }
