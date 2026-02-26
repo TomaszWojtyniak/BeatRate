@@ -9,12 +9,11 @@ import Foundation
 import SearchRepository
 import Models
 
-public protocol GetRecentAlbumsUseCaseProtocol {
+public protocol GetRecentAlbumsUseCaseProtocol: Sendable {
     func execute() async -> [AppleMusicAlbumData]
 }
 
-@MainActor
-public final class GetRecentAlbumsUseCase: GetRecentAlbumsUseCaseProtocol {
+public actor GetRecentAlbumsUseCase: GetRecentAlbumsUseCaseProtocol {
     private let searchRepository: SearchRepositoryProtocol
 
     public init(searchRepository: SearchRepositoryProtocol = SearchRepository.shared) {

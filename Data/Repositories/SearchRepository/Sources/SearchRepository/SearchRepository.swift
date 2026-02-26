@@ -9,14 +9,13 @@ import Foundation
 import Models
 import SwiftDataManager
 
-public protocol SearchRepositoryProtocol {
+public protocol SearchRepositoryProtocol: Sendable {
     func getRecentAlbums() async throws -> [AppleMusicAlbumData]
     func saveRecentAlbum(_ album: AppleMusicAlbumData) async throws
     func clearRecentAlbums() async throws
 }
 
-@MainActor
-public final class SearchRepository: SearchRepositoryProtocol {
+public actor SearchRepository: SearchRepositoryProtocol {
     public static let shared = SearchRepository()
 
     private let swiftDataManager: SwiftDataManager
