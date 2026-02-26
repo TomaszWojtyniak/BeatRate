@@ -10,7 +10,7 @@ import SearchRepository
 import Models
 
 public protocol SaveRecentAlbumUseCaseProtocol: Sendable {
-    func execute(album: AppleMusicAlbumData) async
+    func save(album: AppleMusicAlbumData) async
 }
 
 public actor SaveRecentAlbumUseCase: SaveRecentAlbumUseCaseProtocol {
@@ -20,7 +20,7 @@ public actor SaveRecentAlbumUseCase: SaveRecentAlbumUseCaseProtocol {
         self.searchRepository = searchRepository
     }
 
-    public func execute(album: AppleMusicAlbumData) async {
+    public func save(album: AppleMusicAlbumData) async {
         do {
             try await searchRepository.saveRecentAlbum(album)
         } catch {

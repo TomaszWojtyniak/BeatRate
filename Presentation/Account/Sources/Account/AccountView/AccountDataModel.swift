@@ -15,6 +15,7 @@ import OSLog
 @Observable
 final class AccountDataModel {
     private let getLoginUseCase: GetLoginUseCaseProtocol
+    private let setLoginUseCase: SetLoginUseCaseProtocol
     private let getAccountUseCase: GetAccountUseCaseProtocol
 
     var userProfile: FirebaseUserProfile?
@@ -31,8 +32,10 @@ final class AccountDataModel {
     }
 
     init(getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),
+         setLoginUseCase: SetLoginUseCaseProtocol = SetLoginUseCase(),
          getAccountUseCase: GetAccountUseCaseProtocol = GetAccountUseCase()) {
         self.getLoginUseCase = getLoginUseCase
+        self.setLoginUseCase = setLoginUseCase
         self.getAccountUseCase = getAccountUseCase
     }
 
@@ -83,7 +86,7 @@ final class AccountDataModel {
                 hasAppleMusicSubscription: userProfile?.hasAppleMusicSubscription
             )
 
-            try await getLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
+            try await setLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
             self.userProfile = updatedProfile
             Logger.account.info("User profile updated successfully")
         } catch {

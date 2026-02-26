@@ -11,6 +11,7 @@ import AuthenticationServices
 import SwiftDataManager
 import OSLog
 import Analytics
+import Models
 
 public enum LoginUseCaseError: Error, LocalizedError {
     case localStorageFailed
@@ -28,6 +29,7 @@ public enum LoginUseCaseError: Error, LocalizedError {
 
 public protocol SetLoginUseCaseProtocol: Sendable {
     func performCompleteLogin(authResult: ASAuthorization) async throws -> String
+    func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws
 }
 
 public actor SetLoginUseCase: SetLoginUseCaseProtocol {
@@ -76,5 +78,9 @@ public actor SetLoginUseCase: SetLoginUseCaseProtocol {
 
             throw LoginUseCaseError.localStorageFailed
         }
+    }
+
+    public func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws {
+        try await loginRepository.saveUserProfile(userId: userId, profile: profile)
     }
 }

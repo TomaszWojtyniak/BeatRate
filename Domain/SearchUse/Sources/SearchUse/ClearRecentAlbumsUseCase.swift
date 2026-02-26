@@ -10,7 +10,7 @@ import SearchRepository
 import Models
 
 public protocol ClearRecentAlbumsUseCaseProtocol: Sendable {
-    func execute() async
+    func clearAll() async
 }
 
 public actor ClearRecentAlbumsUseCase: ClearRecentAlbumsUseCaseProtocol {
@@ -20,7 +20,7 @@ public actor ClearRecentAlbumsUseCase: ClearRecentAlbumsUseCaseProtocol {
         self.searchRepository = searchRepository
     }
 
-    public func execute() async {
+    public func clearAll() async {
         do {
             try await searchRepository.clearRecentAlbums()
         } catch {

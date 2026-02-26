@@ -10,12 +10,14 @@ import SplashUseCases
 import SettingUseCases
 import Analytics
 import OSLog
+import Models
 
 @MainActor
 @Observable
 final class SettingsDataModel {
     private let getSplashUseCase: GetSplashUseCaseProtocol
     private let getSettingsUseCase: GetSettingsUseCaseProtocol
+    private let setSettingsUseCase: SetSettingsUseCaseProtocol
 
     var isLoggingOut = false
     var showLogoutConfirmation = false
@@ -23,9 +25,11 @@ final class SettingsDataModel {
     var isConnectingAppleMusic = false
 
     init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase(),
-         getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase()) {
+         getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase(),
+         setSettingsUseCase: SetSettingsUseCaseProtocol = SetSettingsUseCase()) {
         self.getSplashUseCase = getSplashUseCase
         self.getSettingsUseCase = getSettingsUseCase
+        self.setSettingsUseCase = setSettingsUseCase
     }
 
     func loadUserProfile() async {
@@ -42,7 +46,7 @@ final class SettingsDataModel {
         defer { isConnectingAppleMusic = false }
 
         do {
-            isAppleMusicConnected = try await getSettingsUseCase.connectAppleMusic()
+            isAppleMusicConnected = try await setSettingsUseCase.connectAppleMusic()
         } catch {
             Logger.settings.error("Failed to connect Apple Music: \(error)")
         }
