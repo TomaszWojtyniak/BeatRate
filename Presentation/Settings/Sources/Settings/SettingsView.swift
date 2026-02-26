@@ -106,8 +106,6 @@ public struct SettingsView: View {
                     }
                 }
             }
-        } message: {
-            Text("")
         }
 
     }

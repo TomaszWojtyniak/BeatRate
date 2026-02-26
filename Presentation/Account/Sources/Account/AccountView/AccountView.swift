@@ -20,40 +20,37 @@ public struct AccountView: View {
     public init() {}
 
     public var body: some View {
-        NavigationStack {
-            List {
-                if !dataModel.isLoading {
-                    VStack(spacing: 8) {
-                        Text((dataModel.fullName ?? dataModel.userProfile?.email) ?? "")
-                            .font(.system(.largeTitle, weight: .bold))
-                            .frame(maxWidth: .infinity, alignment: .center)
-                        
-                        Button("Edit") {
-                            dataModel.isShowingEditSheet = true
-                        }
-                        .buttonStyle(.borderedProminent)
+        List {
+            if !dataModel.isLoading {
+                VStack(spacing: 8) {
+                    Text((dataModel.fullName ?? dataModel.userProfile?.email) ?? "")
+                        .font(.system(.largeTitle, weight: .bold))
+                        .frame(maxWidth: .infinity, alignment: .center)
+
+                    Button("Edit") {
+                        dataModel.isShowingEditSheet = true
                     }
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                    .padding(.top, 20)
-                    .padding(.bottom, 10)
-                    
-                    if self.dataModel.isShowingAlbumRatingsSection {
-                        HomeSectionView(name: "Ratings", albums: dataModel.ratedAlbums, selectedAlbum: $selectedAlbum)
-                            .padding(20)
-                            .roundedMaterialBackground()
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                            .padding(.top, 5)
-                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+                .padding(.top, 20)
+                .padding(.bottom, 10)
+
+                if self.dataModel.isShowingAlbumRatingsSection {
+                    HomeSectionView(name: "Ratings", albums: dataModel.ratedAlbums, selectedAlbum: $selectedAlbum)
+                        .padding(20)
+                        .roundedMaterialBackground()
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .padding(.top, 5)
                 }
             }
-            .listStyle(.inset)
-            .scrollContentBackground(.hidden)
-            .background(Color.backgroundColor)
-            .background(Color.backgroundColor)
-            .loading(dataModel.isLoading)
         }
+        .listStyle(.inset)
+        .scrollContentBackground(.hidden)
+        .background(Color.backgroundColor)
+        .loading(dataModel.isLoading)
         .navigationDestination(item: $selectedAlbum) { album in
             AlbumDetailsNavigationStack(album: album)
         }

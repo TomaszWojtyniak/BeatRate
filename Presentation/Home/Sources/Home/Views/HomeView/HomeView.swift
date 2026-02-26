@@ -13,13 +13,13 @@ import CoreUI
 
 @MainActor
 public struct HomeView: View {
-    @State var dataModel: HomeDataModel = HomeDataModel()
-    @State var selectedAlbum: AlbumModel?
-    
+    @State private var dataModel: HomeDataModel = HomeDataModel()
+    @State private var selectedAlbum: AlbumModel?
+
     public init() {}
-    
+
     public var body: some View {
-        NavigationStack {
+        Group {
             if dataModel.isLoadingFromCache && dataModel.homeSections.isEmpty {
                 VStack {
                     Text("Loading your library...")
@@ -32,7 +32,7 @@ public struct HomeView: View {
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                         .padding(.top, 5)
-                    
+
                 }
                 .listStyle(.inset)
                 .scrollContentBackground(.hidden)

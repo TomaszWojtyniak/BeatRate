@@ -11,11 +11,11 @@ import CoreUI
 
 struct AlbumDetailsView: View {
 
-    let _album: AlbumModel
+    let album: AlbumModel
     @State private var dataModel: AlbumDetailsDataModel
 
     init(album: AlbumModel) {
-        self._album = album
+        self.album = album
         self._dataModel = State(initialValue: AlbumDetailsDataModel(album: album))
     }
 
