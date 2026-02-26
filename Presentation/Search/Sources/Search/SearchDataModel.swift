@@ -34,7 +34,7 @@ public final class SearchDataModel {
         self.clearRecentAlbumsUseCase = clearRecentAlbumsUseCase
 
         Task {
-            self.recentAlbums = await getRecentAlbumsUseCase.execute()
+            self.recentAlbums = await getRecentAlbumsUseCase.fetchRecentAlbums()
         }
     }
 
@@ -85,14 +85,14 @@ public final class SearchDataModel {
     
     public func saveRecentAlbum(_ album: AppleMusicAlbumData) {
         Task {
-            await saveRecentAlbumUseCase.execute(album: album)
-            recentAlbums = await getRecentAlbumsUseCase.execute()
+            await saveRecentAlbumUseCase.save(album: album)
+            recentAlbums = await getRecentAlbumsUseCase.fetchRecentAlbums()
         }
     }
 
     public func clearRecentAlbums() {
         Task {
-            await clearRecentAlbumsUseCase.execute()
+            await clearRecentAlbumsUseCase.clearAll()
             recentAlbums = []
         }
     }

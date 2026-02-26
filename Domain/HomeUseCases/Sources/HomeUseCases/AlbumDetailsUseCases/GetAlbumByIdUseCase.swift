@@ -15,7 +15,7 @@ import OSLog
 /// Checks cache first (only albums in home sections are cached)
 /// Falls back to MusicKit if not in cache
 public protocol GetAlbumByIdUseCaseProtocol: Sendable {
-    func execute(albumId: String) async throws -> AlbumModel
+    func fetchAlbum(id albumId: String) async throws -> AlbumModel
 }
 
 public actor GetAlbumByIdUseCase: GetAlbumByIdUseCaseProtocol {
@@ -30,7 +30,7 @@ public actor GetAlbumByIdUseCase: GetAlbumByIdUseCaseProtocol {
         self.musicRepository = musicRepository
     }
 
-    public func execute(albumId: String) async throws -> AlbumModel {
+    public func fetchAlbum(id albumId: String) async throws -> AlbumModel {
         // First, try to get from cache (only albums in home sections)
         if let cachedAlbum = try await homeRepository.getCachedAlbum(albumId: albumId) {
             Logger.albumDetails.info("Album \(albumId) found in cache")

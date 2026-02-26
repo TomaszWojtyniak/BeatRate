@@ -11,12 +11,15 @@ public struct FirebaseUserProfile: Codable, Sendable {
     public let email: String?
     public let firstName: String?
     public let lastName: String?
+    public let hasAppleMusicSubscription: Bool?
 
     public init(email: String?,
                 firstName: String?,
-                lastName: String?) {
+                lastName: String?,
+                hasAppleMusicSubscription: Bool? = nil) {
         self.email = email
         self.firstName = firstName
         self.lastName = lastName
+        self.hasAppleMusicSubscription = hasAppleMusicSubscription
     }
 }

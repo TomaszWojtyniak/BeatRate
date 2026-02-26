@@ -14,7 +14,7 @@ public struct SearchView: View {
 
     @State private var dataModel = SearchDataModel()
     @State private var searchText: String = ""
-    @State var selectedAlbum: AppleMusicAlbumData?
+    @State private var selectedAlbum: AppleMusicAlbumData?
 
     public init() {}
 
@@ -32,9 +32,7 @@ public struct SearchView: View {
                 } else if dataModel.albums.isEmpty {
                     RecentAlbumsSection(
                         albums: dataModel.recentAlbums,
-                        onAlbumTap: { album in
-                            handleAlbumTap(album)
-                        },
+                        onAlbumTap: handleAlbumTap,
                         onClear: {
                             dataModel.clearRecentAlbums()
                         }

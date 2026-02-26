@@ -9,7 +9,7 @@ import Foundation
 import HomeRepository
 import Models
 
-public protocol GetAlbumDetailsUseCaseProtocol {
+public protocol GetAlbumDetailsUseCaseProtocol: Sendable {
     func getUserRating(albumId: String) async throws -> Double?
     func saveAlbumRating(albumId: String, rating: Double, albumMetadata: (artist: String, title: String)?) async throws
     func getUpdatedAlbum(albumId: String) async throws -> AlbumModel?

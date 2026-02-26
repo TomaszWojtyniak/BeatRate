@@ -2,7 +2,7 @@
   "sourceLanguage" : "en",
   "strings" : {
     "login.alert.error.description" : {
-      "extractionState" : "manual",
+      "extractionState" : "extractedWithValue",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -13,7 +13,7 @@
       }
     },
     "login.alert.error.title" : {
-      "extractionState" : "manual",
+      "extractionState" : "extractedWithValue",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -24,7 +24,7 @@
       }
     },
     "login.app.name" : {
-      "extractionState" : "manual",
+      "extractionState" : "extractedWithValue",
       "localizations" : {
         "en" : {
           "stringUnit" : {

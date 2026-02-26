@@ -9,19 +9,18 @@ import Foundation
 import SearchRepository
 import Models
 
-public protocol ClearRecentAlbumsUseCaseProtocol {
-    func execute() async
+public protocol ClearRecentAlbumsUseCaseProtocol: Sendable {
+    func clearAll() async
 }
 
-@MainActor
-public final class ClearRecentAlbumsUseCase: ClearRecentAlbumsUseCaseProtocol {
+public actor ClearRecentAlbumsUseCase: ClearRecentAlbumsUseCaseProtocol {
     private let searchRepository: SearchRepositoryProtocol
 
     public init(searchRepository: SearchRepositoryProtocol = SearchRepository.shared) {
         self.searchRepository = searchRepository
     }
 
-    public func execute() async {
+    public func clearAll() async {
         do {
             try await searchRepository.clearRecentAlbums()
         } catch {

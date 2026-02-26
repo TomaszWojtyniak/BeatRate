@@ -14,9 +14,16 @@ public struct SplashView: View {
     @State private var dataModel: SplashDataModel = SplashDataModel()
     
     let onComplete: () -> Void
-    
+
     public init(onComplete: @escaping () -> Void) {
         self.onComplete = onComplete
+    }
+
+    private var isAlertPresented: Binding<Bool> {
+        Binding(
+            get: { dataModel.alertType != nil },
+            set: { if !$0 { dataModel.alertType = nil } }
+        )
     }
     
     public var body: some View {
@@ -63,10 +70,7 @@ public struct SplashView: View {
         }
         .alert(
             dataModel.alertType == .connectionError ? "Connection Error" : "Apple Music Access Required",
-            isPresented: Binding(
-                get: { dataModel.alertType != nil },
-                set: { if !$0 { dataModel.alertType = nil } }
-            )
+            isPresented: isAlertPresented
         ) {
             if dataModel.alertType == .musicKitDenied {
                 Button("Open Settings") {

@@ -15,6 +15,7 @@ import OSLog
 @Observable
 final class AccountDataModel {
     private let getLoginUseCase: GetLoginUseCaseProtocol
+    private let setLoginUseCase: SetLoginUseCaseProtocol
     private let getAccountUseCase: GetAccountUseCaseProtocol
 
     var userProfile: FirebaseUserProfile?
@@ -22,6 +23,7 @@ final class AccountDataModel {
     var isLoading = false
     var isShowingEditSheet = false
     var errorMessage: String?
+    var isShowingAlbumRatingsSection: Bool = false
 
     var fullName: String? {
         guard let firstName = userProfile?.firstName,
@@ -30,8 +32,10 @@ final class AccountDataModel {
     }
 
     init(getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),
+         setLoginUseCase: SetLoginUseCaseProtocol = SetLoginUseCase(),
          getAccountUseCase: GetAccountUseCaseProtocol = GetAccountUseCase()) {
         self.getLoginUseCase = getLoginUseCase
+        self.setLoginUseCase = setLoginUseCase
         self.getAccountUseCase = getAccountUseCase
     }
 
@@ -54,6 +58,12 @@ final class AccountDataModel {
 
             self.userProfile = profile
             self.ratedAlbums = albums
+            
+            if self.ratedAlbums.isEmpty {
+                self.isShowingAlbumRatingsSection = false
+            } else {
+                self.isShowingAlbumRatingsSection = true
+            }
 
             Logger.account.info("Loaded user profile and \(albums.count) rated albums")
         } catch {
@@ -72,10 +82,11 @@ final class AccountDataModel {
             let updatedProfile = FirebaseUserProfile(
                 email: userProfile?.email,
                 firstName: firstName.isEmpty ? nil : firstName,
-                lastName: lastName.isEmpty ? nil : lastName
+                lastName: lastName.isEmpty ? nil : lastName,
+                hasAppleMusicSubscription: userProfile?.hasAppleMusicSubscription
             )
 
-            try await getLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
+            try await setLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
             self.userProfile = updatedProfile
             Logger.account.info("User profile updated successfully")
         } catch {

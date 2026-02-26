@@ -2,7 +2,7 @@
   "sourceLanguage" : "en",
   "strings" : {
     "error.alert.confirm" : {
-      "extractionState" : "manual",
+      "extractionState" : "extractedWithValue",
       "localizations" : {
         "en" : {
           "stringUnit" : {

@@ -5,7 +5,6 @@
 //  Created by Tomasz Wojtyniak on 30/06/2025.
 //
 
-import SwiftUI
 import OSLog
 import Analytics
 import MusicKitService
@@ -19,8 +18,18 @@ struct AlbumNotFoundError: Error {
     }
 }
 
+public struct MusicAuthorizationInfo: Sendable {
+    public let isAuthorized: Bool
+    public let hasSubscription: Bool
+
+    public init(isAuthorized: Bool, hasSubscription: Bool) {
+        self.isAuthorized = isAuthorized
+        self.hasSubscription = hasSubscription
+    }
+}
+
 public protocol MusicRepositoryProtocol: Sendable {
-    func requestMusicAuthorization() async -> Bool
+    func requestMusicAuthorization() async -> MusicAuthorizationInfo
     func getAlbumDataById(_ id: String) async throws -> AppleMusicAlbumData
     func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData]
 }
@@ -31,35 +40,43 @@ public actor MusicRepository: MusicRepositoryProtocol {
     let musicKitService: MusicKitServiceProtocol
     
     private var isMusicKitAuthorized: Bool = false
+    private var cachedHasSubscription: Bool = false
     
     public init(musicKitService: MusicKitServiceProtocol = MusicKitService.shared) {
         self.musicKitService = musicKitService
     }
     
-    public func requestMusicAuthorization() async -> Bool {
-        if isMusicKitAuthorized  {
-            return true
+    public func requestMusicAuthorization() async -> MusicAuthorizationInfo {
+        if isMusicKitAuthorized {
+            return await MusicAuthorizationInfo(isAuthorized: true, hasSubscription: cachedHasSubscription)
         }
-        
-        let status = await musicKitService.requestMusicAuthorization()
-        
-        switch status {
+
+        let result = await musicKitService.requestMusicAuthorization()
+
+        let isAuthorized: Bool
+        switch await result.status {
         case .authorized:
             isMusicKitAuthorized = true
-            return true
+            cachedHasSubscription = await result.hasSubscription
+            isAuthorized = true
         case .notDetermined:
             Logger.musicRepository.info("Error getting Apple Music Authorization: Not determined")
-            return false
+            isAuthorized = false
         case .restricted:
             Logger.musicRepository.info("Error getting Apple Music Authorization: Restricted")
-            return false
+            isAuthorized = false
         case .denied:
             Logger.musicRepository.info("Error getting Apple Music Authorization: Denied")
-            return false
+            isAuthorized = false
         default:
             Logger.musicRepository.info("Error getting Apple Music Authorization: Unknown (New case)")
-            return false
+            isAuthorized = false
         }
+
+        return await MusicAuthorizationInfo(
+            isAuthorized: isAuthorized,
+            hasSubscription: result.hasSubscription
+        )
     }
     
     public func getAlbumDataById(_ id: String) async throws -> AppleMusicAlbumData {

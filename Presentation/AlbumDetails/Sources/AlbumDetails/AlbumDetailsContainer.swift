@@ -59,7 +59,7 @@ public struct AlbumDetailsContainer: View {
         errorMessage = nil
 
         do {
-            let album = try await getAlbumByIdUseCase.execute(albumId: albumId)
+            let album = try await getAlbumByIdUseCase.fetchAlbum(id: albumId)
             albumModel = album
             isLoading = false
         } catch {

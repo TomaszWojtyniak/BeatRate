@@ -5,14 +5,23 @@
 //  Created by Tomasz Wojtyniak on 30/06/2025.
 //
 
-import SwiftUI
 import Analytics
 import OSLog
 import MusicKit
 import Models
 
+public struct MusicAuthorizationResult: Sendable {
+    public let status: MusicAuthorization.Status
+    public let hasSubscription: Bool
+
+    public init(status: MusicAuthorization.Status, hasSubscription: Bool) {
+        self.status = status
+        self.hasSubscription = hasSubscription
+    }
+}
+
 public protocol MusicKitServiceProtocol: Sendable {
-    func requestMusicAuthorization() async -> MusicAuthorization.Status
+    func requestMusicAuthorization() async -> MusicAuthorizationResult
     func fetchAlbumData(by id: String) async throws -> AppleMusicAlbumData?
     func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData]
 }
@@ -22,14 +31,12 @@ public actor MusicKitService: MusicKitServiceProtocol {
     let analyticsManager: AnalyticsManager
     let crashLogger: CrashLogger
     
+    private var canPlayAppleMusic: Bool = false
+
     public init(analyticsManager: AnalyticsManager = .shared,
                 crashLogger: CrashLogger = .shared) {
         self.analyticsManager = analyticsManager
         self.crashLogger = crashLogger
-    }
-    
-    public func requestMusicAuthorization() async -> MusicAuthorization.Status {
-        return await MusicAuthorization.request()
     }
     
     private func createMusicItemID(from stringID: String) -> MusicItemID {
@@ -94,5 +101,40 @@ public actor MusicKitService: MusicKitServiceProtocol {
             }
             return results
         }
+    }
+    
+    public func requestMusicAuthorization() async -> MusicAuthorizationResult {
+        let musicAuthorizationStatus = await MusicAuthorization.request()
+
+        guard musicAuthorizationStatus == .authorized else {
+            return await MusicAuthorizationResult(status: musicAuthorizationStatus, hasSubscription: false)
+        }
+
+        let subscription = await withTaskGroup(of: MusicSubscription?.self) { group in
+            group.addTask {
+                for await sub in MusicSubscription.subscriptionUpdates {
+                    return sub
+                }
+                return nil
+            }
+
+            group.addTask {
+                try? await Task.sleep(for: .seconds(2))
+                return nil
+            }
+
+            let result = await group.next() ?? nil
+            group.cancelAll()
+            return result
+        }
+
+        if let subscription {
+            canPlayAppleMusic = subscription.canPlayCatalogContent
+        }
+
+        return await MusicAuthorizationResult(
+            status: musicAuthorizationStatus,
+            hasSubscription: canPlayAppleMusic
+        )
     }
 }

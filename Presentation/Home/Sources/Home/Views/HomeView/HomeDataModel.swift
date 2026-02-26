@@ -33,31 +33,13 @@ final class HomeDataModel {
     }
     
     func loadInitialData() async {
-        // First try to load from cache
-        if await getHomeUseCase.isCacheValid() {
-            isLoadingFromCache = true
-            do {
-                let cachedSections = try await getHomeUseCase.getCachedSections()
-                if !cachedSections.isEmpty {
-                    self.homeSections = cachedSections
-                    isLoadingFromCache = false
-                    Logger.home.debug("Loaded \(cachedSections.count) sections from cache")
-                    return
-                }
-            } catch {
-                Logger.home.error("Failed to load from cache: \(error)")
-            }
-            isLoadingFromCache = false
-        }
-        
-        // If no cache, fetch from network
         await authorizeMusicKit()
         await fetchSectionsData()
     }
     
     func authorizeMusicKit() async {
-        let isAuthorized = await self.getHomeUseCase.authorizeMusicKit()
-        Logger.home.debug("MusicKit authorization status: \(isAuthorized)")
+        let musicAuthorizationInfo = await self.getHomeUseCase.authorizeMusicKit()
+        Logger.home.debug("MusicKit authorization status: \(musicAuthorizationInfo.isAuthorized)")
     }
     
     func refreshData() async {
