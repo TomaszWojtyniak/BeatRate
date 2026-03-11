@@ -23,6 +23,8 @@ final class SettingsDataModel {
     var showLogoutConfirmation = false
     var isAppleMusicConnected = false
     var isConnectingAppleMusic = false
+    var isSpotifyConnected = false
+    var isConnectingSpotify = false
 
     init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase(),
          getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase(),
@@ -35,7 +37,8 @@ final class SettingsDataModel {
     func loadUserProfile() async {
         do {
             isAppleMusicConnected = try await getSettingsUseCase.loadAppleMusicStatus()
-            Logger.settings.info("Loaded user profile, Apple Music connected: \(self.isAppleMusicConnected)")
+            isSpotifyConnected = try await getSettingsUseCase.loadSpotifyStatus()
+            Logger.settings.info("Loaded user profile, Apple Music: \(self.isAppleMusicConnected), Spotify: \(self.isSpotifyConnected)")
         } catch {
             Logger.settings.error("Failed to load user profile: \(error)")
         }
@@ -49,6 +52,17 @@ final class SettingsDataModel {
             isAppleMusicConnected = try await setSettingsUseCase.connectAppleMusic()
         } catch {
             Logger.settings.error("Failed to connect Apple Music: \(error)")
+        }
+    }
+    
+    func connectSpotify() async {
+        isConnectingSpotify = true
+        defer { isConnectingSpotify = false }
+        
+        do {
+            isSpotifyConnected = try await setSettingsUseCase.connectSpotify()
+        } catch {
+            Logger.settings.error("Failed to connect Spotify: \(error)")
         }
     }
 

@@ -147,6 +147,7 @@
 				Repositories/SearchRepository,
 				Services/FirebaseService,
 				Services/MusicKitService,
+				Services/SpotifyService,
 				Services/SwiftDataManager,
 			);
 			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
@@ -160,6 +161,7 @@
 				Repositories/SearchRepository,
 				Services/FirebaseService,
 				Services/MusicKitService,
+				Services/SpotifyService,
 				Services/SwiftDataManager,
 			);
 			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;

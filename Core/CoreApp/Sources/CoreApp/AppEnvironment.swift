@@ -38,4 +38,14 @@ public enum AppEnvironment {
             "https://beatrate-9e5aa-default-rtdb.firebaseio.com/"
         }
     }
+
+    /// Returns the Spotify Client ID
+    nonisolated public var spotifyClientId: String {
+        "d4fc4b67f91246d1a0ccdbd6003a8df9"
+    }
+
+    /// Returns the Spotify redirect URI
+    nonisolated public var spotifyRedirectUri: String {
+        "beatrate://spotify-callback"
+    }
 }

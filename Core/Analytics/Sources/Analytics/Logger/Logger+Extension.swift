@@ -43,4 +43,6 @@ public extension Logger {
     static let settings = Logger(subsystem: subsystem, category: "settings")
 
     static let swiftDataManager = Logger(subsystem: subsystem, category: "swiftDataManager")
+    
+    static let spotifyService = Logger(subsystem: subsystem, category: "spotifyService")
 }

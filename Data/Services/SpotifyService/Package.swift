@@ -4,36 +4,36 @@
 import PackageDescription
 
 let package = Package(
-    name: "MusicRepository",
+    name: "SpotifyService",
     defaultLocalization: "en",
     platforms: [.iOS(.v26)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "MusicRepository",
-            targets: ["MusicRepository"]
+            name: "SpotifyService",
+            targets: ["SpotifyService"]
         ),
     ],
     dependencies: [
-        .package(path: "../../Data/Services/MusicKitService"),
-        .package(path: "../../Data/Services/SpotifyService")
+        .package(path: "../../Core/Models"),
+        .package(path: "../../Core/Analytics"),
+        .package(path: "../../Core/CoreApp")
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "MusicRepository",
+            name: "SpotifyService",
             dependencies: [
-                "MusicKitService",
-                "SpotifyService"
+                "Models",
+                "Analytics",
+                "CoreApp"
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)
             ]
         ),
         .testTarget(
-            name: "MusicRepositoryTests",
-            dependencies: ["MusicRepository"]
+            name: "SpotifyServiceTests",
+            dependencies: ["SpotifyService"]
         ),
     ]
 )

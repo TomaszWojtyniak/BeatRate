@@ -90,4 +90,54 @@ public actor KeychainManager {
             throw KeychainError.deleteFailed
         }
     }
+
+    // MARK: - Spotify Access Token
+
+    private let spotifyAccessTokenKey = "spotifyAccessToken"
+
+    public func saveSpotifyAccessToken(_ token: String) throws {
+        let data = Data(token.utf8)
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: spotifyAccessTokenKey,
+            kSecValueData as String: data
+        ]
+        SecItemDelete(query as CFDictionary)
+        let status = SecItemAdd(query as CFDictionary, nil)
+        guard status == errSecSuccess else { throw KeychainError.saveFailed }
+    }
+
+    public func loadSpotifyAccessToken() throws -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: spotifyAccessTokenKey,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess else {
+            if status == errSecItemNotFound { return nil }
+            throw KeychainError.loadFailed
+        }
+        guard let data = result as? Data,
+              let token = String(data: data, encoding: .utf8) else {
+            throw KeychainError.unexpectedData
+        }
+        return token
+    }
+
+    public func deleteSpotifyAccessToken() throws {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: spotifyAccessTokenKey
+        ]
+        let status = SecItemDelete(query as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw KeychainError.deleteFailed
+        }
+    }
 }
