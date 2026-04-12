@@ -52,8 +52,15 @@ public struct SettingsView: View {
                             
                             Spacer()
                             
-                            Button("Connect") {
-                                
+                            if dataModel.isSpotifyConnected {
+                                Text("Connected")
+                            } else {
+                                Button("Connect") {
+                                    Task {
+                                        await dataModel.connectSpotify()
+                                    }
+                                }
+                                .disabled(dataModel.isConnectingSpotify)
                             }
                         }
                     } header: {

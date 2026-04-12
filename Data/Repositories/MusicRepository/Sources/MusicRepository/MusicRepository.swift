@@ -9,14 +9,17 @@ import OSLog
 import Analytics
 import MusicKitService
 import Models
+import SpotifyService
 
 struct AlbumNotFoundError: Error {
     let id: String
-    
+
     var errorDescription: String? {
         return "Album with ID '\(id)' was not found"
     }
 }
+
+// MARK: - Authorization Info
 
 public struct MusicAuthorizationInfo: Sendable {
     public let isAuthorized: Bool
@@ -28,24 +31,49 @@ public struct MusicAuthorizationInfo: Sendable {
     }
 }
 
+public struct SpotifyAuthorizationInfo: Sendable {
+    public let isAuthorized: Bool
+    public let hasSpotifyPremium: Bool
+
+    public init(isAuthorized: Bool, hasSpotifyPremium: Bool) {
+        self.isAuthorized = isAuthorized
+        self.hasSpotifyPremium = hasSpotifyPremium
+    }
+}
+
+// MARK: - Protocol
+
 public protocol MusicRepositoryProtocol: Sendable {
     func requestMusicAuthorization() async -> MusicAuthorizationInfo
+    func requestSpotifyAuthorization() async throws -> SpotifyAuthorizationInfo
+    func fetchSpotifyRecentlyPlayed() async throws
+    func isSpotifyTokenAvailable() async -> Bool
+    func isAppleMusicAuthorized() async -> Bool
     func getAlbumDataById(_ id: String) async throws -> AppleMusicAlbumData
     func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData]
 }
 
+// MARK: - MusicRepository
+
 public actor MusicRepository: MusicRepositoryProtocol {
     public static let shared = MusicRepository()
-    
+
     let musicKitService: MusicKitServiceProtocol
-    
+    let spotifyService: SpotifyServiceProtocol
+
     private var isMusicKitAuthorized: Bool = false
     private var cachedHasSubscription: Bool = false
-    
-    public init(musicKitService: MusicKitServiceProtocol = MusicKitService.shared) {
+
+    public init(
+        musicKitService: MusicKitServiceProtocol = MusicKitService.shared,
+        spotifyService: SpotifyServiceProtocol = SpotifyService.shared
+    ) {
         self.musicKitService = musicKitService
+        self.spotifyService = spotifyService
     }
-    
+
+    // MARK: - Apple Music
+
     public func requestMusicAuthorization() async -> MusicAuthorizationInfo {
         if isMusicKitAuthorized {
             return await MusicAuthorizationInfo(isAuthorized: true, hasSubscription: cachedHasSubscription)
@@ -78,19 +106,44 @@ public actor MusicRepository: MusicRepositoryProtocol {
             hasSubscription: result.hasSubscription
         )
     }
-    
+
     public func getAlbumDataById(_ id: String) async throws -> AppleMusicAlbumData {
         guard let album = try await self.musicKitService.fetchAlbumData(by: id) else {
             throw AlbumNotFoundError(id: id)
         }
         return album
     }
-    
+
     public func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData] {
         Logger.musicRepository.info("Searching albums with query: '\(searchTerm)'")
 
         let albums = try await musicKitService.searchAlbums(searchTerm: searchTerm)
         Logger.musicRepository.info("Found \(albums.count) albums for query: '\(searchTerm)'")
         return albums
+    }
+
+    // MARK: - Spotify
+
+    public func requestSpotifyAuthorization() async throws -> SpotifyAuthorizationInfo {
+        Logger.musicRepository.info("Requesting Spotify authorization")
+
+        let result = try await spotifyService.requestAuthorization()
+
+        return await SpotifyAuthorizationInfo(
+            isAuthorized: result.isAuthorized,
+            hasSpotifyPremium: result.hasSpotifyPremium
+        )
+    }
+
+    public func fetchSpotifyRecentlyPlayed() async throws {
+        try await spotifyService.fetchRecentlyPlayed()
+    }
+
+    public func isSpotifyTokenAvailable() async -> Bool {
+        await spotifyService.hasAccessToken()
+    }
+
+    public func isAppleMusicAuthorized() async -> Bool {
+        await musicKitService.isAuthorized()
     }
 }

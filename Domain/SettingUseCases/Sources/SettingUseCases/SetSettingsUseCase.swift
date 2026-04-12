@@ -14,6 +14,7 @@ import OSLog
 
 public protocol SetSettingsUseCaseProtocol: Sendable {
     func connectAppleMusic() async throws -> Bool
+    func connectSpotify() async throws -> Bool
 }
 
 public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
@@ -52,11 +53,44 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
             email: existingProfile?.email,
             firstName: existingProfile?.firstName,
             lastName: existingProfile?.lastName,
-            hasAppleMusicSubscription: hasSubscription
+            hasAppleMusicSubscription: hasSubscription,
+            hasSpotifyConnection: existingProfile?.hasSpotifyConnection,
+            hasSpotifyPremium: existingProfile?.hasSpotifyPremium
         )
 
         try await setLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
         Logger.settings.info("Apple Music connected, has subscription: \(hasSubscription)")
+        return true
+    }
+    
+    public func connectSpotify() async throws -> Bool {
+        let authResult = try await musicRepository.requestSpotifyAuthorization()
+
+        guard await authResult.isAuthorized else {
+            Logger.settings.info("Spotify authorization denied")
+            return false
+        }
+
+        guard let userId = try await swiftDataManager.getCurrentUserId() else {
+            Logger.settings.error("No user ID found when saving Spotify status")
+            return false
+        }
+
+        let isPremium = await authResult.hasSpotifyPremium
+
+        let existingProfile = try await getLoginUseCase.getUserProfile(userId: userId)
+        let updatedProfile = FirebaseUserProfile(
+            email: existingProfile?.email,
+            firstName: existingProfile?.firstName,
+            lastName: existingProfile?.lastName,
+            hasAppleMusicSubscription: existingProfile?.hasAppleMusicSubscription,
+            hasSpotifyConnection: true,
+            hasSpotifyPremium: isPremium
+        )
+
+        try await setLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
+        Logger.settings.info("Spotify connected, premium: \(isPremium)")
+
         return true
     }
 }
