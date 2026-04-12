@@ -140,4 +140,54 @@ public actor KeychainManager {
             throw KeychainError.deleteFailed
         }
     }
+
+    // MARK: - Spotify Refresh Token
+
+    private let spotifyRefreshTokenKey = "spotifyRefreshToken"
+
+    public func saveSpotifyRefreshToken(_ token: String) throws {
+        let data = Data(token.utf8)
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: spotifyRefreshTokenKey,
+            kSecValueData as String: data
+        ]
+        SecItemDelete(query as CFDictionary)
+        let status = SecItemAdd(query as CFDictionary, nil)
+        guard status == errSecSuccess else { throw KeychainError.saveFailed }
+    }
+
+    public func loadSpotifyRefreshToken() throws -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: spotifyRefreshTokenKey,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess else {
+            if status == errSecItemNotFound { return nil }
+            throw KeychainError.loadFailed
+        }
+        guard let data = result as? Data,
+              let token = String(data: data, encoding: .utf8) else {
+            throw KeychainError.unexpectedData
+        }
+        return token
+    }
+
+    public func deleteSpotifyRefreshToken() throws {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: spotifyRefreshTokenKey
+        ]
+        let status = SecItemDelete(query as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw KeychainError.deleteFailed
+        }
+    }
 }

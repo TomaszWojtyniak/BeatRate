@@ -126,6 +126,7 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
         // Step 2: Clear the Keychain
         try await keychainManager.deleteAppleUserID()
         try await keychainManager.deleteSpotifyAccessToken()
+        try await keychainManager.deleteSpotifyRefreshToken()
 
         // Step 3: Invalidate cached user ID in HomeRepository
         await homeRepository.invalidateUserCache()

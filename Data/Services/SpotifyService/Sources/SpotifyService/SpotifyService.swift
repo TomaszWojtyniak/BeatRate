@@ -73,11 +73,14 @@ public actor SpotifyService: SpotifyServiceProtocol {
         let codeChallenge = generateCodeChallenge(from: codeVerifier)
 
         let code = try await startAuthSession(codeChallenge: codeChallenge)
-        let accessToken = try await exchangeCodeForToken(code: code, codeVerifier: codeVerifier)
+        let tokenResponse = try await exchangeCodeForToken(code: code, codeVerifier: codeVerifier)
 
-        try await keychainManager.saveSpotifyAccessToken(accessToken)
+        try await keychainManager.saveSpotifyAccessToken(tokenResponse.accessToken)
+        if let refreshToken = tokenResponse.refreshToken {
+            try await keychainManager.saveSpotifyRefreshToken(refreshToken)
+        }
 
-        let isPremium = await checkPremiumStatus(accessToken: accessToken)
+        let isPremium = await checkPremiumStatus(accessToken: tokenResponse.accessToken)
 
         Logger.spotifyService.info("Spotify authorization successful, premium: \(isPremium)")
         return await SpotifyAuthResult(isAuthorized: true, hasSpotifyPremium: isPremium)
@@ -94,21 +97,76 @@ public actor SpotifyService: SpotifyServiceProtocol {
     public func fetchRecentlyPlayed() async throws {
         guard let accessToken = try await keychainManager.loadSpotifyAccessToken() else {
             Logger.spotifyService.error("No Spotify access token found")
+            throw SpotifyAuthError.missingAccessToken
+        }
+
+        let (data, response) = try await URLSession.shared.data(
+            for: authenticatedRequest(url: "\(SpotifyAPI.recentlyPlayedURL)?limit=10", accessToken: accessToken)
+        )
+
+        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+
+        if statusCode == 401 {
+            Logger.spotifyService.info("Access token expired, attempting refresh")
+            let newAccessToken = try await refreshAccessToken()
+            let (retryData, retryResponse) = try await URLSession.shared.data(
+                for: authenticatedRequest(url: "\(SpotifyAPI.recentlyPlayedURL)?limit=10", accessToken: newAccessToken)
+            )
+            guard let retryHttp = retryResponse as? HTTPURLResponse, retryHttp.statusCode == 200 else {
+                let retryStatus = (retryResponse as? HTTPURLResponse)?.statusCode ?? -1
+                Logger.spotifyService.error("Recently played request failed after refresh with status: \(retryStatus)")
+                throw SpotifyAuthError.requestFailed(statusCode: retryStatus)
+            }
+            let json = try JSONSerialization.jsonObject(with: retryData)
+            Logger.spotifyService.info("Recently played response: \(String(describing: json))")
             return
         }
 
-        let request = authenticatedRequest(url: "\(SpotifyAPI.recentlyPlayedURL)?limit=10", accessToken: accessToken)
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+        guard statusCode == 200 else {
             Logger.spotifyService.error("Recently played request failed with status: \(statusCode)")
-            return
+            throw SpotifyAuthError.requestFailed(statusCode: statusCode)
         }
 
         let json = try JSONSerialization.jsonObject(with: data)
         Logger.spotifyService.info("Recently played response: \(String(describing: json))")
+    }
+
+    // MARK: - Token Refresh
+
+    private func refreshAccessToken() async throws -> String {
+        guard let refreshToken = try await keychainManager.loadSpotifyRefreshToken() else {
+            Logger.spotifyService.error("No refresh token available")
+            throw SpotifyAuthError.refreshTokenMissing
+        }
+
+        var request = URLRequest(url: URL(string: SpotifyAPI.tokenURL)!)
+        request.httpMethod = "POST"
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+
+        let body = [
+            "\(SpotifyAPI.Param.grantType)=refresh_token",
+            "refresh_token=\(refreshToken)",
+            "\(SpotifyAPI.Param.clientId)=\(clientId)"
+        ].joined(separator: "&")
+
+        request.httpBody = body.data(using: .utf8)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            Logger.spotifyService.error("Token refresh failed")
+            throw SpotifyAuthError.tokenRefreshFailed
+        }
+
+        let tokenResponse = try JSONDecoder().decode(SpotifyTokenResponse.self, from: data)
+
+        try await keychainManager.saveSpotifyAccessToken(tokenResponse.accessToken)
+        if let newRefreshToken = tokenResponse.refreshToken {
+            try await keychainManager.saveSpotifyRefreshToken(newRefreshToken)
+        }
+
+        Logger.spotifyService.info("Token refresh successful")
+        return tokenResponse.accessToken
     }
 
     // MARK: - PKCE Helpers
@@ -164,7 +222,7 @@ public actor SpotifyService: SpotifyServiceProtocol {
 
     // MARK: - Token Exchange
 
-    private func exchangeCodeForToken(code: String, codeVerifier: String) async throws -> String {
+    private func exchangeCodeForToken(code: String, codeVerifier: String) async throws -> SpotifyTokenResponse {
         var request = URLRequest(url: URL(string: SpotifyAPI.tokenURL)!)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
@@ -186,8 +244,7 @@ public actor SpotifyService: SpotifyServiceProtocol {
             throw SpotifyAuthError.tokenExchangeFailed
         }
 
-        let tokenResponse = try JSONDecoder().decode(SpotifyTokenResponse.self, from: data)
-        return tokenResponse.accessToken
+        return try JSONDecoder().decode(SpotifyTokenResponse.self, from: data)
     }
 
     // MARK: - Premium Check
@@ -229,9 +286,11 @@ private nonisolated enum Base64URL {
 
 private nonisolated struct SpotifyTokenResponse: Decodable, Sendable {
     let accessToken: String
+    let refreshToken: String?
 
     enum CodingKeys: String, CodingKey {
         case accessToken = "access_token"
+        case refreshToken = "refresh_token"
     }
 }
 
@@ -243,12 +302,20 @@ private nonisolated struct SpotifyUserResponse: Decodable, Sendable {
 
 nonisolated enum SpotifyAuthError: Error, LocalizedError {
     case missingAuthCode
+    case missingAccessToken
     case tokenExchangeFailed
+    case refreshTokenMissing
+    case tokenRefreshFailed
+    case requestFailed(statusCode: Int)
 
     var errorDescription: String? {
         switch self {
         case .missingAuthCode: "No authorization code received from Spotify"
+        case .missingAccessToken: "No Spotify access token found"
         case .tokenExchangeFailed: "Failed to exchange authorization code for access token"
+        case .refreshTokenMissing: "No refresh token available — re-authorization required"
+        case .tokenRefreshFailed: "Failed to refresh Spotify access token"
+        case .requestFailed(let statusCode): "Spotify API request failed with status \(statusCode)"
         }
     }
 }
