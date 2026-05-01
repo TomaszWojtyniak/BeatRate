@@ -8,6 +8,7 @@
 import SwiftUI
 import Models
 import AlbumDetails
+import CoreUI
 
 @MainActor
 public struct SearchView: View {
@@ -22,7 +23,14 @@ public struct SearchView: View {
         NavigationStack {
             Group {
                 if dataModel.isLoading {
-                    ProgressView("Searching...")
+                    VStack(spacing: 12) {
+                        ProgressView()
+                            .tint(Color.accentPrimary)
+                        Text("Searching...")
+                            .font(.system(.subheadline, weight: .medium))
+                            .foregroundStyle(Color.secondaryText)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if dataModel.albums.isEmpty && !searchText.isEmpty {
                     ContentUnavailableView {
                         Label("No Results", systemImage: "music.note.list")
@@ -43,10 +51,14 @@ public struct SearchView: View {
                             .onTapGesture {
                                 handleAlbumTap(album)
                             }
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
                     }
-                    .listStyle(.automatic)
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
             }
+            .meshBackground()
             .navigationTitle("Search")
             .toolbarTitleDisplayMode(.inlineLarge)
             .navigationDestination(item: $selectedAlbum) { album in
@@ -62,7 +74,7 @@ public struct SearchView: View {
             }
         }
     }
-    
+
     private func handleAlbumTap(_ album: AppleMusicAlbumData) {
         dataModel.saveRecentAlbum(album)
         selectedAlbum = album

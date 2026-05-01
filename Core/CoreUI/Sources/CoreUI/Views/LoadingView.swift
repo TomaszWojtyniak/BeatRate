@@ -44,7 +44,7 @@ public struct LoadingView<Content: View>: View {
                 }
                 .padding(.horizontal, 36)
                 .padding(.vertical, 28)
-                .glassEffect()
+                .glassEffect(in: .rect(cornerRadius: 22))
             }
         }
     }

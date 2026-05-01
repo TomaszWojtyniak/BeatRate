@@ -21,22 +21,30 @@ public struct HomeView: View {
     public var body: some View {
         Group {
             if dataModel.isLoadingFromCache && dataModel.homeSections.isEmpty {
-                VStack {
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .tint(Color.accentPrimary)
                     Text("Loading your library...")
+                        .font(.system(.subheadline, weight: .medium))
+                        .foregroundStyle(Color.secondaryText)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .meshBackground()
             } else {
-                List(self.dataModel.homeSections) { section in
-                    HomeSectionView(name: section.sectionName, albums: section.albums, selectedAlbum: $selectedAlbum)
-                        .padding(20)
-                        .roundedMaterialBackground()
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .padding(.top, 5)
-
+                ScrollView {
+                    GlassEffectContainer(spacing: 18) {
+                        LazyVStack(spacing: 18) {
+                            ForEach(self.dataModel.homeSections) { section in
+                                HomeSectionView(name: section.sectionName, albums: section.albums, selectedAlbum: $selectedAlbum)
+                                    .padding(20)
+                                    .roundedMaterialBackground()
+                                    .padding(.horizontal, 16)
+                            }
+                        }
+                        .padding(.bottom, 24)
+                    }
                 }
-                .listStyle(.inset)
-                .scrollContentBackground(.hidden)
-                .background(Color.backgroundColor)
+                .meshBackground()
                 .refreshable {
                     await dataModel.refreshData()
                 }

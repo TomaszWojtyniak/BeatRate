@@ -13,6 +13,8 @@ struct AlbumDetailsView: View {
 
     let album: AlbumModel
     @State private var dataModel: AlbumDetailsDataModel
+    /// Dominant colour pulled from the album artwork, used as the page tint.
+    @State private var artworkTint: Color = .clear
 
     init(album: AlbumModel) {
         self.album = album
@@ -21,11 +23,13 @@ struct AlbumDetailsView: View {
 
     var body: some View {
         ScrollView {
-            VStack {
+            VStack(spacing: 20) {
+                AlbumDetailsCoverView(album: dataModel.album)
+                    .padding(.top, 6)
+
                 AlbumDetailsMainSectionView(album: dataModel.album)
 
                 AlbumDetailsTilesView(album: dataModel.album)
-                    .padding(.top, 20)
 
                 RateAlbumView(myRating: $dataModel.myRating) { finalRating in
                     // Only save if initial rating has been loaded
@@ -37,11 +41,12 @@ struct AlbumDetailsView: View {
                         await dataModel.saveAlbumRating(rating: finalRating)
                     }
                 }
-                .padding(.top, 20)
             }
-            .padding(.horizontal, 50)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 32)
         }
         .background(Color.backgroundColor)
+        .meshBackground(intense: true)
         .loading(
             dataModel.isLoading
         )
@@ -50,6 +55,10 @@ struct AlbumDetailsView: View {
                 dataModel.myRating = userRating
             }
             dataModel.hasLoadedInitialRating = true
+        }
+        .task(id: dataModel.album.appleMusicAlbumData.coverUrl) {
+            guard let url = dataModel.album.appleMusicAlbumData.coverUrl else { return }
+            artworkTint = await DominantColor.extract(from: url) ?? .clear
         }
     }
 }

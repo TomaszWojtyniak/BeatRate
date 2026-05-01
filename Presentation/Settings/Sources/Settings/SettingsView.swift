@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreUI
 
 @MainActor
 public struct SettingsView: View {
@@ -79,15 +80,26 @@ public struct SettingsView: View {
                     Button {
                         dataModel.showLogoutConfirmation = true
                     } label: {
-                        Text("Logout")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(
-                                RoundedRectangle(cornerRadius: 28)
-                                    .fill(.primary)
-                            )
+                        HStack(spacing: 8) {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                .font(.system(size: 15, weight: .semibold))
+                            Text("Logout")
+                                .font(.system(size: 17, weight: .semibold))
+                        }
+                        .foregroundStyle(Color.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 54)
+                        .background(
+                            RoundedRectangle(cornerRadius: 27, style: .continuous)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.red.opacity(0.95), Color.red.opacity(0.78)],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                )
+                        )
+                        .appShadow(.destructive)
                     }
                     .disabled(dataModel.isLoggingOut)
                     .opacity(dataModel.isLoggingOut ? 0.6 : 1.0)

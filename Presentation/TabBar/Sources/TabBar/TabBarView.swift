@@ -28,7 +28,7 @@ public struct TabBarView: View {
                 }
             }
         }
-        .tint(Color.honeyYellow)
+        .tint(Color.accentPrimary)
     }
 }
 

@@ -24,12 +24,12 @@ private struct StarView: View {
             if fill >= 1.0 {
                 Image(systemName: "star.fill")
                     .font(.title3)
-                    .foregroundColor(.yellow)
+                    .foregroundColor(.accentPrimary)
                     .scaleEffect(1.3)
             } else if fill >= 0.5 {
                 Image(systemName: "star.leadinghalf.filled")
                     .font(.title3)
-                    .foregroundColor(.yellow)
+                    .foregroundColor(.accentPrimary)
                     .scaleEffect(1.3)
             }
         }

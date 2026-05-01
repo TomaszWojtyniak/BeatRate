@@ -16,22 +16,46 @@ import SwiftData
 @MainActor
 struct LoginView: View {
     @State private var dataModel: LoginDataModel = LoginDataModel()
-    
-    var body: some View {
-        VStack {
-            Spacer()
-            
-            Image(systemName: "star.square.on.square")
-                .resizable()
-                .foregroundStyle(Color.honeyYellow)
-                .frame(maxWidth: 200, maxHeight: 200)
 
-            
-            
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            // Logomark with soft accent halo for depth
+            ZStack {
+                Circle()
+                    .fill(Color.accentPrimarySoft)
+                    .frame(width: 260, height: 260)
+                    .blur(radius: 36)
+
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .fill(Color.accentPrimaryGradient)
+                    .frame(width: 124, height: 124)
+                    .overlay(
+                        Image(systemName: "star.square.on.square.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .padding(22)
+                            .foregroundStyle(Color.white.opacity(0.95))
+                    )
+                    .appShadow(.accentLift)
+            }
+
+            // App name — large display title
             Text("login.app.name", bundle: .module)
-                .font(.system(size: 70, weight: .medium))
-                .foregroundStyle(Color.primaryText)
-            
+                .font(.system(size: 70, weight: .semibold))
+                .tracking(-1.5)
+                .foregroundStyle(Color.accentPrimary)
+                .padding(.top, 24)
+
+            // Tagline
+            Text("Rate every album you listen to on a ten-point scale. Keep a record of your taste.")
+                .font(.system(.subheadline))
+                .foregroundStyle(Color.secondaryTextOnDark)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 280)
+                .padding(.top, 14)
+
             Spacer()
 
             if dataModel.isLoading {
@@ -41,45 +65,45 @@ struct LoginView: View {
                         .tint(.white)
                     Text("Signing in...")
                         .font(.subheadline)
-                        .foregroundStyle(Color.primaryText)
+                        .foregroundStyle(Color.primaryTextOnDark)
                 }
                 .frame(maxWidth: .infinity, maxHeight: 50)
                 .padding()
             } else {
                 SignInWithAppleButton(onRequest: { request in
-                Task {
-                    let nonce = await self.dataModel.getCurrentNonce()
-                    request.requestedScopes = [.fullName, .email]
-                    request.nonce = self.dataModel.sha256(nonce)
-                }
-            }, onCompletion: { result in
-                Task {
-                    switch result {
-                    case .success(let authResult):
-                        do {
-                            try await self.dataModel.performCompleteLogin(authResult: authResult)
-                            Logger.login.debug("Complete login successful (Firebase + local storage)")
-                        } catch let error {
-                            Logger.login.error("Login failed: \(error.localizedDescription)")
-                            await self.dataModel.handleLoginFailure(error: error)
-                        }
-                    case .failure(let error):
-                        // Check if user simply cancelled - handle silently
-                        if let authError = error as? ASAuthorizationError,
-                           authError.code == .canceled {
-                            Logger.login.debug("User cancelled sign in - no error shown")
-                        } else {
-                            // Actual error - show to user
-                            await self.dataModel.handleLoginFailure(error: error)
+                    Task {
+                        let nonce = await self.dataModel.getCurrentNonce()
+                        request.requestedScopes = [.fullName, .email]
+                        request.nonce = self.dataModel.sha256(nonce)
+                    }
+                }, onCompletion: { result in
+                    Task {
+                        switch result {
+                        case .success(let authResult):
+                            do {
+                                try await self.dataModel.performCompleteLogin(authResult: authResult)
+                                Logger.login.debug("Complete login successful (Firebase + local storage)")
+                            } catch let error {
+                                Logger.login.error("Login failed: \(error.localizedDescription)")
+                                await self.dataModel.handleLoginFailure(error: error)
+                            }
+                        case .failure(let error):
+                            // Check if user simply cancelled - handle silently
+                            if let authError = error as? ASAuthorizationError,
+                               authError.code == .canceled {
+                                Logger.login.debug("User cancelled sign in - no error shown")
+                            } else {
+                                // Actual error - show to user
+                                await self.dataModel.handleLoginFailure(error: error)
+                            }
                         }
                     }
-                }
-            })
+                })
                 .signInWithAppleButtonStyle(.white)
-                .frame(maxWidth: .infinity, maxHeight: 50)
-                .padding()
+                .frame(maxWidth: .infinity, maxHeight: 54)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .padding(.horizontal)
             }
-
         }
         .errorAlert(isPresented: $dataModel.isShowingErrorAlert,
                     title: dataModel.errorTitle,

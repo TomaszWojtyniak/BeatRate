@@ -17,6 +17,7 @@ let package = Package(
         .package(path: "../../Domain/SearchUse"),
         .package(path: "../../Core/Models"),
         .package(path: "../AlbumDetails"),
+        .package(path: "../../Core/CoreUI"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -26,7 +27,8 @@ let package = Package(
             dependencies: [
                 "SearchUse",
                 "Models",
-                "AlbumDetails"
+                "AlbumDetails",
+                "CoreUI"
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)
