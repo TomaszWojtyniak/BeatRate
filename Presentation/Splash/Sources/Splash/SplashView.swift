@@ -39,7 +39,7 @@ public struct SplashView: View {
 
                 RoundedRectangle(cornerRadius: 28, style: .continuous)
                     .fill(Color.accentPrimaryGradient)
-                    .frame(width: 124, height: 124)
+                    .frame(width: Size.logomark, height: Size.logomark)
                     .overlay(
                         Image(systemName: "star.square.on.square.fill")
                             .resizable()
@@ -52,14 +52,13 @@ public struct SplashView: View {
 
             // Wordmark
             Text("login.app.name", bundle: .module)
-                .font(.system(size: 42, weight: .bold))
-                .tracking(-1.0)
+                .textStyle(.displayLarge)
                 .foregroundStyle(Color.accentPrimary)
                 .padding(.top, 28)
 
             // Tagline
             Text("Rate every album.")
-                .font(.system(.subheadline, weight: .medium))
+                .textStyle(.body)
                 .foregroundStyle(Color.secondaryTextOnDark)
                 .padding(.top, 6)
 
@@ -67,7 +66,7 @@ public struct SplashView: View {
 
             // Show retry status if retrying — otherwise iOS-style activity indicator
             if dataModel.isRetrying {
-                VStack(spacing: 8) {
+                VStack(spacing: Spacing.xs) {
                     ProgressView()
                         .tint(Color.accentPrimary)
                     Text(dataModel.errorMessage)
@@ -84,8 +83,7 @@ public struct SplashView: View {
 
             // Build label
             Text("v1.0.3 · BUILD 412")
-                .font(.system(.caption2, design: .monospaced))
-                .tracking(0.6)
+                .textStyle(.mono)
                 .foregroundStyle(Color.secondaryTextOnDark.opacity(0.7))
                 .padding(.bottom, 8)
         }

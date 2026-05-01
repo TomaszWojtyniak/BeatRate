@@ -16,13 +16,13 @@ struct RateAlbumView: View {
     @State private var showSavedFlash: Bool = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .center, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack(alignment: .center, spacing: Spacing.sm) {
                 // Gradient star chip
                 ZStack {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    RoundedRectangle(cornerRadius: Radius.small, style: .continuous)
                         .fill(Color.accentPrimaryGradient)
-                        .frame(width: 44, height: 44)
+                        .frame(width: Size.touchTarget, height: Size.touchTarget)
                         .appShadow(.accentGlow)
 
                     Image(systemName: "star.fill")
@@ -30,23 +30,21 @@ struct RateAlbumView: View {
                         .foregroundStyle(Color.white)
                 }
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: Spacing.xxs) {
                     Text(myRating == 0 ? "Rate this album" : "Your rating")
-                        .font(.system(.subheadline, weight: .semibold))
-                        .foregroundStyle(Color.primaryText)
+                        .textStyle(.bodyEmphasis)
 
                     Text(myRating == 0
                          ? "Tap or drag a star to rate"
                          : "Double-tap a star for a half rating")
-                        .font(.system(.caption))
-                        .foregroundStyle(Color.secondaryText)
+                        .textStyle(.caption)
                 }
 
                 Spacer(minLength: 0)
 
                 if myRating > 0 {
                     Text(String(format: "%.1f", myRating))
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .textStyle(.statValueCompact)
                         .foregroundStyle(Color.accentPrimary)
                         .contentTransition(.numericText(value: myRating))
                 }
@@ -54,30 +52,29 @@ struct RateAlbumView: View {
 
             StarRatingView(rating: $myRating, onRatingFinalized: { final in
                 onRatingFinalized?(final)
-                withAnimation(.easeOut(duration: 0.2)) {
+                withAnimation(AppAnimation.quick) {
                     showSavedFlash = true
                 }
                 Task {
-                    try? await Task.sleep(nanoseconds: 1_400_000_000)
-                    withAnimation(.easeIn(duration: 0.25)) {
+                    try? await Task.sleep(for: .seconds(1.4))
+                    withAnimation(AppAnimation.standard) {
                         showSavedFlash = false
                     }
                 }
             })
-            .padding(.vertical, 4)
+            .padding(.vertical, Spacing.xxs)
 
             if showSavedFlash {
-                HStack(spacing: 6) {
+                HStack(spacing: Spacing.xs) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(Color.accentPrimary)
                     Text("Saved to your library")
-                        .font(.system(.caption, weight: .semibold))
-                        .foregroundStyle(Color.secondaryText)
+                        .textStyle(.captionEmphasis)
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .padding(20)
+        .padding(Spacing.lg)
         .roundedMaterialBackground()
     }
 }

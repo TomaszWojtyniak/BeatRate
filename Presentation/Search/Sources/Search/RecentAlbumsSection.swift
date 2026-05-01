@@ -23,15 +23,14 @@ struct RecentAlbumsSection: View {
                     .foregroundStyle(Color.primaryText)
             } description: {
                 Text("Find albums and rate everything you listen to.")
-                    .font(.system(.subheadline))
+                    .textStyle(.body)
                     .foregroundStyle(Color.secondaryText)
             }
         } else {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
                 HStack(alignment: .firstTextBaseline) {
                     Text("Recent")
-                        .font(.system(.title3, weight: .bold))
-                        .tracking(-0.4)
+                        .textStyle(.titleSection)
 
                     Spacer()
 
@@ -40,13 +39,12 @@ struct RecentAlbumsSection: View {
                             showClearAlert = true
                         } label: {
                             Text("Clear")
-                                .font(.system(.footnote, weight: .semibold))
-                                .foregroundStyle(Color.accentPrimary)
+                                .textStyle(.captionEmphasis, color: .accentPrimary)
                         }
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
+                .padding(.horizontal, Spacing.lg)
+                .padding(.top, Spacing.xs)
 
                 VStack(spacing: 0) {
                     ForEach(albums) { album in
@@ -54,8 +52,8 @@ struct RecentAlbumsSection: View {
                             onAlbumTap(album)
                         } label: {
                             SearchAlbumRow(album: album)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 6)
+                                .padding(.horizontal, Spacing.lg)
+                                .padding(.vertical, Spacing.xxs)
                         }
                         .buttonStyle(.plain)
 
@@ -66,9 +64,9 @@ struct RecentAlbumsSection: View {
                         }
                     }
                 }
-                .padding(.vertical, 6)
+                .padding(.vertical, Spacing.xxs)
                 .roundedMaterialBackground()
-                .padding(.horizontal, 16)
+                .padding(.horizontal, Spacing.md)
 
                 Spacer()
             }

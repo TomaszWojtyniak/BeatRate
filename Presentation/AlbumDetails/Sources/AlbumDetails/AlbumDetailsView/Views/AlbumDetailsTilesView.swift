@@ -14,7 +14,7 @@ struct AlbumDetailsTilesView: View {
     let album: AlbumModel
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.sm) {
             StatTile(label: "Rating",
                      systemImage: "star.fill",
                      iconColor: Color.accentPrimary,
@@ -22,11 +22,10 @@ struct AlbumDetailsTilesView: View {
                 if let ratingCount = album.firebaseAlbumData?.ratingCount, ratingCount > 0,
                    let rating = album.firebaseAlbumData?.avgRating {
                     Text(String(format: "%.1f", rating))
-                        .font(.system(.title2, design: .rounded, weight: .bold))
-                        .foregroundStyle(Color.primaryText)
+                        .textStyle(.statValue)
                 } else {
                     Text("-")
-                        .font(.system(.title2, design: .rounded, weight: .bold))
+                        .textStyle(.statValue)
                         .foregroundStyle(Color.secondaryText)
                 }
             }
@@ -37,8 +36,7 @@ struct AlbumDetailsTilesView: View {
                          iconColor: Color.accentSecondary,
                          tint: Color.accentSecondaryTint) {
                     Text(releaseDate, format: .dateTime.year())
-                        .font(.system(.title2, design: .rounded, weight: .bold))
-                        .foregroundStyle(Color.primaryText)
+                        .textStyle(.statValue)
                 }
             }
         }

@@ -38,11 +38,11 @@ public struct AccountView: View {
     public var body: some View {
         ZStack {
             ScrollView {
-                GlassEffectContainer(spacing: 18) {
-                    LazyVStack(spacing: 18) {
+                GlassEffectContainer(spacing: Spacing.md) {
+                    LazyVStack(spacing: Spacing.md) {
                         profileCard
-                            .padding(.horizontal, 16)
-                            .padding(.top, 8)
+                            .padding(.horizontal, Spacing.md)
+                            .padding(.top, Spacing.xs)
 
                         if dataModel.isShowingAlbumRatingsSection {
                             HomeSectionView(
@@ -50,12 +50,12 @@ public struct AccountView: View {
                                 albums: dataModel.ratedAlbums,
                                 selectedAlbum: $selectedAlbum
                             )
-                            .padding(20)
+                            .padding(Spacing.lg)
                             .roundedMaterialBackground()
-                            .padding(.horizontal, 16)
+                            .padding(.horizontal, Spacing.md)
                         }
                     }
-                    .padding(.bottom, 24)
+                    .padding(.bottom, Spacing.lg)
                     .opacity(dataModel.isLoading ? 0 : 1)
                 }
             }
@@ -113,19 +113,19 @@ public struct AccountView: View {
                 ZStack {
                     Circle()
                         .fill(Color.avatarConic)
-                        .frame(width: 84, height: 84)
+                        .frame(width: Size.avatar, height: Size.avatar)
                         .overlay(
                             Circle()
-                                .stroke(Color.white.opacity(0.6), lineWidth: 3)
+                                .stroke(Color.white.opacity(0.6), lineWidth: Stroke.thick)
                         )
                         .appShadow(.accentGlow)
 
                     Text(initials)
                         .font(.system(size: 34, weight: .bold, design: .rounded))
                         .tracking(-0.5)
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(Color.white) // intentional white-on-conic, not a token
                 }
-                .padding(.bottom, 14)
+                .padding(.bottom, Spacing.sm)
 
                 Text(displayName)
                     .font(.system(size: 28, weight: .bold))
@@ -136,9 +136,8 @@ public struct AccountView: View {
 
                 if let email = dataModel.userProfile?.email, dataModel.fullName != nil {
                     Text(email)
-                        .font(.system(.footnote))
-                        .foregroundStyle(Color.secondaryText)
-                        .padding(.top, 2)
+                        .textStyle(.caption)
+                        .padding(.top, Spacing.xxs)
                 }
 
                 // Gradient "Edit profile" pill
@@ -146,10 +145,9 @@ public struct AccountView: View {
                     dataModel.isShowingEditSheet = true
                 } label: {
                     Text("Edit profile")
-                        .font(.system(.subheadline, weight: .semibold))
-                        .foregroundStyle(Color.white)
-                        .padding(.horizontal, 22)
-                        .padding(.vertical, 10)
+                        .textStyle(.bodyEmphasis, color: .primaryTextOnDark)
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.vertical, Spacing.xs)
                         .background(
                             Capsule()
                                 .fill(Color.accentPrimaryGradient)
@@ -157,7 +155,7 @@ public struct AccountView: View {
                         .appShadow(.accentGlow)
                 }
                 .buttonStyle(.plain)
-                .padding(.top, 16)
+                .padding(.top, Spacing.md)
 
                 // Mini-stats
                 HStack {
@@ -167,33 +165,31 @@ public struct AccountView: View {
                     miniStat(value: "—", label: "Avg", color: Color.accentPrimary)
                     Spacer()
                 }
-                .padding(.top, 22)
-                .padding(.horizontal, 4)
+                .padding(.top, Spacing.lg)
+                .padding(.horizontal, Spacing.xxs)
                 .overlay(alignment: .top) {
                     Rectangle()
                         .fill(Color.primary.opacity(0.08))
                         .frame(height: 0.5)
-                        .padding(.horizontal, 4)
+                        .padding(.horizontal, Spacing.xxs)
                 }
-                .padding(.top, 18)
+                .padding(.top, Spacing.md)
             }
-            .padding(.vertical, 24)
-            .padding(.horizontal, 20)
+            .padding(.vertical, Spacing.lg)
+            .padding(.horizontal, Spacing.lg)
             .frame(maxWidth: .infinity)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: Radius.large, style: .continuous))
         .roundedMaterialBackground()
     }
 
     private func miniStat(value: String, label: String, color: Color) -> some View {
-        VStack(spacing: 4) {
+        VStack(spacing: Spacing.xxs) {
             Text(value)
-                .font(.system(size: 26, weight: .bold, design: .rounded))
-                .tracking(-0.5)
+                .textStyle(.statValueCompact)
                 .foregroundStyle(color)
             Text(label)
-                .font(.system(.caption2, design: .rounded, weight: .semibold))
-                .foregroundStyle(Color.secondaryText)
+                .textStyle(.label)
         }
     }
 }

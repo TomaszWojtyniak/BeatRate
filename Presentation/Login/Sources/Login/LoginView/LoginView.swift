@@ -30,7 +30,7 @@ struct LoginView: View {
 
                 RoundedRectangle(cornerRadius: 28, style: .continuous)
                     .fill(Color.accentPrimaryGradient)
-                    .frame(width: 124, height: 124)
+                    .frame(width: Size.logomark, height: Size.logomark)
                     .overlay(
                         Image(systemName: "star.square.on.square.fill")
                             .resizable()
@@ -43,14 +43,13 @@ struct LoginView: View {
 
             // App name — large display title
             Text("login.app.name", bundle: .module)
-                .font(.system(size: 70, weight: .semibold))
-                .tracking(-1.5)
+                .textStyle(.displayHero)
                 .foregroundStyle(Color.accentPrimary)
                 .padding(.top, 24)
 
             // Tagline
             Text("Rate every album you listen to on a ten-point scale. Keep a record of your taste.")
-                .font(.system(.subheadline))
+                .textStyle(.body)
                 .foregroundStyle(Color.secondaryTextOnDark)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 280)
@@ -59,12 +58,12 @@ struct LoginView: View {
             Spacer()
 
             if dataModel.isLoading {
-                VStack(spacing: 16) {
+                VStack(spacing: Spacing.md) {
                     ProgressView()
                         .scaleEffect(1.5)
                         .tint(.white)
                     Text("Signing in...")
-                        .font(.subheadline)
+                        .textStyle(.body)
                         .foregroundStyle(Color.primaryTextOnDark)
                 }
                 .frame(maxWidth: .infinity, maxHeight: 50)
@@ -100,7 +99,7 @@ struct LoginView: View {
                     }
                 })
                 .signInWithAppleButtonStyle(.white)
-                .frame(maxWidth: .infinity, maxHeight: 54)
+                .frame(maxWidth: .infinity, maxHeight: Size.signInButton)
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 .padding(.horizontal)
             }

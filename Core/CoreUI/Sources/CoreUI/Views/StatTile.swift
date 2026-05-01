@@ -34,26 +34,25 @@ public struct StatTile<Content: View>: View {
     }
 
     public var body: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 6) {
+        VStack(spacing: Spacing.xs) {
+            HStack(spacing: Spacing.xs) {
                 if let systemImage {
                     Image(systemName: systemImage)
                         .font(.system(.caption2, weight: .semibold))
                         .foregroundStyle(iconColor)
                 }
                 Text(label.uppercased())
-                    .font(.system(.caption2, design: .rounded, weight: .semibold))
-                    .tracking(0.6)
+                    .textStyle(.label)
                     .foregroundStyle(.tertiary)
             }
 
             content()
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 18)
-        .padding(.horizontal, 12)
+        .padding(.vertical, Spacing.md)
+        .padding(.horizontal, Spacing.sm)
         .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
+            RoundedRectangle(cornerRadius: Radius.large, style: .continuous)
                 .fill(tint)
         )
         .roundedMaterialBackground()
@@ -66,15 +65,13 @@ public struct StatTile<Content: View>: View {
                  systemImage: "star.fill",
                  iconColor: .accentPrimary,
                  tint: .accentPrimaryTint) {
-            Text("8.4")
-                .font(.system(.title, design: .rounded, weight: .bold))
+            Text("8.4").textStyle(.statValue)
         }
         StatTile(label: "Released",
                  systemImage: "calendar",
                  iconColor: .accentSecondary,
                  tint: .accentSecondaryTint) {
-            Text("2024")
-                .font(.system(.title, design: .rounded, weight: .bold))
+            Text("2024").textStyle(.statValue)
         }
     }
     .padding()

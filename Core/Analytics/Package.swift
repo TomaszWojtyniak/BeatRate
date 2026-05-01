@@ -14,7 +14,7 @@ let package = Package(
             targets: ["Analytics"]),
     ],
     dependencies: [
-        .package(name: "Firebase", url: "https://github.com/firebase/firebase-ios-sdk.git", from: "11.13.0")
+        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "11.13.0")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -22,8 +22,8 @@ let package = Package(
         .target(
             name: "Analytics",
             dependencies: [
-                .product(name: "FirebaseCrashlytics", package: "Firebase"),
-                .product(name: "FirebaseAnalytics", package: "Firebase")
+                .product(name: "FirebaseCrashlytics", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseAnalytics", package: "firebase-ios-sdk")
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)

@@ -13,7 +13,7 @@ struct SearchAlbumRow: View {
     let album: AppleMusicAlbumData
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: Spacing.sm) {
             // Album Artwork
             Group {
                 if let coverUrl = album.coverUrl {
@@ -34,25 +34,24 @@ struct SearchAlbumRow: View {
                         }
                 }
             }
-            .frame(width: 56, height: 56)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .frame(width: Size.thumbnailSmall, height: Size.thumbnailSmall)
+            .clipShape(RoundedRectangle(cornerRadius: Radius.small, style: .continuous))
             .appShadow(.low)
 
             // Album Info
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
                 Text(album.title)
-                    .font(.system(.subheadline, weight: .semibold))
+                    .textStyle(.bodyEmphasis)
                     .lineLimit(1)
                     .truncationMode(.tail)
 
                 Text(album.artist)
-                    .font(.system(.footnote))
-                    .foregroundStyle(.secondary)
+                    .textStyle(.caption)
                     .lineLimit(1)
 
                 if let genre = album.genre {
                     Text(genre)
-                        .font(.system(.caption2, design: .rounded, weight: .medium))
+                        .textStyle(.label)
                         .foregroundStyle(.tertiary)
                 }
             }

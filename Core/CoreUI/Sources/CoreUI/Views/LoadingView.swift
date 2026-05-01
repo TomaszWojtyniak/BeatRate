@@ -27,11 +27,11 @@ public struct LoadingView<Content: View>: View {
             content
                 .blur(radius: isLoading ? 2 : 0)
                 .disabled(isLoading)
-                .animation(.easeInOut(duration: 0.2), value: isLoading)
+                .animation(AppAnimation.quick, value: isLoading)
 
             // Activity indicator overlay (HIG compliant)
             if isLoading {
-                VStack(spacing: 12) {
+                VStack(spacing: Spacing.sm) {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .secondary))
                         .scaleEffect(1.3)
@@ -42,9 +42,9 @@ public struct LoadingView<Content: View>: View {
                             .foregroundColor(.secondary)
                     }
                 }
-                .padding(.horizontal, 36)
-                .padding(.vertical, 28)
-                .glassEffect(in: .rect(cornerRadius: 22))
+                .padding(.horizontal, Spacing.xl)
+                .padding(.vertical, Spacing.lg)
+                .glassEffect(in: .rect(cornerRadius: Radius.large))
             }
         }
     }

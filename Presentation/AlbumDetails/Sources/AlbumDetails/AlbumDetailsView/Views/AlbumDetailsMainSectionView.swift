@@ -27,8 +27,8 @@ struct AlbumDetailsCoverView: View {
                         .foregroundStyle(.secondary)
                 }
         }
-        .frame(width: 280, height: 280)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .frame(width: Size.coverHero, height: Size.coverHero)
+        .clipShape(RoundedRectangle(cornerRadius: Radius.medium, style: .continuous))
         .appShadow(.high)
     }
 }
@@ -38,17 +38,15 @@ struct AlbumDetailsMainSectionView: View {
     let album: AlbumModel
 
     var body: some View {
-        VStack(spacing: 18) {
-            VStack(spacing: 6) {
+        VStack(spacing: Spacing.md) {
+            VStack(spacing: Spacing.xxs) {
                 Text(album.appleMusicAlbumData.title)
-                    .font(.system(size: 32, weight: .bold))
-                    .tracking(-0.8)
-                    .foregroundStyle(Color.primaryText)
+                    .textStyle(.title)
                     .multilineTextAlignment(.center)
                     .lineLimit(3)
 
                 Text(album.appleMusicAlbumData.artist)
-                    .font(.system(.title3, weight: .medium))
+                    .textStyle(.secondaryDetail)
                     .foregroundStyle(Color.secondaryText)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
@@ -57,22 +55,22 @@ struct AlbumDetailsMainSectionView: View {
 
             // Genre chip (if available)
             if let genre = album.appleMusicAlbumData.genre {
-                HStack(spacing: 6) {
+                HStack(spacing: Spacing.xs) {
                     Image(systemName: "music.note.list")
                         .font(.system(size: 11, weight: .semibold))
                     Text(genre)
-                        .font(.system(.footnote, weight: .semibold))
+                        .textStyle(.captionEmphasis)
                 }
                 .foregroundStyle(Color.accentSecondary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.xxs)
                 .background(
                     Capsule()
                         .fill(Color.accentSecondaryTint)
                 )
                 .overlay(
                     Capsule()
-                        .stroke(Color.accentSecondary.opacity(0.25), lineWidth: 0.5)
+                        .stroke(Color.accentSecondary.opacity(0.25), lineWidth: Stroke.hairline)
                 )
             }
         }

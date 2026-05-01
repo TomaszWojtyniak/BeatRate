@@ -21,25 +21,22 @@ public struct HomeSectionView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack(alignment: .firstTextBaseline) {
                 Text(name)
-                    .font(.system(.title2, weight: .bold))
-                    .foregroundStyle(.primary)
-                    .tracking(-0.4)
+                    .textStyle(.titleSection)
 
                 Spacer()
 
                 Text("See all")
-                    .font(.system(.footnote, weight: .semibold))
-                    .foregroundStyle(Color.accentPrimary)
+                    .textStyle(.captionEmphasis, color: .accentPrimary)
                     .onTapGesture {
                         //TODO: Add Full screen list
                     }
             }
 
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 14) {
+                LazyHStack(spacing: Spacing.sm) {
                     ForEach(albums) { album in
                         SectionAlbumView(album: album)
                             .onTapGesture {

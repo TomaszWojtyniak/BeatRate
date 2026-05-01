@@ -13,8 +13,6 @@ struct AlbumDetailsView: View {
 
     let album: AlbumModel
     @State private var dataModel: AlbumDetailsDataModel
-    /// Dominant colour pulled from the album artwork, used as the page tint.
-    @State private var artworkTint: Color = .clear
 
     init(album: AlbumModel) {
         self.album = album
@@ -23,9 +21,9 @@ struct AlbumDetailsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: Spacing.lg) {
                 AlbumDetailsCoverView(album: dataModel.album)
-                    .padding(.top, 6)
+                    .padding(.top, Spacing.xxs)
 
                 AlbumDetailsMainSectionView(album: dataModel.album)
 
@@ -42,11 +40,10 @@ struct AlbumDetailsView: View {
                     }
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 32)
+            .padding(.horizontal, Spacing.lg)
+            .padding(.bottom, Spacing.xl)
         }
-        .background(Color.backgroundColor)
-        .meshBackground(intense: true)
+        .meshBackground()
         .loading(
             dataModel.isLoading
         )
@@ -55,10 +52,6 @@ struct AlbumDetailsView: View {
                 dataModel.myRating = userRating
             }
             dataModel.hasLoadedInitialRating = true
-        }
-        .task(id: dataModel.album.appleMusicAlbumData.coverUrl) {
-            guard let url = dataModel.album.appleMusicAlbumData.coverUrl else { return }
-            artworkTint = await DominantColor.extract(from: url) ?? .clear
         }
     }
 }

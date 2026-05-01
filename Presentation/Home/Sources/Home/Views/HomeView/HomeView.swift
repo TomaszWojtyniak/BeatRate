@@ -21,27 +21,27 @@ public struct HomeView: View {
     public var body: some View {
         Group {
             if dataModel.isLoadingFromCache && dataModel.homeSections.isEmpty {
-                VStack(spacing: 12) {
+                VStack(spacing: Spacing.sm) {
                     ProgressView()
                         .tint(Color.accentPrimary)
                     Text("Loading your library...")
-                        .font(.system(.subheadline, weight: .medium))
+                        .textStyle(.body)
                         .foregroundStyle(Color.secondaryText)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .meshBackground()
             } else {
                 ScrollView {
-                    GlassEffectContainer(spacing: 18) {
-                        LazyVStack(spacing: 18) {
+                    GlassEffectContainer(spacing: Spacing.md) {
+                        LazyVStack(spacing: Spacing.md) {
                             ForEach(self.dataModel.homeSections) { section in
                                 HomeSectionView(name: section.sectionName, albums: section.albums, selectedAlbum: $selectedAlbum)
-                                    .padding(20)
+                                    .padding(Spacing.lg)
                                     .roundedMaterialBackground()
-                                    .padding(.horizontal, 16)
+                                    .padding(.horizontal, Spacing.md)
                             }
                         }
-                        .padding(.bottom, 24)
+                        .padding(.bottom, Spacing.lg)
                     }
                 }
                 .meshBackground()

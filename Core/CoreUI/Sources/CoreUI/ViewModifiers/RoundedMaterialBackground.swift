@@ -18,7 +18,7 @@ public struct RoundedMaterialBackground: ViewModifier {
     /// Corner radius of the glass shape.
     let cornerRadius: CGFloat
 
-    public init(hi: Bool = false, cornerRadius: CGFloat = 22) {
+    public init(hi: Bool = false, cornerRadius: CGFloat = Radius.large) {
         self.hi = hi
         self.cornerRadius = cornerRadius
     }
@@ -40,7 +40,7 @@ public extension View {
     ///   - hi: Apply a faint honey tint to the glass — used on hero/profile tiles.
     ///   - cornerRadius: Corner radius of the glass shape.
     func roundedMaterialBackground(hi: Bool = false,
-                                   cornerRadius: CGFloat = 22) -> some View {
+                                   cornerRadius: CGFloat = Radius.large) -> some View {
         modifier(RoundedMaterialBackground(hi: hi, cornerRadius: cornerRadius))
     }
 }

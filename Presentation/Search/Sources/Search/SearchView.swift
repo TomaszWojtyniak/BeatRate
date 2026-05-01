@@ -23,11 +23,11 @@ public struct SearchView: View {
         NavigationStack {
             Group {
                 if dataModel.isLoading {
-                    VStack(spacing: 12) {
+                    VStack(spacing: Spacing.sm) {
                         ProgressView()
                             .tint(Color.accentPrimary)
                         Text("Searching...")
-                            .font(.system(.subheadline, weight: .medium))
+                            .textStyle(.body)
                             .foregroundStyle(Color.secondaryText)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

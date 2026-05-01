@@ -80,7 +80,7 @@ public struct SettingsView: View {
                     Button {
                         dataModel.showLogoutConfirmation = true
                     } label: {
-                        HStack(spacing: 8) {
+                        HStack(spacing: Spacing.xs) {
                             Image(systemName: "rectangle.portrait.and.arrow.right")
                                 .font(.system(size: 15, weight: .semibold))
                             Text("Logout")

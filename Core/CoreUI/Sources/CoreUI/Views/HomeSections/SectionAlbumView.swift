@@ -13,7 +13,7 @@ public struct SectionAlbumView: View {
     let album: AlbumModel
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             AsyncImage(url: album.appleMusicAlbumData.coverUrl) { image in
                 image
                     .resizable()
@@ -27,23 +27,22 @@ public struct SectionAlbumView: View {
                             .foregroundStyle(.secondary)
                     }
             }
-            .frame(width: 138, height: 138)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .frame(width: Size.thumbnailLarge, height: Size.thumbnailLarge)
+            .clipShape(RoundedRectangle(cornerRadius: Radius.small, style: .continuous))
             .appShadow(.low)
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(album.appleMusicAlbumData.title)
-                    .font(.system(.subheadline, weight: .semibold))
+                    .textStyle(.bodyEmphasis)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                    .frame(width: 138, alignment: .leading)
+                    .frame(width: Size.thumbnailLarge, alignment: .leading)
 
                 Text(album.appleMusicAlbumData.artist)
-                    .font(.system(.caption, weight: .regular))
-                    .foregroundStyle(.secondary)
+                    .textStyle(.caption)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                    .frame(width: 138, alignment: .leading)
+                    .frame(width: Size.thumbnailLarge, alignment: .leading)
             }
         }
     }
