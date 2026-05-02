@@ -6,8 +6,11 @@
 //  this list rather than hand-rolling `.font(.system(size: …, weight: …))`.
 //
 //  Each style bundles font + default colour. Apply via `.textStyle(.title)`.
-//  If you need a non-default colour for a one-off, chain `.foregroundStyle(…)`
-//  after `.textStyle(…)` — but think twice; if it's needed twice, add a role.
+//  To override the colour for a call site, pass it via the `color:` parameter:
+//  `.textStyle(.bodyEmphasis, color: .accentPrimary)`. Do NOT chain a trailing
+//  `.foregroundStyle` — chaining can render unpredictably under certain modifier
+//  orderings (e.g. on dark backgrounds where the role's adaptive default would
+//  resolve to a dark colour). The `color:` slot keeps colour logic in one place.
 //
 
 import SwiftUI
@@ -73,8 +76,9 @@ public enum AppTextStyle {
         }
     }
 
-    /// Default foreground colour. Override with a chained `.foregroundStyle(…)`
-    /// if you need a one-off (e.g. accent-coloured "See all" link).
+    /// Default foreground colour. Override per call site via the `color:`
+    /// parameter on `.textStyle(_:color:)` — never chain a trailing
+    /// `.foregroundStyle` after `.textStyle`.
     public var color: Color {
         switch self {
         case .caption, .mono, .label:

@@ -39,7 +39,7 @@ public struct LoadingView<Content: View>: View {
                     if let message {
                         Text(message)
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 .padding(.horizontal, Spacing.xl)

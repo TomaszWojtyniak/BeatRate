@@ -27,8 +27,7 @@ public struct SearchView: View {
                         ProgressView()
                             .tint(Color.accentPrimary)
                         Text("Searching...")
-                            .textStyle(.body)
-                            .foregroundStyle(Color.secondaryText)
+                            .textStyle(.body, color: .secondaryText)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if dataModel.albums.isEmpty && !searchText.isEmpty {
@@ -47,12 +46,14 @@ public struct SearchView: View {
                     )
                 } else {
                     List(dataModel.albums) { album in
-                        SearchAlbumRow(album: album)
-                            .onTapGesture {
-                                handleAlbumTap(album)
-                            }
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
+                        Button {
+                            handleAlbumTap(album)
+                        } label: {
+                            SearchAlbumRow(album: album)
+                        }
+                        .buttonStyle(.plain)
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
                     }
                     .listStyle(.plain)
                     .scrollContentBackground(.hidden)
@@ -71,6 +72,9 @@ public struct SearchView: View {
             )
             .onChange(of: searchText) {
                 dataModel.searchAlbum(searchTerm: searchText)
+            }
+            .task {
+                await dataModel.loadRecentAlbums()
             }
         }
     }

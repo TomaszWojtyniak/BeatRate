@@ -25,8 +25,7 @@ struct AlbumDetailsTilesView: View {
                         .textStyle(.statValue)
                 } else {
                     Text("-")
-                        .textStyle(.statValue)
-                        .foregroundStyle(Color.secondaryText)
+                        .textStyle(.statValue, color: .secondaryText)
                 }
             }
 

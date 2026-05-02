@@ -14,9 +14,13 @@ import HomeUseCases
 public struct AlbumDetailsContainer: View {
     let albumId: String
 
-    @State private var albumModel: AlbumModel?
-    @State private var isLoading = true
-    @State private var errorMessage: String?
+    private enum LoadState {
+        case loading
+        case loaded(AlbumModel)
+        case failed(String)
+    }
+
+    @State private var state: LoadState = .loading
 
     private let getAlbumByIdUseCase: GetAlbumByIdUseCaseProtocol
 
@@ -30,23 +34,22 @@ public struct AlbumDetailsContainer: View {
 
     public var body: some View {
         Group {
-            if isLoading {
+            switch state {
+            case .loading:
                 ProgressView("Loading album...")
-            } else if let errorMessage = errorMessage {
+            case .failed(let message):
                 ContentUnavailableView {
                     Label("Error", systemImage: "exclamationmark.triangle")
                 } description: {
-                    Text(errorMessage)
+                    Text(message)
                 } actions: {
                     Button("Try Again") {
-                        Task {
-                            await fetchAlbum()
-                        }
+                        Task { await fetchAlbum() }
                     }
                     .buttonStyle(.borderedProminent)
                 }
-            } else if let albumModel = albumModel {
-                AlbumDetailsView(album: albumModel)
+            case .loaded(let album):
+                AlbumDetailsView(album: album)
             }
         }
         .task {
@@ -55,16 +58,12 @@ public struct AlbumDetailsContainer: View {
     }
 
     private func fetchAlbum() async {
-        isLoading = true
-        errorMessage = nil
-
+        state = .loading
         do {
             let album = try await getAlbumByIdUseCase.fetchAlbum(id: albumId)
-            albumModel = album
-            isLoading = false
+            state = .loaded(album)
         } catch {
-            errorMessage = "Failed to load album: \(error.localizedDescription)"
-            isLoading = false
+            state = .failed("Failed to load album: \(error.localizedDescription)")
         }
     }
 }

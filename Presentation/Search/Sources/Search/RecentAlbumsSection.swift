@@ -23,8 +23,7 @@ struct RecentAlbumsSection: View {
                     .foregroundStyle(Color.primaryText)
             } description: {
                 Text("Find albums and rate everything you listen to.")
-                    .textStyle(.body)
-                    .foregroundStyle(Color.secondaryText)
+                    .textStyle(.body, color: .secondaryText)
             }
         } else {
             VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -47,7 +46,7 @@ struct RecentAlbumsSection: View {
                 .padding(.top, Spacing.xs)
 
                 VStack(spacing: 0) {
-                    ForEach(albums) { album in
+                    ForEach(Array(albums.enumerated()), id: \.element.id) { index, album in
                         Button {
                             onAlbumTap(album)
                         } label: {
@@ -57,9 +56,9 @@ struct RecentAlbumsSection: View {
                         }
                         .buttonStyle(.plain)
 
-                        if album.id != albums.last?.id {
+                        if index < albums.count - 1 {
                             Divider()
-                                .padding(.leading, 90)
+                                .padding(.leading, Size.thumbnailSmall + Spacing.sm + Spacing.lg)
                                 .opacity(0.5)
                         }
                     }

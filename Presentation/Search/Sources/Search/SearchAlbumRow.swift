@@ -62,7 +62,7 @@ struct SearchAlbumRow: View {
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(.tertiary)
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, Spacing.xxs)
         .contentShape(Rectangle())
     }
 }

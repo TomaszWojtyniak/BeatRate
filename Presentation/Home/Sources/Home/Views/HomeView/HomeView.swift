@@ -25,8 +25,7 @@ public struct HomeView: View {
                     ProgressView()
                         .tint(Color.accentPrimary)
                     Text("Loading your library...")
-                        .textStyle(.body)
-                        .foregroundStyle(Color.secondaryText)
+                        .textStyle(.body, color: .secondaryText)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .meshBackground()

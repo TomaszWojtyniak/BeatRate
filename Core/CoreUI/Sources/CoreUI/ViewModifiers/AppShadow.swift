@@ -74,9 +74,35 @@ private struct ShadowLayer {
 private struct AppShadowModifier: ViewModifier {
     let style: AppShadow
 
+    @ViewBuilder
     func body(content: Content) -> some View {
-        style.layers.reduce(AnyView(content)) { view, layer in
-            AnyView(view.shadow(color: layer.color, radius: layer.radius, x: layer.x, y: layer.y))
+        // All current shadow tiers have ≤ 2 layers; explicit branches keep the
+        // static view type and avoid `AnyView` on a hot path (every album thumbnail).
+        let layers = style.layers
+        switch layers.count {
+        case 1:
+            content.shadow(
+                color: layers[0].color,
+                radius: layers[0].radius,
+                x: layers[0].x,
+                y: layers[0].y
+            )
+        case 2:
+            content
+                .shadow(
+                    color: layers[0].color,
+                    radius: layers[0].radius,
+                    x: layers[0].x,
+                    y: layers[0].y
+                )
+                .shadow(
+                    color: layers[1].color,
+                    radius: layers[1].radius,
+                    x: layers[1].x,
+                    y: layers[1].y
+                )
+        default:
+            content
         }
     }
 }

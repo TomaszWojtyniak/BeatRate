@@ -43,17 +43,15 @@ struct LoginView: View {
 
             // App name — large display title
             Text("login.app.name", bundle: .module)
-                .textStyle(.displayHero)
-                .foregroundStyle(Color.accentPrimary)
-                .padding(.top, 24)
+                .textStyle(.displayHero, color: .accentPrimary)
+                .padding(.top, Spacing.lg)
 
             // Tagline
             Text("Rate every album you listen to on a ten-point scale. Keep a record of your taste.")
-                .textStyle(.body)
-                .foregroundStyle(Color.secondaryTextOnDark)
+                .textStyle(.body, color: .secondaryTextOnDark)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 280)
-                .padding(.top, 14)
+                .padding(.top, Spacing.sm)
 
             Spacer()
 
@@ -63,8 +61,7 @@ struct LoginView: View {
                         .scaleEffect(1.5)
                         .tint(.white)
                     Text("Signing in...")
-                        .textStyle(.body)
-                        .foregroundStyle(Color.primaryTextOnDark)
+                        .textStyle(.body, color: .primaryTextOnDark)
                 }
                 .frame(maxWidth: .infinity, maxHeight: 50)
                 .padding()
@@ -108,7 +105,7 @@ struct LoginView: View {
                     title: dataModel.errorTitle,
                     message: dataModel.errorMessage)
         .padding(.horizontal)
-        .padding(.vertical, 40)
+        .padding(.vertical, Spacing.xl)
         .background(Color.backgroundGradient)
     }
 }

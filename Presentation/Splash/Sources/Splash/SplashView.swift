@@ -52,15 +52,13 @@ public struct SplashView: View {
 
             // Wordmark
             Text("login.app.name", bundle: .module)
-                .textStyle(.displayLarge)
-                .foregroundStyle(Color.accentPrimary)
-                .padding(.top, 28)
+                .textStyle(.displayLarge, color: .accentPrimary)
+                .padding(.top, Spacing.xl)
 
             // Tagline
             Text("Rate every album.")
-                .textStyle(.body)
-                .foregroundStyle(Color.secondaryTextOnDark)
-                .padding(.top, 6)
+                .textStyle(.body, color: .secondaryTextOnDark)
+                .padding(.top, Spacing.xxs)
 
             Spacer()
 
@@ -70,26 +68,19 @@ public struct SplashView: View {
                     ProgressView()
                         .tint(Color.accentPrimary)
                     Text(dataModel.errorMessage)
-                        .font(.caption)
-                        .foregroundStyle(Color.primaryTextOnDark)
+                        .textStyle(.caption, color: .primaryTextOnDark)
                         .multilineTextAlignment(.center)
                 }
-                .padding(.bottom, 24)
+                .padding(.bottom, Spacing.lg)
             } else {
                 ProgressView()
                     .tint(Color.accentPrimary)
-                    .padding(.bottom, 24)
+                    .padding(.bottom, Spacing.lg)
             }
-
-            // Build label
-            Text("v1.0.3 · BUILD 412")
-                .textStyle(.mono)
-                .foregroundStyle(Color.secondaryTextOnDark.opacity(0.7))
-                .padding(.bottom, 8)
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal)
-        .padding(.vertical, 40)
+        .padding(.vertical, Spacing.xl)
         .background(Color.backgroundGradient)
         .task {
             await dataModel.loadInitialData()

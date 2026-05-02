@@ -57,6 +57,9 @@ public struct AccountView: View {
                     }
                     .padding(.bottom, Spacing.lg)
                     .opacity(dataModel.isLoading ? 0 : 1)
+                    // Suppress only the implicit fade tied to isLoading; leave
+                    // sheet/navigation transitions alone.
+                    .animation(nil, value: dataModel.isLoading)
                 }
             }
 
@@ -67,7 +70,6 @@ public struct AccountView: View {
             }
         }
         .meshBackground()
-        .transaction { $0.animation = nil }
         .navigationDestination(item: $selectedAlbum) { album in
             AlbumDetailsNavigationStack(album: album)
         }
@@ -186,8 +188,7 @@ public struct AccountView: View {
     private func miniStat(value: String, label: String, color: Color) -> some View {
         VStack(spacing: Spacing.xxs) {
             Text(value)
-                .textStyle(.statValueCompact)
-                .foregroundStyle(color)
+                .textStyle(.statValueCompact, color: color)
             Text(label)
                 .textStyle(.label)
         }

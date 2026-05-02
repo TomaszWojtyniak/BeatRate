@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Models
+import CoreUI
 
 private struct StarView: View {
     let index: Int
@@ -18,18 +19,18 @@ private struct StarView: View {
         ZStack {
             Image(systemName: "star")
                 .font(.title3)
-                .foregroundColor(.gray.opacity(0.3))
+                .foregroundStyle(.gray.opacity(0.3))
                 .scaleEffect(1.3)
 
             if fill >= 1.0 {
                 Image(systemName: "star.fill")
                     .font(.title3)
-                    .foregroundColor(.accentPrimary)
+                    .foregroundStyle(Color.accentPrimary)
                     .scaleEffect(1.3)
             } else if fill >= 0.5 {
                 Image(systemName: "star.leadinghalf.filled")
                     .font(.title3)
-                    .foregroundColor(.accentPrimary)
+                    .foregroundStyle(Color.accentPrimary)
                     .scaleEffect(1.3)
             }
         }
@@ -51,7 +52,7 @@ struct StarRatingView: View {
     }
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: Spacing.xs) {
             ForEach(0..<maxRating, id: \.self) { index in
                 StarView(index: index, rating: rating)
             }
@@ -79,6 +80,21 @@ struct StarRatingView: View {
                     }
                 }
         )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Album rating")
+        .accessibilityValue(rating == 0 ? "Not rated" : String(format: "%.1f out of 10", rating))
+        .accessibilityAdjustableAction { direction in
+            switch direction {
+            case .increment:
+                setRating(min(rating + 0.5, totalScale))
+                onRatingFinalized?(rating)
+            case .decrement:
+                setRating(max(rating - 0.5, 0))
+                onRatingFinalized?(rating)
+            @unknown default:
+                break
+            }
+        }
     }
 
     private func handleTap(at location: CGPoint) {

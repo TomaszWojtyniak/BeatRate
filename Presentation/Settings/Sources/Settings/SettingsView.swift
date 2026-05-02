@@ -82,15 +82,13 @@ public struct SettingsView: View {
                     } label: {
                         HStack(spacing: Spacing.xs) {
                             Image(systemName: "rectangle.portrait.and.arrow.right")
-                                .font(.system(size: 15, weight: .semibold))
                             Text("Logout")
-                                .font(.system(size: 17, weight: .semibold))
                         }
-                        .foregroundStyle(Color.white)
+                        .textStyle(.bodyEmphasis, color: .primaryTextOnDark)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 54)
+                        .frame(height: Size.signInButton)
                         .background(
-                            RoundedRectangle(cornerRadius: 27, style: .continuous)
+                            Capsule(style: .continuous)
                                 .fill(
                                     LinearGradient(
                                         colors: [Color.red.opacity(0.95), Color.red.opacity(0.78)],
@@ -103,8 +101,8 @@ public struct SettingsView: View {
                     }
                     .disabled(dataModel.isLoggingOut)
                     .opacity(dataModel.isLoggingOut ? 0.6 : 1.0)
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 32)
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.bottom, Spacing.xl)
                 }
             }
             .navigationTitle("Settings")

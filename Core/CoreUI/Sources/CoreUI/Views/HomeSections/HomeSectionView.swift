@@ -28,23 +28,28 @@ public struct HomeSectionView: View {
 
                 Spacer()
 
-                Text("See all")
-                    .textStyle(.captionEmphasis, color: .accentPrimary)
-                    .onTapGesture {
-                        //TODO: Add Full screen list
-                    }
+                Button {
+                    // TODO: navigate to full-list screen for this section
+                } label: {
+                    Text("See all")
+                        .textStyle(.captionEmphasis, color: .accentPrimary)
+                }
+                .buttonStyle(.plain)
             }
 
-            ScrollView(.horizontal, showsIndicators: false) {
+            ScrollView(.horizontal) {
                 LazyHStack(spacing: Spacing.sm) {
                     ForEach(albums) { album in
-                        SectionAlbumView(album: album)
-                            .onTapGesture {
-                                self.selectedAlbum = album
-                            }
+                        Button {
+                            selectedAlbum = album
+                        } label: {
+                            SectionAlbumView(album: album)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
+            .scrollIndicators(.hidden)
         }
     }
 }

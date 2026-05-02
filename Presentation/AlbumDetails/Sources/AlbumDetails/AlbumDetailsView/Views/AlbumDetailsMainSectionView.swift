@@ -46,8 +46,7 @@ struct AlbumDetailsMainSectionView: View {
                     .lineLimit(3)
 
                 Text(album.appleMusicAlbumData.artist)
-                    .textStyle(.secondaryDetail)
-                    .foregroundStyle(Color.secondaryText)
+                    .textStyle(.secondaryDetail, color: .secondaryText)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
             }

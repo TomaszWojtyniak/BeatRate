@@ -44,8 +44,7 @@ struct RateAlbumView: View {
 
                 if myRating > 0 {
                     Text(String(format: "%.1f", myRating))
-                        .textStyle(.statValueCompact)
-                        .foregroundStyle(Color.accentPrimary)
+                        .textStyle(.statValueCompact, color: .accentPrimary)
                         .contentTransition(.numericText(value: myRating))
                 }
             }
