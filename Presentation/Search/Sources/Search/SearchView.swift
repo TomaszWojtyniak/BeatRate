@@ -8,6 +8,7 @@
 import SwiftUI
 import Models
 import AlbumDetails
+import CoreUI
 
 @MainActor
 public struct SearchView: View {
@@ -22,7 +23,13 @@ public struct SearchView: View {
         NavigationStack {
             Group {
                 if dataModel.isLoading {
-                    ProgressView("Searching...")
+                    VStack(spacing: Spacing.sm) {
+                        ProgressView()
+                            .tint(Color.accentPrimary)
+                        Text("Searching...")
+                            .textStyle(.body, color: .secondaryText)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if dataModel.albums.isEmpty && !searchText.isEmpty {
                     ContentUnavailableView {
                         Label("No Results", systemImage: "music.note.list")
@@ -39,14 +46,20 @@ public struct SearchView: View {
                     )
                 } else {
                     List(dataModel.albums) { album in
-                        SearchAlbumRow(album: album)
-                            .onTapGesture {
-                                handleAlbumTap(album)
-                            }
+                        Button {
+                            handleAlbumTap(album)
+                        } label: {
+                            SearchAlbumRow(album: album)
+                        }
+                        .buttonStyle(.plain)
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
                     }
-                    .listStyle(.automatic)
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
             }
+            .meshBackground()
             .navigationTitle("Search")
             .toolbarTitleDisplayMode(.inlineLarge)
             .navigationDestination(item: $selectedAlbum) { album in
@@ -60,9 +73,12 @@ public struct SearchView: View {
             .onChange(of: searchText) {
                 dataModel.searchAlbum(searchTerm: searchText)
             }
+            .task {
+                await dataModel.loadRecentAlbums()
+            }
         }
     }
-    
+
     private func handleAlbumTap(_ album: AppleMusicAlbumData) {
         dataModel.saveRecentAlbum(album)
         selectedAlbum = album

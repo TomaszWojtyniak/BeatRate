@@ -13,29 +13,75 @@ struct RateAlbumView: View {
     @Binding var myRating: Double
     var onRatingFinalized: ((Double) -> Void)?
 
+    @State private var showSavedFlash: Bool = false
+
     var body: some View {
-        VStack(spacing: 10) {
-            HStack {
-                Image(systemName: "star.fill")
-                    .foregroundColor(.yellow)
-                    .font(.title2)
-                Text(myRating == 0 ? "Rate this album" : "My rating: \(String(format: "%.1f", myRating))")
-                    .font(.system(.headline, weight: .semibold))
-                Spacer()
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack(alignment: .center, spacing: Spacing.sm) {
+                // Gradient star chip
+                ZStack {
+                    RoundedRectangle(cornerRadius: Radius.small, style: .continuous)
+                        .fill(Color.accentPrimaryGradient)
+                        .frame(width: Size.touchTarget, height: Size.touchTarget)
+                        .appShadow(.accentGlow)
+
+                    Image(systemName: "star.fill")
+                        .textStyle(.iconAction, color: .white)
+                }
+
+                VStack(alignment: .leading, spacing: Spacing.xxs) {
+                    Text(myRating == 0 ? "Rate this album" : "Your rating")
+                        .textStyle(.bodyEmphasis)
+
+                    Text(myRating == 0
+                         ? "Tap or drag a star to rate"
+                         : "Double-tap a star for a half rating")
+                        .textStyle(.caption)
+                }
+
+                Spacer(minLength: 0)
+
+                if myRating > 0 {
+                    Text(String(format: "%.1f", myRating))
+                        .textStyle(.statValueCompact, color: .accentPrimary)
+                        .contentTransition(.numericText(value: myRating))
+                }
             }
 
-            StarRatingView(rating: $myRating, onRatingFinalized: onRatingFinalized)
-                .padding(.vertical, 5)
+            StarRatingView(rating: $myRating, onRatingFinalized: { final in
+                onRatingFinalized?(final)
+                withAnimation(AppAnimation.quick) {
+                    showSavedFlash = true
+                }
+                Task {
+                    try? await Task.sleep(for: .seconds(1.4))
+                    withAnimation(AppAnimation.standard) {
+                        showSavedFlash = false
+                    }
+                }
+            })
+            .padding(.vertical, Spacing.xxs)
+
+            if showSavedFlash {
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(Color.accentPrimary)
+                    Text("Saved to your library")
+                        .textStyle(.captionEmphasis)
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
-        .padding(20)
+        .padding(Spacing.lg)
         .roundedMaterialBackground()
     }
 }
 
 #Preview {
     VStack {
-        RateAlbumView(myRating: .constant(5.0))
+        RateAlbumView(myRating: .constant(8.5))
     }
+    .padding()
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(.gray.opacity(0.25))
+    .background(Color.backgroundColor)
 }

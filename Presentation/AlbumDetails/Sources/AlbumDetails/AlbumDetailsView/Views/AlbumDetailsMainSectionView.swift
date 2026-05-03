@@ -7,49 +7,75 @@
 
 import SwiftUI
 import Models
+import CoreUI
+
+/// Centered album cover — a 280×280 rounded square with depth shadow.
+struct AlbumDetailsCoverView: View {
+    let album: AlbumModel
+
+    var body: some View {
+        AsyncImage(url: album.appleMusicAlbumData.coverUrl) { image in
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+        } placeholder: {
+            Rectangle()
+                .fill(Color.albumPlaceholderColor)
+                .overlay {
+                    Image(systemName: "music.note")
+                        .textStyle(.iconHero, color: .secondaryText)
+                }
+        }
+        .frame(width: Size.coverHero, height: Size.coverHero)
+        .clipShape(RoundedRectangle(cornerRadius: Radius.medium, style: .continuous))
+        .appShadow(.high)
+    }
+}
 
 struct AlbumDetailsMainSectionView: View {
-    
+
     let album: AlbumModel
-    
+
     var body: some View {
-        VStack {
-            AsyncImage(url: album.appleMusicAlbumData.coverUrl) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            } placeholder: {
-                Rectangle()
-                    .fill(.gray.opacity(0.3))
-                    .overlay {
-                        Image(systemName: "music.note")
-                            .font(.system(size: 50))
-                            .foregroundColor(.gray)
-                    }
-            }
-            .frame(width: 300, height: 300)
-            .cornerRadius(12)
-            .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
-            
-            VStack(spacing: 12) {
+        VStack(spacing: Spacing.md) {
+            VStack(spacing: Spacing.xxs) {
                 Text(album.appleMusicAlbumData.title)
-                    .font(.system(.title, weight: .bold))
-                    .foregroundColor(.primary)
+                    .textStyle(.title)
                     .multilineTextAlignment(.center)
                     .lineLimit(3)
-                    .padding(.horizontal)
-                
+
                 Text(album.appleMusicAlbumData.artist)
-                    .font(.system(.title2, weight: .medium))
-                    .foregroundColor(.secondary)
+                    .textStyle(.secondaryDetail, color: .secondaryText)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
             }
             .padding(.horizontal)
+
+            // Genre chip (if available)
+            if let genre = album.appleMusicAlbumData.genre {
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "music.note.list")
+                        .textStyle(.iconChip, color: .accentSecondary)
+                    Text(genre)
+                        .textStyle(.captionEmphasis, color: .accentSecondary)
+                }
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.xxs)
+                .background(
+                    Capsule()
+                        .fill(Color.accentSecondaryTint)
+                )
+                .overlay(
+                    Capsule()
+                        .stroke(Color.accentSecondary.opacity(0.25), lineWidth: Stroke.hairline)
+                )
+            }
         }
     }
 }
 
 #Preview {
     AlbumDetailsMainSectionView(album: AlbumModel.albumPlaceholder)
+        .padding()
+        .background(Color.backgroundColor)
 }

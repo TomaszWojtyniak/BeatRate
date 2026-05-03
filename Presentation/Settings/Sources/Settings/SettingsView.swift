@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreUI
 
 @MainActor
 public struct SettingsView: View {
@@ -16,84 +17,84 @@ public struct SettingsView: View {
 
     public var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottom) {
-                List {
-                    Section {
-                        HStack {
-                            Image("apple_music_logo_icon", bundle: .module)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(height: 25)
-                                .clipShape(Circle())
+            List {
+                Section {
+                    HStack {
+                        Image("apple_music_logo_icon", bundle: .module)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(height: Size.connectorIcon)
+                            .clipShape(Circle())
 
-                            Text("Apple Music")
+                        Text("Apple Music")
 
-                            Spacer()
+                        Spacer()
 
-                            if dataModel.isAppleMusicConnected {
-                                Text("Connected")
-                            } else {
-                                Button("Connect") {
-                                    Task {
-                                        await dataModel.connectAppleMusic()
-                                    }
+                        if dataModel.isAppleMusicConnected {
+                            Text("Connected")
+                        } else {
+                            Button("Connect") {
+                                Task {
+                                    await dataModel.connectAppleMusic()
                                 }
-                                .disabled(dataModel.isConnectingAppleMusic)
                             }
+                            .disabled(dataModel.isConnectingAppleMusic)
                         }
-                        HStack {
-                            Image("spotify_logo_icon", bundle: .module)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(height: 25)
-                                .clipShape(Circle())
-                            
-                            Text("Spotify")
-                            
-                            Spacer()
-                            
-                            if dataModel.isSpotifyConnected {
-                                Text("Connected")
-                            } else {
-                                Button("Connect") {
-                                    Task {
-                                        await dataModel.connectSpotify()
-                                    }
-                                }
-                                .disabled(dataModel.isConnectingSpotify)
-                            }
-                        }
-                    } header: {
-                        Text("Accounts")
                     }
-                    
-                }
-                .listStyle(.automatic)
-                .safeAreaInset(edge: .bottom) {
-                    Color.clear.frame(height: 88)
-                }
+                    HStack {
+                        Image("spotify_logo_icon", bundle: .module)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(height: Size.connectorIcon)
+                            .clipShape(Circle())
 
-                VStack(spacing: 0) {
-                    Spacer()
+                        Text("Spotify")
 
-                    Button {
-                        dataModel.showLogoutConfirmation = true
-                    } label: {
+                        Spacer()
+
+                        if dataModel.isSpotifyConnected {
+                            Text("Connected")
+                        } else {
+                            Button("Connect") {
+                                Task {
+                                    await dataModel.connectSpotify()
+                                }
+                            }
+                            .disabled(dataModel.isConnectingSpotify)
+                        }
+                    }
+                } header: {
+                    Text("Accounts")
+                }
+            }
+            .listStyle(.automatic)
+            .safeAreaInset(edge: .bottom) {
+                Button {
+                    dataModel.showLogoutConfirmation = true
+                } label: {
+                    HStack(spacing: Spacing.xs) {
+                        Image(systemName: "rectangle.portrait.and.arrow.right")
                         Text("Logout")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(
-                                RoundedRectangle(cornerRadius: 28)
-                                    .fill(.primary)
-                            )
                     }
-                    .disabled(dataModel.isLoggingOut)
-                    .opacity(dataModel.isLoggingOut ? 0.6 : 1.0)
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 32)
+                    .textStyle(.bodyEmphasis, color: .primaryTextOnDark)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: Size.signInButton)
+                    .background(
+                        Capsule(style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.red.opacity(0.95), Color.red.opacity(0.78)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                    )
+                    .appShadow(.destructive)
                 }
+                .disabled(dataModel.isLoggingOut)
+                .opacity(dataModel.isLoggingOut ? 0.6 : 1.0)
+                .padding(.horizontal, Spacing.lg)
+                .padding(.bottom, Spacing.xs)
             }
             .navigationTitle("Settings")
             .toolbarTitleDisplayMode(.inlineLarge)

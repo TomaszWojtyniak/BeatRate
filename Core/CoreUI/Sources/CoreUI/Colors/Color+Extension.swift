@@ -6,26 +6,124 @@
 //
 
 import SwiftUI
+import UIKit
+
+private func dynamicColor(light: UIColor, dark: UIColor) -> Color {
+    Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark ? dark : light
+    })
+}
+
+private func rgb(_ r: Int, _ g: Int, _ b: Int, _ a: CGFloat = 1) -> UIColor {
+    UIColor(red: CGFloat(r)/255, green: CGFloat(g)/255, blue: CGFloat(b)/255, alpha: a)
+}
 
 public extension Color {
-    static let darkNavyBlue: Color = Color(red: 19/255, green: 31/255, blue: 51/255)
-    static let creamBeige: Color = Color(red: 245/255, green: 225/255, blue: 200/255)
-    static let goldenAmber: Color = Color(red: 212/255, green: 62/255, blue: 72/255)
-    static let brickRed: Color = Color(red: 162/255, green: 31/255, blue: 51/255)
-    static let pastelBlue: Color = Color(red: 142/255, green: 168/255, blue: 195/255)
-    static let bottleGreen: Color = Color(red: 62/255, green: 98/255, blue: 89/255)
-    static let deepIndigo: Color = Color(red: 45/255, green: 46/255, blue: 95/255)
-    static let honeyYellow: Color = Color(red: 230/255, green: 182/255, blue: 85/255)
-    static let lightGrey: Color = Color(red: 212/255, green: 212/255, blue: 212/255)
-    static let crimsonRed: Color = Color(red: 178/255, green: 34/255, blue: 34/255)
-    static let backgroundColor: Color = .black.opacity(0.07)
+
+    // MARK: – Surfaces
+
+    /// Page background for every screen. Adaptive: warm off-white in light mode, near-black in dark mode.
+    static let backgroundColor: Color = dynamicColor(
+        light: rgb(248, 245, 240),
+        dark:  rgb(18, 18, 20)
+    )
+
+    /// Placeholder fill shown behind album artwork while it loads.
     static let albumPlaceholderColor: Color = .gray.opacity(0.3)
-    
-    ///App uses of colors
-    static let primaryText: Color = .creamBeige
-    static let secondaryText: Color = .lightGrey
-    static let errorRed: Color = .crimsonRed
-    
-    ///Gradients
-    static let backgroundGradient = LinearGradient(colors: [Color(hex: "434C5E"), Color(hex: "131F33")], startPoint: .top, endPoint: .bottom)
+
+    // MARK: – Text
+
+    /// Primary foreground for titles, body copy, and prominent labels.
+    /// Adaptive: deep charcoal in light mode, warm cream in dark mode (WCAG AA on both backgrounds).
+    static let primaryText: Color = dynamicColor(
+        light: rgb(28, 28, 30),
+        dark:  rgb(245, 225, 200)
+    )
+
+    /// Secondary foreground for subtitles, captions, and supporting metadata.
+    /// Adaptive: mid-grey in light mode, soft warm grey in dark mode.
+    static let secondaryText: Color = dynamicColor(
+        light: rgb(96, 96, 102),
+        dark:  rgb(200, 195, 185)
+    )
+
+    /// Fixed light primary text — always warm cream.
+    /// Use on permanently dark surfaces (splash, login) where adaptive text would
+    /// turn dark in light mode and vanish against the gradient.
+    static let primaryTextOnDark: Color = Color(red: 245/255, green: 225/255, blue: 200/255)
+
+    /// Fixed light secondary text — always soft warm grey.
+    /// Companion to `primaryTextOnDark` for captions/metadata on dark surfaces.
+    static let secondaryTextOnDark: Color = Color(red: 200/255, green: 195/255, blue: 185/255)
+
+    // MARK: – Primary accent (honey yellow)
+
+    /// Brand honey yellow (#E6B655). Identical in light and dark mode.
+    /// Used for star ratings, primary CTAs, brand highlights, and the "rated/score" stat.
+    static let accentPrimary: Color = Color(red: 230/255, green: 182/255, blue: 85/255)
+
+    /// Deeper honey shade used as the bottom stop of `accentPrimaryGradient`
+    /// and for pressed states on primary buttons.
+    static let accentPrimaryDeep: Color = Color(red: 200/255, green: 148/255, blue: 50/255)
+
+    /// 18% honey tint. Used for soft accent halos behind avatars and ratings.
+    static let accentPrimarySoft: Color = .accentPrimary.opacity(0.18)
+
+    /// 10% honey tint. Used for subtle stat-tile backgrounds.
+    static let accentPrimaryTint: Color = .accentPrimary.opacity(0.10)
+
+    /// 50% honey tint. Used as the drop-shadow glow under primary CTAs and the avatar ring.
+    static let accentPrimaryGlow: Color = .accentPrimary.opacity(0.50)
+
+    /// Vertical honey gradient (primary → deep). Fill for the "Edit profile" pill,
+    /// hero album rating chips, and other accent-filled buttons.
+    static let accentPrimaryGradient = LinearGradient(
+        colors: [.accentPrimary, .accentPrimaryDeep],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+
+    // MARK: – Secondary accent (blue)
+
+    /// Secondary accent — sapphire in light mode, sky blue in dark mode.
+    /// Used for time/date/calendar/links and the "rated count" stat on Account.
+    static let accentSecondary: Color = dynamicColor(
+        light: rgb(10, 100, 220),
+        dark:  rgb(90, 174, 255)
+    )
+
+    /// Soft tint of the secondary accent — used for backdrop halos in the mesh background.
+    static let accentSecondarySoft: Color = dynamicColor(
+        light: rgb(10, 100, 220, 0.18),
+        dark:  rgb(90, 174, 255, 0.20)
+    )
+
+    /// 10% blue tint. Used for the "Released" stat-tile background, paired with `accentPrimaryTint`.
+    static let accentSecondaryTint: Color = dynamicColor(
+        light: rgb(10, 100, 220, 0.08),
+        dark:  rgb(90, 174, 255, 0.12)
+    )
+
+    // MARK: – Decorative gradients
+
+    /// Full-bleed background gradient used by the Splash and Login screens.
+    /// Derived from the secondary blue family — deep sapphire fading into near-black navy,
+    /// so it reads as the "dark surface cousin" of `accentSecondary`.
+    static let backgroundGradient = LinearGradient(
+        colors: [
+            Color(red: 28/255, green: 58/255, blue: 120/255),  // deep sapphire (top)
+            Color(red: 6/255,  green: 18/255, blue: 52/255)    // near-black navy (bottom)
+        ],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+
+    /// Conic gradient used as the avatar ring on the Account screen
+    /// (cycles honey → blue → deep honey → honey).
+    static let avatarConic = AngularGradient(
+        gradient: Gradient(colors: [.accentPrimary, .accentSecondary, .accentPrimaryDeep, .accentPrimary]),
+        center: .center,
+        startAngle: .degrees(230),
+        endAngle: .degrees(230 + 360)
+    )
 }

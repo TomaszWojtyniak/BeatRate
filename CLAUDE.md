@@ -10,6 +10,24 @@ BeatRate is a Swift iOS music discovery app built with SwiftUI and Clean Archite
 **Swift Version**: 6.2
 **Main Branch**: `development`
 
+## Design system — read this before touching any view
+
+Every spacing, radius, size, font, shadow, animation, and reusable colour the
+app uses is documented in **[Core/CoreUI/DesignSystem.md](Core/CoreUI/DesignSystem.md)**.
+It also contains copy-paste recipes for the common view shapes (section card,
+stat tile, primary CTA pill, list row, etc.) and an anti-pattern table.
+
+When building or modifying SwiftUI views in this codebase:
+- **Do not** type magic numbers into `.padding(...)`, `.frame(...)`, `cornerRadius:`,
+  `lineWidth:`, `.font(.system(size:weight:))`, `.shadow(...)`, or animation duration.
+- **Do** pick a token — `Spacing.lg`, `Radius.large`, `Size.thumbnailLarge`,
+  `Stroke.hairline`, `.textStyle(.bodyEmphasis)`, `.appShadow(.medium)`,
+  `AppAnimation.quick`, etc.
+- For surfaces, use `.roundedMaterialBackground()` (Liquid Glass card) and
+  `.meshBackground()` (page backdrop) instead of building card chrome by hand.
+- If no existing token fits, follow the "Adding to the system" section in the
+  design-system doc — don't freelance.
+
 ## Build & Run
 
 ### Building the App
@@ -28,6 +46,13 @@ xcodebuild -scheme "BeatRate Development" -project BeatRate.xcodeproj build
 # Run in Xcode (recommended)
 open BeatRate.xcodeproj
 ```
+
+> **Note:** `xcodebuild` requires full Xcode, not just Command Line Tools. If
+> you see *"tool 'xcodebuild' requires Xcode, but active developer directory is
+> a command line tools instance"*, run
+> `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer` once.
+> Without this, build verification from the CLI will fail; opening the project
+> in Xcode still works.
 
 ### Running Tests
 
@@ -146,7 +171,11 @@ Both are actors - use `await` when calling methods.
 
 1. Create new Swift Package in `Presentation/FeatureName/`
 2. Add Package.swift with dependencies (usually CoreUI, Models, CoreApp)
-3. Create View + DataModel (Observable class)
+3. Create View + DataModel (Observable class). **Build the View entirely from
+   design-system tokens** — `Spacing.*`, `Radius.*`, `Size.*`, `.textStyle(...)`,
+   `.appShadow(...)`, `.roundedMaterialBackground()`, `.meshBackground()`,
+   `AppAnimation.*`. See [Core/CoreUI/DesignSystem.md](Core/CoreUI/DesignSystem.md)
+   for recipes (section card, stat tile, primary CTA pill, list row, etc.).
 4. Create Use Case in `Domain/FeatureUseCases/`
 5. Update Repository if new data source needed
 6. Link package in main Xcode project
@@ -177,6 +206,10 @@ Add to `Core/Models/Sources/Models/`. Models should:
 - The app uses Swift 6.2's strict concurrency checking
 - SwiftData models are in `Core/Models` and must be compatible with the schema
 - Album ratings are stored both locally (SwiftData) and remotely (Firebase)
+- **Visual work goes through the design system.** Tokens, surfaces, shadows,
+  typography, animation curves — see [Core/CoreUI/DesignSystem.md](Core/CoreUI/DesignSystem.md).
+  No magic numbers in views; if a token doesn't exist, follow the doc's
+  "Adding to the system" guidance.
 
 ### `.defaultIsolation(MainActor.self)` and struct inits
 

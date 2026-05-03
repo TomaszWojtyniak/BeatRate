@@ -32,10 +32,10 @@ public final class SearchDataModel {
         self.getRecentAlbumsUseCase = getRecentAlbumsUseCase
         self.saveRecentAlbumUseCase = saveRecentAlbumUseCase
         self.clearRecentAlbumsUseCase = clearRecentAlbumsUseCase
+    }
 
-        Task {
-            self.recentAlbums = await getRecentAlbumsUseCase.fetchRecentAlbums()
-        }
+    public func loadRecentAlbums() async {
+        recentAlbums = await getRecentAlbumsUseCase.fetchRecentAlbums()
     }
 
     public func searchAlbum(searchTerm: String) {

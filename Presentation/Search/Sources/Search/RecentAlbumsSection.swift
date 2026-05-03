@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Models
+import CoreUI
 
 struct RecentAlbumsSection: View {
     let albums: [AppleMusicAlbumData]
@@ -17,45 +18,55 @@ struct RecentAlbumsSection: View {
 
     var body: some View {
         if albums.isEmpty {
-            ContentUnavailableView("Search music", systemImage: "magnifyingglass")
+            ContentUnavailableView {
+                Label("Search music", systemImage: "magnifyingglass")
+                    .foregroundStyle(Color.primaryText)
+            } description: {
+                Text("Find albums and rate everything you listen to.")
+                    .textStyle(.body, color: .secondaryText)
+            }
         } else {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                HStack(alignment: .firstTextBaseline) {
                     Text("Recent")
-                        .font(.title3)
+                        .textStyle(.titleSection)
 
                     Spacer()
 
                     if onClear != nil {
-                        Button("Clear", role: .cancel) {
+                        Button {
                             showClearAlert = true
+                        } label: {
+                            Text("Clear")
+                                .textStyle(.captionEmphasis, color: .accentPrimary)
                         }
-                        .font(.subheadline)
-                        .bold()
                     }
                 }
-                .padding(.horizontal)
-                .padding(.top)
-                
-                Divider()
-                    .padding(.horizontal)
-                
+                .padding(.horizontal, Spacing.lg)
+                .padding(.top, Spacing.xs)
+
                 VStack(spacing: 0) {
-                    ForEach(albums) { album in
+                    ForEach(Array(albums.enumerated()), id: \.element.id) { index, album in
                         Button {
                             onAlbumTap(album)
                         } label: {
                             SearchAlbumRow(album: album)
-                                .padding(.horizontal)
+                                .padding(.horizontal, Spacing.lg)
+                                .padding(.vertical, Spacing.xxs)
                         }
                         .buttonStyle(.plain)
 
-                        if album.id != albums.last?.id {
+                        if index < albums.count - 1 {
                             Divider()
-                                .padding(.leading, 84)
+                                .padding(.leading, Size.thumbnailSmall + Spacing.sm + Spacing.lg)
+                                .opacity(0.5)
                         }
                     }
                 }
+                .padding(.vertical, Spacing.xxs)
+                .roundedMaterialBackground()
+                .padding(.horizontal, Spacing.md)
+
                 Spacer()
             }
             .alert("Clear Recent Searches", isPresented: $showClearAlert) {

@@ -10,9 +10,9 @@ import CoreUI
 
 @MainActor
 public struct SplashView: View {
-    
+
     @State private var dataModel: SplashDataModel = SplashDataModel()
-    
+
     let onComplete: () -> Void
 
     public init(onComplete: @escaping () -> Void) {
@@ -25,40 +25,62 @@ public struct SplashView: View {
             set: { if !$0 { dataModel.alertType = nil } }
         )
     }
-    
+
     public var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             Spacer()
-            
-            Image(systemName: "star.square.on.square")
-                .resizable()
-                .foregroundStyle(Color.honeyYellow)
-                .frame(maxWidth: 200, maxHeight: 200)
 
-            
-            
+            // Logomark with soft accent halo for depth
+            ZStack {
+                Circle()
+                    .fill(Color.accentPrimarySoft)
+                    .frame(width: Halo.large, height: Halo.large)
+                    .blur(radius: Blur.haloMedium)
+
+                RoundedRectangle(cornerRadius: Radius.logomark, style: .continuous)
+                    .fill(Color.accentPrimaryGradient)
+                    .frame(width: Size.logomark, height: Size.logomark)
+                    .overlay(
+                        Image(systemName: "star.square.on.square.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .padding(Size.logomarkInset)
+                            .foregroundStyle(Color.white.opacity(0.95))
+                    )
+                    .appShadow(.accentLift)
+            }
+
+            // Wordmark
             Text("login.app.name", bundle: .module)
-                .font(.system(size: 70, weight: .medium))
-                .foregroundStyle(Color.primaryText)
-            
+                .textStyle(.displayLarge, color: .accentPrimary)
+                .padding(.top, Spacing.xl)
+
+            // Tagline
+            Text("Rate every album.")
+                .textStyle(.body, color: .secondaryTextOnDark)
+                .padding(.top, Spacing.xxs)
+
             Spacer()
 
-            // Show retry status if retrying
+            // Show retry status if retrying — otherwise iOS-style activity indicator
             if dataModel.isRetrying {
-                VStack(spacing: 8) {
+                VStack(spacing: Spacing.xs) {
                     ProgressView()
-                        .tint(.white)
+                        .tint(Color.accentPrimary)
                     Text(dataModel.errorMessage)
-                        .font(.caption)
-                        .foregroundStyle(Color.primaryText)
+                        .textStyle(.caption, color: .primaryTextOnDark)
                         .multilineTextAlignment(.center)
                 }
-                .padding()
+                .padding(.bottom, Spacing.lg)
+            } else {
+                ProgressView()
+                    .tint(Color.accentPrimary)
+                    .padding(.bottom, Spacing.lg)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.horizontal)
-        .padding(.vertical, 40)
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.xl)
         .background(Color.backgroundGradient)
         .task {
             await dataModel.loadInitialData()

@@ -9,38 +9,40 @@ import SwiftUI
 import Models
 
 public struct SectionAlbumView: View {
-    
+
     let album: AlbumModel
-    
+
     public var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             AsyncImage(url: album.appleMusicAlbumData.coverUrl) { image in
                 image
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .aspectRatio(contentMode: .fill)
             } placeholder: {
                 Rectangle()
                     .fill(Color.albumPlaceholderColor)
                     .overlay {
                         Image(systemName: "music.note")
-                            .font(.system(size: 50))
-                            .foregroundColor(.gray)
+                            .textStyle(.iconPlaceholder, color: .secondaryText)
                     }
             }
-            .frame(width: 150, height: 150)
-            .cornerRadius(10)
-            
-            Text(album.appleMusicAlbumData.title)
-                .font(.caption)
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .frame(width: 150, alignment: .leading)
-            
-            Text(album.appleMusicAlbumData.artist)
-                .font(.system(.caption2, weight: .light))
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .frame(width: 150, alignment: .leading)
+            .frame(width: Size.thumbnailLarge, height: Size.thumbnailLarge)
+            .clipShape(RoundedRectangle(cornerRadius: Radius.small, style: .continuous))
+            .appShadow(.low)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(album.appleMusicAlbumData.title)
+                    .textStyle(.bodyEmphasis)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .frame(width: Size.thumbnailLarge, alignment: .leading)
+
+                Text(album.appleMusicAlbumData.artist)
+                    .textStyle(.caption)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .frame(width: Size.thumbnailLarge, alignment: .leading)
+            }
         }
     }
 }

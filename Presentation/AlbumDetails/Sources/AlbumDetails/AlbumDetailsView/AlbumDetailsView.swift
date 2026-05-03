@@ -21,11 +21,13 @@ struct AlbumDetailsView: View {
 
     var body: some View {
         ScrollView {
-            VStack {
+            VStack(spacing: Spacing.lg) {
+                AlbumDetailsCoverView(album: dataModel.album)
+                    .padding(.top, Spacing.xxs)
+
                 AlbumDetailsMainSectionView(album: dataModel.album)
 
                 AlbumDetailsTilesView(album: dataModel.album)
-                    .padding(.top, 20)
 
                 RateAlbumView(myRating: $dataModel.myRating) { finalRating in
                     // Only save if initial rating has been loaded
@@ -37,11 +39,15 @@ struct AlbumDetailsView: View {
                         await dataModel.saveAlbumRating(rating: finalRating)
                     }
                 }
-                .padding(.top, 20)
             }
-            .padding(.horizontal, 50)
+            .padding(.horizontal, Spacing.lg)
+            .padding(.bottom, Spacing.xl)
         }
-        .background(Color.backgroundColor)
+        .meshBackground(
+            primary: dataModel.meshPrimary ?? .accentPrimarySoft,
+            secondary: dataModel.meshSecondary ?? .accentSecondarySoft
+        )
+        .animation(AppAnimation.smooth, value: dataModel.meshPrimary)
         .loading(
             dataModel.isLoading
         )
@@ -50,6 +56,9 @@ struct AlbumDetailsView: View {
                 dataModel.myRating = userRating
             }
             dataModel.hasLoadedInitialRating = true
+        }
+        .task {
+            await dataModel.loadMeshColors()
         }
     }
 }

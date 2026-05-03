@@ -10,56 +10,33 @@ import CoreUI
 import Models
 
 struct AlbumDetailsTilesView: View {
-    
+
     let album: AlbumModel
-    
+
     var body: some View {
-        HStack(spacing: 25) {
-
-            VStack(spacing: 10) {
-                Text("Rating")
-                    .font(.system(.caption, design: .rounded, weight: .medium))
-                    .foregroundColor(.secondary)
-
-                HStack {
-                    Image(systemName: "star.fill")
-                        .foregroundColor(.yellow)
-                        .font(.title3)
-
-                    if let ratingCount = album.firebaseAlbumData?.ratingCount, ratingCount > 0,
-                       let rating = album.firebaseAlbumData?.avgRating {
-                        Text(String(format: "%.1f", rating))
-                            .font(.system(.title2, design: .rounded, weight: .bold))
-                            .foregroundColor(.primary)
-                    } else {
-                        Text("-")
-                            .font(.system(.title2, design: .rounded, weight: .bold))
-                            .foregroundColor(.secondary)
-                    }
+        HStack(spacing: Spacing.sm) {
+            StatTile(label: "Rating",
+                     systemImage: "star.fill",
+                     iconColor: Color.accentPrimary,
+                     tint: Color.accentPrimaryTint) {
+                if let ratingCount = album.firebaseAlbumData?.ratingCount, ratingCount > 0,
+                   let rating = album.firebaseAlbumData?.avgRating {
+                    Text(String(format: "%.1f", rating))
+                        .textStyle(.statValue)
+                } else {
+                    Text("-")
+                        .textStyle(.statValue, color: .secondaryText)
                 }
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
-            .roundedMaterialBackground()
-            
+
             if let releaseDate = album.appleMusicAlbumData.releaseDate {
-                VStack(spacing: 10) {
-                    Text("Released")
-                        .font(.system(.caption, design: .rounded, weight: .medium))
-                        .foregroundColor(.secondary)
-                    
-                    HStack {
-                        Image(systemName: "calendar")
-                            .foregroundColor(.blue)
-                            .font(.title3)
-                        Text(releaseDate, format: .dateTime.year())
-                            .font(.system(.title2, design: .rounded, weight: .bold))
-                            .foregroundColor(.primary)
-                    }
+                StatTile(label: "Released",
+                         systemImage: "calendar",
+                         iconColor: Color.accentSecondary,
+                         tint: Color.accentSecondaryTint) {
+                    Text(releaseDate, format: .dateTime.year())
+                        .textStyle(.statValue)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
-                .roundedMaterialBackground()
             }
         }
     }
@@ -69,6 +46,7 @@ struct AlbumDetailsTilesView: View {
     VStack {
         AlbumDetailsTilesView(album: AlbumModel.albumPlaceholder)
     }
+    .padding()
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(Color.backgroundColor)
 }

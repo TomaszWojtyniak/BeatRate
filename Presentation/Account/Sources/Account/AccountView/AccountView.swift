@@ -19,38 +19,57 @@ public struct AccountView: View {
 
     public init() {}
 
+    private var displayName: String {
+        dataModel.fullName ?? dataModel.userProfile?.email ?? ""
+    }
+
+    private var initials: String {
+        let first = (dataModel.userProfile?.firstName?.first).map { String($0) } ?? ""
+        let last = (dataModel.userProfile?.lastName?.first).map { String($0) } ?? ""
+        let combined = (first + last).uppercased()
+        if !combined.isEmpty { return combined }
+        // Fallback to first character of email
+        if let initial = dataModel.userProfile?.email?.first {
+            return String(initial).uppercased()
+        }
+        return "?"
+    }
+
     public var body: some View {
-        List {
-            if !dataModel.isLoading {
-                VStack(spacing: 8) {
-                    Text((dataModel.fullName ?? dataModel.userProfile?.email) ?? "")
-                        .font(.system(.largeTitle, weight: .bold))
-                        .frame(maxWidth: .infinity, alignment: .center)
+        ZStack {
+            ScrollView {
+                GlassEffectContainer(spacing: Spacing.md) {
+                    LazyVStack(spacing: Spacing.md) {
+                        profileCard
+                            .padding(.horizontal, Spacing.md)
+                            .padding(.top, Spacing.xs)
 
-                    Button("Edit") {
-                        dataModel.isShowingEditSheet = true
+                        if dataModel.isShowingAlbumRatingsSection {
+                            HomeSectionView(
+                                name: "Ratings",
+                                albums: dataModel.ratedAlbums,
+                                selectedAlbum: $selectedAlbum
+                            )
+                            .padding(Spacing.lg)
+                            .roundedMaterialBackground()
+                            .padding(.horizontal, Spacing.md)
+                        }
                     }
-                    .buttonStyle(.borderedProminent)
-                }
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-                .padding(.top, 20)
-                .padding(.bottom, 10)
-
-                if self.dataModel.isShowingAlbumRatingsSection {
-                    HomeSectionView(name: "Ratings", albums: dataModel.ratedAlbums, selectedAlbum: $selectedAlbum)
-                        .padding(20)
-                        .roundedMaterialBackground()
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .padding(.top, 5)
+                    .padding(.bottom, Spacing.lg)
+                    .opacity(dataModel.isLoading ? 0 : 1)
+                    // Suppress only the implicit fade tied to isLoading; leave
+                    // sheet/navigation transitions alone.
+                    .animation(nil, value: dataModel.isLoading)
                 }
             }
+
+            if dataModel.isLoading {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .secondary))
+                    .scaleEffect(1.3)
+            }
         }
-        .listStyle(.inset)
-        .scrollContentBackground(.hidden)
-        .background(Color.backgroundColor)
-        .loading(dataModel.isLoading)
+        .meshBackground()
         .navigationDestination(item: $selectedAlbum) { album in
             AlbumDetailsNavigationStack(album: album)
         }
@@ -76,6 +95,98 @@ public struct AccountView: View {
         }
         .task {
             await dataModel.loadUserData()
+        }
+    }
+
+    // MARK: - Profile Card
+
+    private var profileCard: some View {
+        ZStack {
+            // Soft accent halo above the avatar — clipped to card shape
+            Circle()
+                .fill(Color.accentPrimarySoft)
+                .frame(width: Halo.medium, height: Halo.medium)
+                .blur(radius: Blur.haloMedium)
+                .offset(y: -80)
+                .allowsHitTesting(false)
+
+            VStack(spacing: 0) {
+                // Conic-gradient avatar with initials
+                ZStack {
+                    Circle()
+                        .fill(Color.avatarConic)
+                        .frame(width: Size.avatar, height: Size.avatar)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white.opacity(0.6), lineWidth: Stroke.thick)
+                        )
+                        .appShadow(.accentGlow)
+
+                    Text(initials)
+                        .textStyle(.avatarInitials, color: .white) // intentional white-on-conic
+                }
+                .padding(.bottom, Spacing.sm)
+
+                Text(displayName)
+                    .textStyle(.displayName)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+
+                if let email = dataModel.userProfile?.email, dataModel.fullName != nil {
+                    Text(email)
+                        .textStyle(.caption)
+                        .padding(.top, Spacing.xxs)
+                }
+
+                // Gradient "Edit profile" pill
+                Button {
+                    dataModel.isShowingEditSheet = true
+                } label: {
+                    Text("Edit profile")
+                        .textStyle(.bodyEmphasis, color: .primaryTextOnDark)
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.vertical, Spacing.xs)
+                        .background(
+                            Capsule()
+                                .fill(Color.accentPrimaryGradient)
+                        )
+                        .appShadow(.accentGlow)
+                }
+                .buttonStyle(.plain)
+                .padding(.top, Spacing.md)
+
+                // Mini-stats
+                HStack {
+                    Spacer()
+                    miniStat(value: "\(dataModel.ratedAlbums.count)", label: "Rated", color: Color.accentSecondary)
+                    Spacer()
+                    miniStat(value: "—", label: "Avg", color: Color.accentPrimary)
+                    Spacer()
+                }
+                .padding(.top, Spacing.lg)
+                .padding(.horizontal, Spacing.xxs)
+                .overlay(alignment: .top) {
+                    Rectangle()
+                        .fill(Color.primary.opacity(0.08))
+                        .frame(height: Stroke.hairline)
+                        .padding(.horizontal, Spacing.xxs)
+                }
+                .padding(.top, Spacing.md)
+            }
+            .padding(.vertical, Spacing.lg)
+            .padding(.horizontal, Spacing.lg)
+            .frame(maxWidth: .infinity)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: Radius.large, style: .continuous))
+        .roundedMaterialBackground()
+    }
+
+    private func miniStat(value: String, label: String, color: Color) -> some View {
+        VStack(spacing: Spacing.xxs) {
+            Text(value)
+                .textStyle(.statValueCompact, color: color)
+            Text(label)
+                .textStyle(.label)
         }
     }
 }

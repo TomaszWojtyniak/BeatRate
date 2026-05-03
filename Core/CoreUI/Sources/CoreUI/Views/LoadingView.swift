@@ -25,26 +25,25 @@ public struct LoadingView<Content: View>: View {
     public var body: some View {
         ZStack {
             content
-                .blur(radius: isLoading ? 2 : 0)
+                .blur(radius: isLoading ? Blur.contentDim : 0)
                 .disabled(isLoading)
-                .animation(.easeInOut(duration: 0.2), value: isLoading)
+                .animation(AppAnimation.quick, value: isLoading)
 
             // Activity indicator overlay (HIG compliant)
             if isLoading {
-                VStack(spacing: 12) {
+                VStack(spacing: Spacing.sm) {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .secondary))
                         .scaleEffect(1.3)
 
                     if let message {
                         Text(message)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .textStyle(.body, color: .secondaryText)
                     }
                 }
-                .padding(.horizontal, 36)
-                .padding(.vertical, 28)
-                .glassEffect()
+                .padding(.horizontal, Spacing.xl)
+                .padding(.vertical, Spacing.lg)
+                .glassEffect(in: .rect(cornerRadius: Radius.large))
             }
         }
     }
@@ -65,13 +64,13 @@ public extension View {
 #Preview {
     VStack {
         LoadingView(isLoading: true, message: "Saving...") {
-            VStack(spacing: 20) {
+            VStack(spacing: Spacing.lg) {
                 Text("Sample Content")
                     .font(.title)
                 Button("Action") {}
                     .buttonStyle(.borderedProminent)
             }
-            .padding(40)
+            .padding(Spacing.xl)
             .background(Color.gray.opacity(0.2))
         }
     }
