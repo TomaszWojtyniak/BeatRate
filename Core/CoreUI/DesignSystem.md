@@ -22,13 +22,13 @@ All tokens live in `Core/CoreUI/Sources/CoreUI/DesignSystem/`. Importing
 | **Radius** | `small` 12, `medium` 18, `large` 22, `logomark` 28, `signInButton` 14 | `DesignSystem.swift` |
 | **Size** | `connectorIcon` 25, `touchTarget` 44, `thumbnailSmall` 56, `avatar` 84, `logomark` 124, `logomarkInset` 22, `thumbnailLarge` 138, `coverHero` 280, `signInButton` 54 | `Layout.swift` |
 | **Halo** | `small` 260, `medium` 300, `large` 320, `meshSecondary` 360, `meshPrimary` 420 | `Layout.swift` |
-| **Blur** | `contentDim` 2, `haloSmall` 36, `haloMedium` 40, `meshStandard` 80, `meshIntense` 100 | `Layout.swift` |
+| **Blur** | `contentDim` 2, `haloSmall` 36, `haloMedium` 40, `meshStandard` 80 | `Layout.swift` |
 | **Stroke** | `hairline` 0.5, `thin` 1, `thick` 3 | `Layout.swift` |
 | **Typography** | 22 roles — see below | `Typography.swift` |
 | **Shadow** | `low`, `medium`, `high`, `accentGlow`, `accentLift`, `destructive` | `AppShadow.swift` |
 | **Animation** | `quick` 0.2s, `standard` 0.25s, `smooth` 0.4s | `AppAnimation.swift` |
 | **Colour** | adaptive + fixed accent set | `Color+Extension.swift` |
-| **Surface** | `.roundedMaterialBackground(hi:)`, `.meshBackground(intense:)` | `RoundedMaterialBackground.swift`, `MeshBackground.swift` |
+| **Surface** | `.roundedMaterialBackground(hi:)`, `.meshBackground()` | `RoundedMaterialBackground.swift`, `MeshBackground.swift` |
 
 ---
 
@@ -116,8 +116,7 @@ radius — see below.
 | `Blur.contentDim` | 2 | Content dim while a loading HUD is on top. |
 | `Blur.haloSmall` | 36 | Login halo blur. |
 | `Blur.haloMedium` | 40 | Splash / Account halo blur. |
-| `Blur.meshStandard` | 80 | Mesh halos in standard mode. |
-| `Blur.meshIntense` | 100 | Mesh halos in intense mode. |
+| `Blur.meshStandard` | 80 | Mesh background halo blur. |
 
 Halo / mesh **offsets** (e.g. `offset(x: -160, y: -240)`) stay as raw numbers —
 2D positioning of decorative elements is per-screen tuning, not a reusable
@@ -298,15 +297,14 @@ unused — most tiles use plain glass).
 The internal shadow is always `.appShadow(.medium)` — do not stack a separate
 shadow on top.
 
-### `.meshBackground(intense:)` — page backdrop with halos
+### `.meshBackground()` — page backdrop with halos
 
 Soft honey halo top-left + soft blue halo bottom-right over `systemBackground`.
 Provides texture for Liquid Glass tiles to refract.
 
 ```swift
 ScrollView { … }
-    .meshBackground()                  // standard
-    .meshBackground(intense: true)     // hero/AlbumDetails (currently unused)
+    .meshBackground()
 ```
 
 The mesh is `.drawingGroup()`'d for performance — blurs are computed once and

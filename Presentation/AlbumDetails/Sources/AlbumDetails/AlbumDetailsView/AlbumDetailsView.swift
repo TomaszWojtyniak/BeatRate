@@ -43,7 +43,11 @@ struct AlbumDetailsView: View {
             .padding(.horizontal, Spacing.lg)
             .padding(.bottom, Spacing.xl)
         }
-        .meshBackground()
+        .meshBackground(
+            primary: dataModel.meshPrimary ?? .accentPrimarySoft,
+            secondary: dataModel.meshSecondary ?? .accentSecondarySoft
+        )
+        .animation(AppAnimation.smooth, value: dataModel.meshPrimary)
         .loading(
             dataModel.isLoading
         )
@@ -52,6 +56,9 @@ struct AlbumDetailsView: View {
                 dataModel.myRating = userRating
             }
             dataModel.hasLoadedInitialRating = true
+        }
+        .task {
+            await dataModel.loadMeshColors()
         }
     }
 }

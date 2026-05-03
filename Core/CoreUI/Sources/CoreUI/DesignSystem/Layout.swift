@@ -59,8 +59,6 @@ public enum Blur {
     public static let haloMedium:    CGFloat = 40
     /// 80 — Mesh background halo blur (standard mode).
     public static let meshStandard:  CGFloat = 80
-    /// 100 — Mesh background halo blur (intense mode).
-    public static let meshIntense:   CGFloat = 100
 }
 
 /// Stroke / border widths.

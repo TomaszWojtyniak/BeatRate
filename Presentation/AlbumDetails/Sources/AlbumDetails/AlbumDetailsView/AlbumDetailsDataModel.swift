@@ -6,9 +6,11 @@
 //
 
 import Foundation
+import SwiftUI
 import HomeUseCases
 import OSLog
 import Models
+import CoreUI
 
 @MainActor
 @Observable
@@ -19,6 +21,10 @@ final class AlbumDetailsDataModel {
     var myRating: Double = 0
     var isLoading = false
     var hasLoadedInitialRating = false
+    /// Mesh halo tints derived from the album cover. `nil` until extracted;
+    /// view falls back to the design-system default halos in the meantime.
+    var meshPrimary: Color?
+    var meshSecondary: Color?
     private var previousRating: Double = 0
 
     init(album: AlbumModel, getAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol = GetAlbumDetailsUseCase()) {
@@ -59,6 +65,19 @@ final class AlbumDetailsDataModel {
             Logger.albumDetails.error("error saving album: \(error)")
             // Rollback to previous rating on error
             myRating = previousRating
+        }
+    }
+
+    /// Extracts two dominant colours from the cover artwork and stores them
+    /// pre-softened (≈18% alpha) so they can be used directly as mesh halos.
+    /// No-op if the album has no cover URL or extraction fails.
+    func loadMeshColors() async {
+        guard let coverUrl = album.appleMusicAlbumData.coverUrl,
+              meshPrimary == nil else { return }
+
+        if let colors = await ArtworkColors.extract(from: coverUrl) {
+            meshPrimary = colors.primary.opacity(0.65)
+            meshSecondary = colors.secondary.opacity(0.55)
         }
     }
 
