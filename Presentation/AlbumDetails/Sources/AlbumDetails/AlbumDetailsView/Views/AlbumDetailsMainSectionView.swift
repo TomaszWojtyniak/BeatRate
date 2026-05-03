@@ -23,8 +23,7 @@ struct AlbumDetailsCoverView: View {
                 .fill(Color.albumPlaceholderColor)
                 .overlay {
                     Image(systemName: "music.note")
-                        .font(.system(size: 50))
-                        .foregroundStyle(.secondary)
+                        .textStyle(.iconHero, color: .secondaryText)
                 }
         }
         .frame(width: Size.coverHero, height: Size.coverHero)
@@ -56,11 +55,10 @@ struct AlbumDetailsMainSectionView: View {
             if let genre = album.appleMusicAlbumData.genre {
                 HStack(spacing: Spacing.xs) {
                     Image(systemName: "music.note.list")
-                        .font(.system(size: 11, weight: .semibold))
+                        .textStyle(.iconChip, color: .accentSecondary)
                     Text(genre)
-                        .textStyle(.captionEmphasis)
+                        .textStyle(.captionEmphasis, color: .accentSecondary)
                 }
-                .foregroundStyle(Color.accentSecondary)
                 .padding(.horizontal, Spacing.sm)
                 .padding(.vertical, Spacing.xxs)
                 .background(

@@ -25,7 +25,7 @@ public struct LoadingView<Content: View>: View {
     public var body: some View {
         ZStack {
             content
-                .blur(radius: isLoading ? 2 : 0)
+                .blur(radius: isLoading ? Blur.contentDim : 0)
                 .disabled(isLoading)
                 .animation(AppAnimation.quick, value: isLoading)
 
@@ -38,8 +38,7 @@ public struct LoadingView<Content: View>: View {
 
                     if let message {
                         Text(message)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .textStyle(.body, color: .secondaryText)
                     }
                 }
                 .padding(.horizontal, Spacing.xl)
@@ -65,13 +64,13 @@ public extension View {
 #Preview {
     VStack {
         LoadingView(isLoading: true, message: "Saving...") {
-            VStack(spacing: 20) {
+            VStack(spacing: Spacing.lg) {
                 Text("Sample Content")
                     .font(.title)
                 Button("Action") {}
                     .buttonStyle(.borderedProminent)
             }
-            .padding(40)
+            .padding(Spacing.xl)
             .background(Color.gray.opacity(0.2))
         }
     }

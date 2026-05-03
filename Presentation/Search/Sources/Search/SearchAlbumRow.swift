@@ -51,16 +51,14 @@ struct SearchAlbumRow: View {
 
                 if let genre = album.genre {
                     Text(genre)
-                        .textStyle(.label)
-                        .foregroundStyle(.tertiary)
+                        .textStyle(.label, foreground: .tertiary)
                 }
             }
 
             Spacer(minLength: 0)
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.tertiary)
+                .textStyle(.iconRowAccessory, foreground: .tertiary)
         }
         .padding(.vertical, Spacing.xxs)
         .contentShape(Rectangle())

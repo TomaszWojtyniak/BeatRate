@@ -25,17 +25,17 @@ struct LoginView: View {
             ZStack {
                 Circle()
                     .fill(Color.accentPrimarySoft)
-                    .frame(width: 260, height: 260)
-                    .blur(radius: 36)
+                    .frame(width: Halo.small, height: Halo.small)
+                    .blur(radius: Blur.haloSmall)
 
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                RoundedRectangle(cornerRadius: Radius.logomark, style: .continuous)
                     .fill(Color.accentPrimaryGradient)
                     .frame(width: Size.logomark, height: Size.logomark)
                     .overlay(
                         Image(systemName: "star.square.on.square.fill")
                             .resizable()
                             .scaledToFit()
-                            .padding(22)
+                            .padding(Size.logomarkInset)
                             .foregroundStyle(Color.white.opacity(0.95))
                     )
                     .appShadow(.accentLift)
@@ -50,7 +50,7 @@ struct LoginView: View {
             Text("Rate every album you listen to on a ten-point scale. Keep a record of your taste.")
                 .textStyle(.body, color: .secondaryTextOnDark)
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 280)
+                .padding(.horizontal, Spacing.xl)
                 .padding(.top, Spacing.sm)
 
             Spacer()
@@ -63,8 +63,8 @@ struct LoginView: View {
                     Text("Signing in...")
                         .textStyle(.body, color: .primaryTextOnDark)
                 }
-                .frame(maxWidth: .infinity, maxHeight: 50)
-                .padding()
+                .frame(maxWidth: .infinity, maxHeight: Size.signInButton)
+                .padding(Spacing.md)
             } else {
                 SignInWithAppleButton(onRequest: { request in
                     Task {
@@ -97,14 +97,14 @@ struct LoginView: View {
                 })
                 .signInWithAppleButtonStyle(.white)
                 .frame(maxWidth: .infinity, maxHeight: Size.signInButton)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .padding(.horizontal)
+                .clipShape(RoundedRectangle(cornerRadius: Radius.signInButton, style: .continuous))
+                .padding(.horizontal, Spacing.lg)
             }
         }
         .errorAlert(isPresented: $dataModel.isShowingErrorAlert,
                     title: dataModel.errorTitle,
                     message: dataModel.errorMessage)
-        .padding(.horizontal)
+        .padding(.horizontal, Spacing.lg)
         .padding(.vertical, Spacing.xl)
         .background(Color.backgroundGradient)
     }

@@ -105,8 +105,8 @@ public struct AccountView: View {
             // Soft accent halo above the avatar — clipped to card shape
             Circle()
                 .fill(Color.accentPrimarySoft)
-                .frame(width: 300, height: 300)
-                .blur(radius: 40)
+                .frame(width: Halo.medium, height: Halo.medium)
+                .blur(radius: Blur.haloMedium)
                 .offset(y: -80)
                 .allowsHitTesting(false)
 
@@ -123,16 +123,12 @@ public struct AccountView: View {
                         .appShadow(.accentGlow)
 
                     Text(initials)
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .tracking(-0.5)
-                        .foregroundStyle(Color.white) // intentional white-on-conic, not a token
+                        .textStyle(.avatarInitials, color: .white) // intentional white-on-conic
                 }
                 .padding(.bottom, Spacing.sm)
 
                 Text(displayName)
-                    .font(.system(size: 28, weight: .bold))
-                    .tracking(-0.6)
-                    .foregroundStyle(Color.primaryText)
+                    .textStyle(.displayName)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
 
@@ -172,7 +168,7 @@ public struct AccountView: View {
                 .overlay(alignment: .top) {
                     Rectangle()
                         .fill(Color.primary.opacity(0.08))
-                        .frame(height: 0.5)
+                        .frame(height: Stroke.hairline)
                         .padding(.horizontal, Spacing.xxs)
                 }
                 .padding(.top, Spacing.md)

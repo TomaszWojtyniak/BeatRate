@@ -26,8 +26,7 @@ struct RateAlbumView: View {
                         .appShadow(.accentGlow)
 
                     Image(systemName: "star.fill")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(Color.white)
+                        .textStyle(.iconAction, color: .white)
                 }
 
                 VStack(alignment: .leading, spacing: Spacing.xxs) {

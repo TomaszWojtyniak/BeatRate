@@ -38,12 +38,10 @@ public struct StatTile<Content: View>: View {
             HStack(spacing: Spacing.xs) {
                 if let systemImage {
                     Image(systemName: systemImage)
-                        .font(.system(.caption2, weight: .semibold))
-                        .foregroundStyle(iconColor)
+                        .textStyle(.iconLabel, color: iconColor)
                 }
                 Text(label.uppercased())
-                    .textStyle(.label)
-                    .foregroundStyle(.tertiary)
+                    .textStyle(.label, foreground: .tertiary)
             }
 
             content()

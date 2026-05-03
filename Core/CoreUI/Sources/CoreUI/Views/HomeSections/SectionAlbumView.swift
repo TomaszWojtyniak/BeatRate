@@ -23,8 +23,7 @@ public struct SectionAlbumView: View {
                     .fill(Color.albumPlaceholderColor)
                     .overlay {
                         Image(systemName: "music.note")
-                            .font(.system(size: 36))
-                            .foregroundStyle(.secondary)
+                            .textStyle(.iconPlaceholder, color: .secondaryText)
                     }
             }
             .frame(width: Size.thumbnailLarge, height: Size.thumbnailLarge)

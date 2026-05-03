@@ -34,17 +34,17 @@ public struct SplashView: View {
             ZStack {
                 Circle()
                     .fill(Color.accentPrimarySoft)
-                    .frame(width: 320, height: 320)
-                    .blur(radius: 40)
+                    .frame(width: Halo.large, height: Halo.large)
+                    .blur(radius: Blur.haloMedium)
 
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                RoundedRectangle(cornerRadius: Radius.logomark, style: .continuous)
                     .fill(Color.accentPrimaryGradient)
                     .frame(width: Size.logomark, height: Size.logomark)
                     .overlay(
                         Image(systemName: "star.square.on.square.fill")
                             .resizable()
                             .scaledToFit()
-                            .padding(22)
+                            .padding(Size.logomarkInset)
                             .foregroundStyle(Color.white.opacity(0.95))
                     )
                     .appShadow(.accentLift)
@@ -79,7 +79,7 @@ public struct SplashView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.horizontal)
+        .padding(.horizontal, Spacing.lg)
         .padding(.vertical, Spacing.xl)
         .background(Color.backgroundGradient)
         .task {

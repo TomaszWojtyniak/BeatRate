@@ -19,10 +19,12 @@ All tokens live in `Core/CoreUI/Sources/CoreUI/DesignSystem/`. Importing
 | Category | Tokens | Where |
 |---|---|---|
 | **Spacing** | `xxs` 4, `xs` 8, `sm` 12, `md` 16, `lg` 20, `xl` 32 | `DesignSystem.swift` |
-| **Radius** | `small` 12, `medium` 18, `large` 22 | `DesignSystem.swift` |
-| **Size** | `touchTarget` 44, `thumbnailSmall` 56, `avatar` 84, `logomark` 124, `thumbnailLarge` 138, `coverHero` 280, `signInButton` 54 | `Layout.swift` |
+| **Radius** | `small` 12, `medium` 18, `large` 22, `logomark` 28, `signInButton` 14 | `DesignSystem.swift` |
+| **Size** | `connectorIcon` 25, `touchTarget` 44, `thumbnailSmall` 56, `avatar` 84, `logomark` 124, `logomarkInset` 22, `thumbnailLarge` 138, `coverHero` 280, `signInButton` 54 | `Layout.swift` |
+| **Halo** | `small` 260, `medium` 300, `large` 320, `meshSecondary` 360, `meshPrimary` 420 | `Layout.swift` |
+| **Blur** | `contentDim` 2, `haloSmall` 36, `haloMedium` 40, `meshStandard` 80, `meshIntense` 100 | `Layout.swift` |
 | **Stroke** | `hairline` 0.5, `thin` 1, `thick` 3 | `Layout.swift` |
-| **Typography** | 13 roles — see below | `Typography.swift` |
+| **Typography** | 22 roles — see below | `Typography.swift` |
 | **Shadow** | `low`, `medium`, `high`, `accentGlow`, `accentLift`, `destructive` | `AppShadow.swift` |
 | **Animation** | `quick` 0.2s, `standard` 0.25s, `smooth` 0.4s | `AppAnimation.swift` |
 | **Colour** | adaptive + fixed accent set | `Color+Extension.swift` |
@@ -63,11 +65,10 @@ RoundedRectangle(cornerRadius: Radius.large, style: .continuous)
 | `Radius.small` | 12 | Chips, search-row covers, small thumbnails. |
 | `Radius.medium` | 18 | AlbumDetails hero cover, intermediate feature surfaces. |
 | `Radius.large` | 22 | Section cards, material backgrounds, stat tiles, glass HUDs. |
+| `Radius.logomark` | 28 | Splash / Login logomark (Apple-HIG continuous radius). |
+| `Radius.signInButton` | 14 | Sign-In-with-Apple button (Apple-HIG continuous radius). |
 
 **Always** use `style: .continuous` (squircle) — never the default rectangular corner.
-
-Special exceptions (do not tokenize): the splash/login logomark (`28`) and
-Sign-In-with-Apple button (`14`) use Apple-HIG-specified continuous radii.
 
 ---
 
@@ -84,17 +85,43 @@ thumbnails, touch targets, and hero artwork.
 
 | Token | Value | Use |
 |---|---|---|
+| `Size.connectorIcon` | 25 | Third-party service connector icon (Apple Music, Spotify) in Settings rows. |
 | `Size.touchTarget` | 44 | Apple HIG minimum tappable area; small chip / button square (e.g. RateAlbum star chip). |
 | `Size.thumbnailSmall` | 56 | Search-row album cover. |
 | `Size.avatar` | 84 | Account profile avatar. |
 | `Size.logomark` | 124 | Login + Splash logomark square. |
+| `Size.logomarkInset` | 22 | SF Symbol inset within the logomark gradient square. |
 | `Size.thumbnailLarge` | 138 | HomeSection grid album thumbnail. |
 | `Size.coverHero` | 280 | AlbumDetails hero cover. |
 | `Size.signInButton` | 54 | Sign-In-with-Apple button height (Apple HIG). |
 
-Frame sizes for non-component content (mesh halo circles, accent halos,
-LinearGradient heights, etc.) stay as raw numbers — those are visual tuning,
-not reusable component sizes.
+## Halo
+
+Decorative blurred-circle dimensions used behind avatars / logomarks / mesh
+backgrounds. Use `Halo.*` for the diameter and `Blur.*` for the matching blur
+radius — see below.
+
+| Token | Value | Use |
+|---|---|---|
+| `Halo.small` | 260 | Login screen halo behind logomark. |
+| `Halo.medium` | 300 | Account profile-card halo behind avatar. |
+| `Halo.large` | 320 | Splash screen halo behind logomark. |
+| `Halo.meshSecondary` | 360 | Mesh background secondary (blue) halo. |
+| `Halo.meshPrimary` | 420 | Mesh background primary (honey) halo. |
+
+## Blur
+
+| Token | Value | Use |
+|---|---|---|
+| `Blur.contentDim` | 2 | Content dim while a loading HUD is on top. |
+| `Blur.haloSmall` | 36 | Login halo blur. |
+| `Blur.haloMedium` | 40 | Splash / Account halo blur. |
+| `Blur.meshStandard` | 80 | Mesh halos in standard mode. |
+| `Blur.meshIntense` | 100 | Mesh halos in intense mode. |
+
+Halo / mesh **offsets** (e.g. `offset(x: -160, y: -240)`) stay as raw numbers —
+2D positioning of decorative elements is per-screen tuning, not a reusable
+vocabulary entry.
 
 ---
 
@@ -118,8 +145,9 @@ adaptive strokes on cards.
 
 ## Typography
 
-Apply via `.textStyle(_:color:)`. Each role bundles **font + default colour + tracking**.
-Override the colour per call site via the `color:` parameter — *do not* chain a
+Apply via `.textStyle(_:color:)` or `.textStyle(_:foreground:)`. Each role bundles
+**font + default colour + tracking**. Override the colour per call site via the
+`color:` (Color) or `foreground:` (any `ShapeStyle`) parameter — *do not* chain a
 trailing `.foregroundStyle`, the override slot is there to keep colour logic in
 one place.
 
@@ -127,6 +155,10 @@ one place.
 Text("New Releases").textStyle(.titleSection)
 Text("See all").textStyle(.captionEmphasis, color: .accentPrimary)
 Text("Edit profile").textStyle(.bodyEmphasis, color: .primaryTextOnDark)
+
+// For ShapeStyle values (.secondary, .tertiary, materials, gradients):
+Text("GENRE").textStyle(.label, foreground: .tertiary)
+Image(systemName: "chevron.right").textStyle(.iconRowAccessory, foreground: .tertiary)
 ```
 
 | Role | Font | Default colour | Use |
@@ -134,6 +166,8 @@ Text("Edit profile").textStyle(.bodyEmphasis, color: .primaryTextOnDark)
 | `displayHero` | 70pt semibold | primaryText | Login wordmark |
 | `displayLarge` | 42pt bold | primaryText | Splash wordmark |
 | `title` | 32pt bold | primaryText | Album hero title |
+| `displayName` | 28pt bold | primaryText | Account profile-card display name |
+| `avatarInitials` | 34pt rounded bold | primaryText | Account profile-card avatar initials |
 | `titleSection` | `.title2` bold | primaryText | Section headers ("New Releases", "Recent") |
 | `statValue` | `.title2` rounded bold | primaryText | Stat-tile numbers |
 | `statValueCompact` | 26pt rounded bold | primaryText | Account mini-stats, RateAlbum value |
@@ -144,15 +178,23 @@ Text("Edit profile").textStyle(.bodyEmphasis, color: .primaryTextOnDark)
 | `caption` | `.footnote` | secondaryText | Secondary metadata, helper text |
 | `label` | `.caption2` rounded semibold | secondaryText | **UPPERCASED** tile labels ("RATING", "RELEASED") |
 | `mono` | `.caption2` monospaced | secondaryText | Build / version strings |
+| `iconLabel` | `.caption2` semibold | primaryText | Small SF Symbol paired with a label (e.g. StatTile leading icon) |
+| `iconChip` | 11pt semibold | primaryText | SF Symbol leading a caption chip (e.g. genre chip) |
+| `iconRowAccessory` | 12pt semibold | primaryText | List-row trailing accessory (e.g. chevron) |
+| `iconAction` | 20pt bold | primaryText | SF Symbol inside an action chip (e.g. RateAlbum star chip) |
+| `iconRating` | `.title3` | primaryText | Interactive rating stars |
+| `iconPlaceholder` | 36pt | primaryText | Placeholder SF Symbol for album thumbnails |
+| `iconHero` | 50pt | primaryText | Placeholder SF Symbol behind a hero cover (AlbumDetails) |
 
 Do **not** hand-roll `.font(.system(size:weight:))` — if you need something not
 covered here, add a role rather than freelancing.
 
-The exceptions (left out of typography on purpose):
-- **Icon font sizes** sizing SF Symbols inside chips/buttons — those are
-  contextual, not body text.
-- **Account display name** (28pt bold) and **avatar initials** (34pt rounded bold) —
-  one-offs that aren't reused anywhere else.
+### SF Symbol icons via typography
+
+SF Symbols (`Image(systemName:)`) are sized via `.font` in SwiftUI, so they
+share the typography vocabulary. Apply `.textStyle(.iconChip)` (or any
+icon-named role) directly to an `Image(systemName:)`. Tracking is a no-op on
+symbols; pass `color:` explicitly when the icon shouldn't use the role default.
 
 ---
 

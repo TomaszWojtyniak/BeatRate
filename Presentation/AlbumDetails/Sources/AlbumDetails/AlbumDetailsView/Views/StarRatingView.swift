@@ -18,19 +18,16 @@ private struct StarView: View {
     var body: some View {
         ZStack {
             Image(systemName: "star")
-                .font(.title3)
-                .foregroundStyle(.gray.opacity(0.3))
+                .textStyle(.iconRating, color: .gray.opacity(0.3))
                 .scaleEffect(1.3)
 
             if fill >= 1.0 {
                 Image(systemName: "star.fill")
-                    .font(.title3)
-                    .foregroundStyle(Color.accentPrimary)
+                    .textStyle(.iconRating, color: .accentPrimary)
                     .scaleEffect(1.3)
             } else if fill >= 0.5 {
                 Image(systemName: "star.leadinghalf.filled")
-                    .font(.title3)
-                    .foregroundStyle(Color.accentPrimary)
+                    .textStyle(.iconRating, color: .accentPrimary)
                     .scaleEffect(1.3)
             }
         }

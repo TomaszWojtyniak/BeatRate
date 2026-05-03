@@ -24,16 +24,16 @@ public struct MeshBackground: View {
             // Primary (yellow) halo — top-left
             Circle()
                 .fill(Color.accentPrimarySoft)
-                .frame(width: 420, height: 420)
-                .blur(radius: intense ? 100 : 80)
+                .frame(width: Halo.meshPrimary, height: Halo.meshPrimary)
+                .blur(radius: intense ? Blur.meshIntense : Blur.meshStandard)
                 .opacity(intense ? 0.35 : 0.65)
                 .offset(x: -160, y: -240)
 
             // Secondary (blue) halo — bottom-right
             Circle()
                 .fill(Color.accentSecondarySoft)
-                .frame(width: 360, height: 360)
-                .blur(radius: intense ? 100 : 80)
+                .frame(width: Halo.meshSecondary, height: Halo.meshSecondary)
+                .blur(radius: intense ? Blur.meshIntense : Blur.meshStandard)
                 .opacity(intense ? 0.28 : 0.55)
                 .offset(x: 160, y: 280)
         }
