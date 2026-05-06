@@ -19,89 +19,56 @@ public struct SettingsView: View {
         NavigationStack {
             List {
                 Section {
-                    HStack {
-                        Image("apple_music_logo_icon", bundle: .module)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(height: Size.connectorIcon)
-                            .clipShape(Circle())
-
-                        Text("Apple Music")
-
-                        Spacer()
-
-                        if dataModel.isAppleMusicConnected {
-                            Text("Connected")
-                        } else {
-                            Button("Connect") {
-                                Task {
-                                    await dataModel.connectAppleMusic()
-                                }
-                            }
-                            .disabled(dataModel.isConnectingAppleMusic)
-                        }
+                    ConnectorRow(
+                        iconName: "apple_music_logo_icon",
+                        title: "Apple Music",
+                        isConnected: dataModel.isAppleMusicConnected,
+                        isConnecting: dataModel.isConnectingAppleMusic
+                    ) {
+                        Task { await dataModel.connectAppleMusic() }
                     }
-                    HStack {
-                        Image("spotify_logo_icon", bundle: .module)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(height: Size.connectorIcon)
-                            .clipShape(Circle())
 
-                        Text("Spotify")
-
-                        Spacer()
-
-                        if dataModel.isSpotifyConnected {
-                            Text("Connected")
-                        } else {
-                            Button("Connect") {
-                                Task {
-                                    await dataModel.connectSpotify()
-                                }
-                            }
-                            .disabled(dataModel.isConnectingSpotify)
-                        }
+                    ConnectorRow(
+                        iconName: "spotify_logo_icon",
+                        title: "Spotify",
+                        isConnected: dataModel.isSpotifyConnected,
+                        isConnecting: dataModel.isConnectingSpotify
+                    ) {
+                        Task { await dataModel.connectSpotify() }
                     }
                 } header: {
                     Text("Accounts")
                 }
             }
-            .listStyle(.automatic)
+            .listStyle(.insetGrouped)
             .safeAreaInset(edge: .bottom) {
-                Button {
+                Button(role: .destructive) {
                     dataModel.showLogoutConfirmation = true
                 } label: {
-                    HStack(spacing: Spacing.xs) {
-                        Image(systemName: "rectangle.portrait.and.arrow.right")
-                        Text("Logout")
-                    }
-                    .textStyle(.bodyEmphasis, color: .primaryTextOnDark)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: Size.signInButton)
-                    .background(
-                        Capsule(style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.red.opacity(0.95), Color.red.opacity(0.78)],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
-                    )
-                    .appShadow(.destructive)
+                    Label("Logout", systemImage: "rectangle.portrait.and.arrow.right")
+                        .textStyle(.bodyEmphasis, color: .white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, Spacing.xs)
                 }
+                .buttonStyle(.glassProminent)
+                .tint(.red)
                 .disabled(dataModel.isLoggingOut)
-                .opacity(dataModel.isLoggingOut ? 0.6 : 1.0)
                 .padding(.horizontal, Spacing.lg)
                 .padding(.bottom, Spacing.xs)
             }
             .navigationTitle("Settings")
-            .toolbarTitleDisplayMode(.inlineLarge)
+            .toolbarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
             .task {
                 await dataModel.loadUserProfile()
             }
         }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
         .alert("Are you sure you want to logout?", isPresented: $dataModel.showLogoutConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Logout", role: .destructive) {
@@ -114,11 +81,44 @@ public struct SettingsView: View {
                     }
                 }
             }
+            .tint(.red)
         }
+    }
+}
 
+private struct ConnectorRow: View {
+    let iconName: String
+    let title: String
+    let isConnected: Bool
+    let isConnecting: Bool
+    let onConnect: () -> Void
+
+    var body: some View {
+        HStack(spacing: Spacing.sm) {
+            Image(iconName, bundle: .module)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: Size.connectorIcon, height: Size.connectorIcon)
+                .clipShape(Circle())
+
+            Text(title)
+
+            Spacer(minLength: Spacing.xs)
+
+            if isConnected {
+                Text("Connected")
+                    .foregroundStyle(.secondary)
+            } else {
+                Button(isConnecting ? "Connecting…" : "Connect", action: onConnect)
+                    .tint(.accentSecondary)
+                    .disabled(isConnecting)
+            }
+        }
     }
 }
 
 #Preview {
-    SettingsView()
+    Color.clear.sheet(isPresented: .constant(true)) {
+        SettingsView()
+    }
 }

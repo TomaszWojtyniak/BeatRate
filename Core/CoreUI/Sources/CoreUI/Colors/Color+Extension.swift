@@ -118,6 +118,18 @@ public extension Color {
         endPoint: .bottom
     )
 
+    /// Apple Music brand gradient — pink-red to deep magenta. Used for the
+    /// "Open in Apple Music" CTA on AlbumDetails. Matches Apple Music's
+    /// in-app brand pill so the link reads as native.
+    static let appleMusicGradient = LinearGradient(
+        colors: [
+            Color(red: 1.00, green: 0.18, blue: 0.33),
+            Color(red: 0.98, green: 0.10, blue: 0.45)
+        ],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+
     /// Conic gradient used as the avatar ring on the Account screen
     /// (cycles honey → blue → deep honey → honey).
     static let avatarConic = AngularGradient(

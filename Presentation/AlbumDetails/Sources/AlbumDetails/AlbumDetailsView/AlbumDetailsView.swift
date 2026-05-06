@@ -20,34 +20,43 @@ struct AlbumDetailsView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: Spacing.lg) {
-                AlbumDetailsCoverView(album: dataModel.album)
-                    .padding(.top, Spacing.xxs)
+        ZStack {
+            MeshBackground(
+                primary: dataModel.meshPrimary ?? .accentPrimarySoft,
+                secondary: dataModel.meshSecondary ?? .accentSecondarySoft
+            )
+            .animation(AppAnimation.smooth, value: dataModel.meshPrimary)
 
-                AlbumDetailsMainSectionView(album: dataModel.album)
+            ScrollView {
+                VStack(spacing: Spacing.lg) {
+                    AlbumDetailsCoverView(album: dataModel.album)
+                        .padding(.top, Spacing.xxs)
 
-                AlbumDetailsTilesView(album: dataModel.album)
+                    AlbumDetailsMainSectionView(album: dataModel.album)
 
-                RateAlbumView(myRating: $dataModel.myRating) { finalRating in
-                    // Only save if initial rating has been loaded
-                    guard dataModel.hasLoadedInitialRating else { return }
+                    AlbumDetailsTilesView(album: dataModel.album)
 
-                    // Use detached task to ensure save completes even if view is dismissed
-                    // High priority - direct user action (rating)
-                    Task.detached(priority: .userInitiated) { [dataModel] in
-                        await dataModel.saveAlbumRating(rating: finalRating)
+                    RateAlbumView(myRating: $dataModel.myRating) { finalRating in
+                        // Only save if initial rating has been loaded
+                        guard dataModel.hasLoadedInitialRating else { return }
+
+                        // Use detached task to ensure save completes even if view is dismissed
+                        // High priority - direct user action (rating)
+                        Task.detached(priority: .userInitiated) { [dataModel] in
+                            await dataModel.saveAlbumRating(rating: finalRating)
+                        }
                     }
+
+                    if let tracks = dataModel.album.appleMusicAlbumData.tracks, !tracks.isEmpty {
+                        AlbumTracklistView(tracks: tracks)
+                    }
+
+                    AlbumDetailsFooterView(album: dataModel.album.appleMusicAlbumData)
                 }
+                .padding(.horizontal, Spacing.lg)
+                .padding(.bottom, Spacing.xl)
             }
-            .padding(.horizontal, Spacing.lg)
-            .padding(.bottom, Spacing.xl)
         }
-        .meshBackground(
-            primary: dataModel.meshPrimary ?? .accentPrimarySoft,
-            secondary: dataModel.meshSecondary ?? .accentSecondarySoft
-        )
-        .animation(AppAnimation.smooth, value: dataModel.meshPrimary)
         .loading(
             dataModel.isLoading
         )
