@@ -51,14 +51,24 @@ public actor MusicKitService: MusicKitServiceProtocol {
     public func fetchAlbumData(by id: String) async throws -> AppleMusicAlbumData? {
         let musicId = createMusicItemID(from: id)
         var request = MusicCatalogResourceRequest<Album>(matching: \.id, equalTo: musicId)
-        
+
         request.properties = [.genres, .tracks]
-        
+
         let response = try await request.response()
-        
+
         if let album = response.items.first {
             let coverUrl = album.artwork?.url(width: 300, height: 300)
             let genre: String? = album.genreNames.first
+            let tracks: [Models.Track]? = album.tracks?.map { track in
+                Models.Track(
+                    id: track.id.rawValue,
+                    title: track.title,
+                    trackNumber: track.trackNumber,
+                    discNumber: track.discNumber,
+                    duration: track.duration,
+                    isExplicit: track.contentRating == .explicit
+                )
+            }
 
             return AppleMusicAlbumData(
                 id: album.id.rawValue,
@@ -66,7 +76,11 @@ public actor MusicKitService: MusicKitServiceProtocol {
                 artist: album.artistName,
                 coverUrl: coverUrl,
                 releaseDate: album.releaseDate,
-                genre: genre
+                genre: genre,
+                tracks: tracks,
+                recordLabel: album.recordLabelName,
+                copyright: album.copyright,
+                appleMusicUrl: album.url
             )
         } else {
             return nil

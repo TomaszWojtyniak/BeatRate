@@ -14,19 +14,31 @@ public struct AppleMusicAlbumData: Codable, Hashable, Identifiable, Sendable {
     public let coverUrl: URL?
     public let releaseDate: Date?
     public let genre: String?
+    public let tracks: [Track]?
+    public let recordLabel: String?
+    public let copyright: String?
+    public let appleMusicUrl: URL?
 
     public init(id: String,
                 title: String,
                 artist: String,
                 coverUrl: URL?,
                 releaseDate: Date?,
-                genre: String?) {
+                genre: String?,
+                tracks: [Track]? = nil,
+                recordLabel: String? = nil,
+                copyright: String? = nil,
+                appleMusicUrl: URL? = nil) {
         self.id = id
         self.title = title
         self.artist = artist
         self.coverUrl = coverUrl
         self.releaseDate = releaseDate
         self.genre = genre
+        self.tracks = tracks
+        self.recordLabel = recordLabel
+        self.copyright = copyright
+        self.appleMusicUrl = appleMusicUrl
     }
 }
 
