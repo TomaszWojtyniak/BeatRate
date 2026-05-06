@@ -18,17 +18,7 @@ struct AlbumDetailsFooterView: View {
                         .textStyle(.bodyEmphasis, color: .white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Spacing.sm)
-                        .background(
-                            LinearGradient(
-                                colors: [
-                                    Color(red: 1.00, green: 0.18, blue: 0.33),
-                                    Color(red: 0.98, green: 0.10, blue: 0.45)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            in: .capsule
-                        )
+                        .background(Color.appleMusicGradient, in: .capsule)
                 }
                 .appShadow(.medium)
             }

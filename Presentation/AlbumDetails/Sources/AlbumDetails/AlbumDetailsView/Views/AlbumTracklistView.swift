@@ -87,7 +87,7 @@ struct AlbumTracklistView: View {
                 Text(isExpanded ? "Show less" : "Show all")
                     .textStyle(.bodyEmphasis, color: .accentPrimary)
                     .fixedSize()
-                    .frame(width: 22, alignment: .leading)
+                    .frame(width: Size.trackNumberColumn, alignment: .leading)
 
                 Spacer(minLength: Spacing.xs)
 
@@ -142,7 +142,7 @@ private struct TrackRow: View {
             Text(numberText)
                 .textStyle(.caption, color: .secondaryText)
                 .monospacedDigit()
-                .frame(width: 20, alignment: .leading)
+                .frame(width: Size.trackNumberColumn, alignment: .leading)
 
             Text(track.title)
                 .textStyle(.bodyEmphasis)

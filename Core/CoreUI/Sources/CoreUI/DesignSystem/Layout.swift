@@ -30,6 +30,9 @@ public enum Size {
     public static let coverHero:      CGFloat = 280
     /// 54 — Sign-In-with-Apple button height (Apple HIG).
     public static let signInButton:   CGFloat = 54
+    /// 22 — Width of the leading numeric column in tracklist rows
+    /// (track number + matching alignment slot for the expand/collapse label).
+    public static let trackNumberColumn: CGFloat = 22
 }
 
 /// Decorative halo / blurred-circle dimensions.
