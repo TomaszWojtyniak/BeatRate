@@ -23,6 +23,7 @@ public struct MusicAuthorizationResult: Sendable {
 public protocol MusicKitServiceProtocol: Sendable {
     func requestMusicAuthorization() async -> MusicAuthorizationResult
     func isAuthorized() async -> Bool
+    func isAuthorizationDetermined() async -> Bool
     func fetchAlbumData(by id: String) async throws -> AppleMusicAlbumData?
     func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData]
 }
@@ -42,6 +43,10 @@ public actor MusicKitService: MusicKitServiceProtocol {
     
     public func isAuthorized() async -> Bool {
         MusicAuthorization.currentStatus == .authorized
+    }
+
+    public func isAuthorizationDetermined() async -> Bool {
+        MusicAuthorization.currentStatus != .notDetermined
     }
 
     private func createMusicItemID(from stringID: String) -> MusicItemID {

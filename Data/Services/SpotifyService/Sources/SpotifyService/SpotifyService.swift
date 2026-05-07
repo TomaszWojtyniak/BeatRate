@@ -15,10 +15,21 @@ import CryptoKit
 
 // MARK: - Protocol
 
+public enum SpotifyConnectionState: Sendable {
+    /// A valid token is on file (verified against `/me`).
+    case connected
+    /// No access token in the Keychain.
+    case notConnected
+    /// We had a token but Spotify rejected it and refresh failed — the user must re-auth.
+    case invalid
+}
+
 public protocol SpotifyServiceProtocol: Sendable {
     func requestAuthorization() async throws -> SpotifyAuthResult
     func fetchRecentlyPlayed() async throws
     func hasAccessToken() async -> Bool
+    func searchAlbumId(name: String, artist: String) async -> String?
+    func verifyConnection() async -> SpotifyConnectionState
 }
 
 // MARK: - Spotify API
@@ -29,6 +40,7 @@ private nonisolated enum SpotifyAPI {
     static let baseURL = "https://api.spotify.com/v1"
     static let meURL = "\(baseURL)/me"
     static let recentlyPlayedURL = "\(baseURL)/me/player/recently-played"
+    static let searchURL = "\(baseURL)/search"
 
     static let scopes = "user-read-private user-read-recently-played"
 
@@ -92,6 +104,45 @@ public actor SpotifyService: SpotifyServiceProtocol {
         (try? await keychainManager.loadSpotifyAccessToken()) != nil
     }
 
+    /// Pings `/me` with the saved access token. On 401 attempts a refresh and retries.
+    /// Distinguishes "no token at all" from "token can't be revived" so the caller can
+    /// choose whether to prompt for re-auth.
+    public func verifyConnection() async -> SpotifyConnectionState {
+        guard var token = try? await keychainManager.loadSpotifyAccessToken() else {
+            return .notConnected
+        }
+
+        do {
+            let request = authenticatedRequest(url: SpotifyAPI.meURL, accessToken: token)
+            let (_, response) = try await URLSession.shared.data(for: request)
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+
+            if statusCode == 200 {
+                return .connected
+            }
+
+            if statusCode == 401 {
+                Logger.spotifyService.info("Verify hit 401, attempting token refresh")
+                do {
+                    token = try await refreshAccessToken()
+                    let retryRequest = authenticatedRequest(url: SpotifyAPI.meURL, accessToken: token)
+                    let (_, retryResponse) = try await URLSession.shared.data(for: retryRequest)
+                    let retryStatus = (retryResponse as? HTTPURLResponse)?.statusCode ?? -1
+                    return retryStatus == 200 ? .connected : .invalid
+                } catch {
+                    Logger.spotifyService.error("Token refresh failed during verify: \(error)")
+                    return .invalid
+                }
+            }
+
+            Logger.spotifyService.error("Verify failed with status \(statusCode)")
+            return .invalid
+        } catch {
+            Logger.spotifyService.error("Verify request threw: \(error)")
+            return .invalid
+        }
+    }
+
     // MARK: - Recently Played
 
     public func fetchRecentlyPlayed() async throws {
@@ -129,6 +180,53 @@ public actor SpotifyService: SpotifyServiceProtocol {
 
         let json = try JSONSerialization.jsonObject(with: data)
         Logger.spotifyService.info("Recently played response: \(String(describing: json))")
+    }
+
+    // MARK: - Album Search
+
+    public func searchAlbumId(name: String, artist: String) async -> String? {
+        guard var accessToken = try? await keychainManager.loadSpotifyAccessToken() else {
+            Logger.spotifyService.info("Album search skipped — no Spotify access token")
+            return nil
+        }
+
+        let query = "album:\(name) artist:\(artist)"
+        guard var components = URLComponents(string: SpotifyAPI.searchURL) else { return nil }
+        components.queryItems = [
+            URLQueryItem(name: "q", value: query),
+            URLQueryItem(name: "type", value: "album"),
+            URLQueryItem(name: "limit", value: "1")
+        ]
+        guard let url = components.url else { return nil }
+
+        do {
+            var (data, response) = try await URLSession.shared.data(
+                for: authenticatedRequest(url: url.absoluteString, accessToken: accessToken)
+            )
+            var statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+
+            if statusCode == 401 {
+                Logger.spotifyService.info("Search hit 401, refreshing token")
+                accessToken = try await refreshAccessToken()
+                (data, response) = try await URLSession.shared.data(
+                    for: authenticatedRequest(url: url.absoluteString, accessToken: accessToken)
+                )
+                statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            }
+
+            guard statusCode == 200 else {
+                Logger.spotifyService.error("Spotify search failed status \(statusCode)")
+                return nil
+            }
+
+            let decoded = try JSONDecoder().decode(SpotifySearchResponse.self, from: data)
+            let id = decoded.albums?.items.first?.id
+            Logger.spotifyService.info("Spotify search resolved album id: \(id ?? "nil")")
+            return id
+        } catch {
+            Logger.spotifyService.error("Spotify search threw: \(error)")
+            return nil
+        }
     }
 
     // MARK: - Token Refresh
@@ -296,6 +394,18 @@ private nonisolated struct SpotifyTokenResponse: Decodable, Sendable {
 
 private nonisolated struct SpotifyUserResponse: Decodable, Sendable {
     let product: String?
+}
+
+private nonisolated struct SpotifySearchResponse: Decodable, Sendable {
+    let albums: SpotifyAlbumsPage?
+
+    struct SpotifyAlbumsPage: Decodable, Sendable {
+        let items: [SpotifyAlbumItem]
+    }
+
+    struct SpotifyAlbumItem: Decodable, Sendable {
+        let id: String
+    }
 }
 
 // MARK: - Error

@@ -10,18 +10,7 @@ import SplashUseCases
 import Analytics
 import OSLog
 import Models
-
-enum AlertType: Identifiable {
-    case connectionError
-    case musicKitDenied
-
-    var id: String {
-        switch self {
-            case .connectionError: return "connectionError"
-            case .musicKitDenied: return "musicKitDenied"
-        }
-    }
-}
+import CoreApp
 
 @Observable
 @MainActor
@@ -31,6 +20,12 @@ final class SplashDataModel {
     var alertType: AlertType? = nil
     var errorMessage: String = "Unable to load data. Retrying..."
     var shouldComplete: Bool = true  // Controls whether onComplete() should be called
+    /// True when MusicKit auth is `.notDetermined` and the explainer should be shown
+    /// before triggering the system permission prompt.
+    var showsMusicKitExplainer: Bool = false
+    /// True when the user is logged in but hasn't picked a main music player yet.
+    /// Read by `AppView` to present the onboarding picker before the TabBar.
+    var needsMusicPlayerSelection: Bool = false
 
     private var retryCount: Int = 0
     private let maxRetries: Int = 3
@@ -61,6 +56,7 @@ final class SplashDataModel {
         shouldComplete = true
         alertType = nil
         retryCount = 0
+        showsMusicKitExplainer = false
 
         // Retry the full initialization
         await loadInitialData()
@@ -72,23 +68,99 @@ final class SplashDataModel {
             return
         }
 
-        // Step 2: Request MusicKit authorization (MANDATORY - app cannot function without it)
+        // Step 2a: If MusicKit auth status is .notDetermined, show the in-app explainer
+        // first. Splash will stop here and wait for the explainer's CTA, which calls
+        // continueAfterExplainer().
+        let determined = await getSplashUseCase.isMusicKitAuthorizationDetermined()
+        if !determined {
+            Logger.splash.info("MusicKit status notDetermined — showing explainer")
+            shouldComplete = false
+            showsMusicKitExplainer = true
+            return
+        }
+
+        await continueAfterMusicKitGate()
+    }
+
+    /// Called by the explainer screen's CTA (or directly when status was already determined).
+    func continueAfterExplainer() async {
+        showsMusicKitExplainer = false
+        shouldComplete = true
+        await continueAfterMusicKitGate()
+    }
+
+    private func continueAfterMusicKitGate() async {
+        // Step 2b: Request MusicKit authorization (MANDATORY - app cannot function without it)
         guard await requestMusicKitAuthorization() else {
             // MusicKit denied - show error and STAY on splash screen
             Logger.splash.error("MusicKit authorization denied - app cannot function")
             errorMessage = "BeatRate requires access to Apple Music to discover and rate albums."
             alertType = .musicKitDenied
-            shouldComplete = false  // Prevent onComplete() from being called
-            // Don't proceed - user must enable MusicKit or can't use the app
+            shouldComplete = false
             return
         }
 
-        // Step 3: Try to load from cache
+        // Step 3: Hydrate the main-music-player flag (UserDefaults → Firebase fallback).
+        let hasPicked = await getSplashUseCase.hydrateMainMusicPlayer()
+        needsMusicPlayerSelection = !hasPicked
+        Logger.splash.info("Main music player hydrated. Needs selection: \(self.needsMusicPlayerSelection)")
+
+        // Step 4: If main player is Spotify, verify the saved token still works. If it
+        // was revoked or refresh failed, surface a reconnect alert so the user can fix
+        // it instantly. Skip the check otherwise.
+        if MusicPlayerManager.shared.current == .spotify {
+            let state = await getSplashUseCase.verifySpotifyConnection()
+            switch state {
+            case .connected:
+                Logger.splash.info("Spotify connection verified")
+            case .notConnected, .invalid:
+                Logger.splash.error("Spotify connection broken: \(String(describing: state)) — prompting reconnect")
+                alertType = .spotifyReconnect
+                shouldComplete = false
+                return
+            }
+        }
+
+        // Step 5: Try to load from cache
         if await loadFromCache() {
             return
         }
 
-        // Step 4: Fetch fresh data with retry logic
+        // Step 6: Fetch fresh data with retry logic
+        await fetchFreshData()
+    }
+
+    func reconnectSpotify() async -> Bool {
+        do {
+            let success = try await getSplashUseCase.reconnectSpotify()
+            if success {
+                Logger.splash.info("Spotify reconnect succeeded")
+                shouldComplete = true
+                alertType = nil
+                if await loadFromCache() {
+                    return true
+                }
+                await fetchFreshData()
+                return true
+            } else {
+                Logger.splash.info("Spotify reconnect cancelled or denied")
+                return false
+            }
+        } catch {
+            Logger.splash.error("Spotify reconnect failed: \(error)")
+            return false
+        }
+    }
+
+    /// Skip the Spotify reconnect prompt — user proceeds without a working Spotify token.
+    /// They can still use the app; the play button on Album Details will gracefully hide
+    /// when no Spotify URL can be resolved.
+    func skipSpotifyReconnect() async {
+        alertType = nil
+        shouldComplete = true
+        if await loadFromCache() {
+            return
+        }
         await fetchFreshData()
     }
 

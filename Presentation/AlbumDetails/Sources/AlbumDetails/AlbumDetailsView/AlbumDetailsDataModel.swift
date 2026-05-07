@@ -11,6 +11,8 @@ import HomeUseCases
 import OSLog
 import Models
 import CoreUI
+import CoreApp
+import UIKit
 
 @MainActor
 @Observable
@@ -25,11 +27,53 @@ final class AlbumDetailsDataModel {
     /// view falls back to the design-system default halos in the meantime.
     var meshPrimary: Color?
     var meshSecondary: Color?
+    /// Deep-link URL for the "Play on …" footer button. Populated based on the
+    /// user's main music player (Apple Music URL from MusicKit, or the resolved
+    /// `spotify:album:{id}` URI for Spotify). `nil` while loading or unresolved.
+    var playUrl: URL?
     private var previousRating: Double = 0
 
     init(album: AlbumModel, getAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol = GetAlbumDetailsUseCase()) {
         self.album = album
         self.getAlbumDetailsUseCase = getAlbumDetailsUseCase
+    }
+
+    var playPlayer: MusicPlayer? {
+        MusicPlayerManager.shared.current
+    }
+
+    var playLabel: String {
+        switch playPlayer {
+        case .spotify: "Play on Spotify"
+        default: "Play on Apple Music"
+        }
+    }
+
+    /// Resolves `playUrl` based on the user's main music player. Apple Music uses the
+    /// album's existing `appleMusicUrl`. Spotify performs an on-demand search and
+    /// returns the `spotify:album:{id}` deep link when available.
+    func resolvePlayUrl() async {
+        switch playPlayer {
+        case .spotify:
+            let id = await getAlbumDetailsUseCase.searchSpotifyAlbumId(
+                name: album.appleMusicAlbumData.title,
+                artist: album.appleMusicAlbumData.artist
+            )
+            guard let id else {
+                playUrl = nil
+                return
+            }
+            let appUrl = URL(string: "spotify:album:\(id)")
+            let webUrl = URL(string: "https://open.spotify.com/album/\(id)")
+            if let appUrl, UIApplication.shared.canOpenURL(appUrl) {
+                playUrl = appUrl
+            } else {
+                playUrl = webUrl
+            }
+
+        case .appleMusic, .none:
+            playUrl = album.appleMusicAlbumData.appleMusicUrl
+        }
     }
 
     func fetchUserRating() async -> Double? {

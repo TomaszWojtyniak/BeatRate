@@ -19,6 +19,10 @@ public protocol GetSplashUseCaseProtocol: Sendable {
     func getCachedSections() async throws -> [HomeSection]
     func fetchHomeSections() async throws -> [HomeSection]
     func authorizeMusicKit() async -> Bool
+    func isMusicKitAuthorizationDetermined() async -> Bool
+    func hydrateMainMusicPlayer() async -> Bool
+    func verifySpotifyConnection() async -> SpotifyConnectionState
+    func reconnectSpotify() async throws -> Bool
     func cacheSections(_ sections: [HomeSection]) async throws
     func isCacheValid() async -> Bool
     func areCredentialsValid() async -> Bool
@@ -58,6 +62,67 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
     public func authorizeMusicKit() async -> Bool {
         let result = await musicRepository.requestMusicAuthorization()
         return await result.isAuthorized
+    }
+
+    public func isMusicKitAuthorizationDetermined() async -> Bool {
+        await musicRepository.isMusicKitAuthorizationDetermined()
+    }
+
+    public func verifySpotifyConnection() async -> SpotifyConnectionState {
+        await musicRepository.verifySpotifyConnection()
+    }
+
+    /// Re-runs the Spotify OAuth flow and persists the resulting flags onto the
+    /// Firebase user profile. Mirrors `SetSettingsUseCase.connectSpotify` so Splash
+    /// can offer an instant reconnect without depending on SettingUseCases.
+    public func reconnectSpotify() async throws -> Bool {
+        let authResult = try await musicRepository.requestSpotifyAuthorization()
+        guard await authResult.isAuthorized else { return false }
+
+        guard let userId = try await swiftDataManager.getCurrentUserId() else {
+            return false
+        }
+
+        let isPremium = await authResult.hasSpotifyPremium
+        let existingProfile = try await getLoginUseCase.getUserProfile(userId: userId)
+        let updatedProfile = FirebaseUserProfile(
+            email: existingProfile?.email,
+            firstName: existingProfile?.firstName,
+            lastName: existingProfile?.lastName,
+            hasAppleMusicSubscription: existingProfile?.hasAppleMusicSubscription,
+            hasSpotifyConnection: true,
+            hasSpotifyPremium: isPremium,
+            mainMusicPlayer: existingProfile?.mainMusicPlayer
+        )
+        try await loginRepository.saveUserProfile(userId: userId, profile: updatedProfile)
+        return true
+    }
+
+    /// Loads the main music player from local storage (UserDefaults), falling back to the
+    /// Firebase user profile. Hydrates `MusicPlayerManager.shared`. Returns true when a player
+    /// is set, false when the user still needs to pick one.
+    public func hydrateMainMusicPlayer() async -> Bool {
+        let userId: String
+        do {
+            guard let id = try await swiftDataManager.getCurrentUserId() else { return false }
+            userId = id
+        } catch {
+            return false
+        }
+
+        if UserDefaultsManager.shared.mainMusicPlayer(for: userId) != nil {
+            await MusicPlayerManager.shared.hydrate(for: userId)
+            return true
+        }
+
+        let profile = try? await getLoginUseCase.getUserProfile(userId: userId)
+        guard let raw = profile?.mainMusicPlayer,
+              let player = Models.MusicPlayer(rawValue: raw) else {
+            return false
+        }
+
+        await MusicPlayerManager.shared.set(player, for: userId)
+        return true
     }
     
     public func cacheSections(_ sections: [HomeSection]) async throws {
@@ -120,6 +185,11 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
     }
 
     public func logout() async throws {
+        // Capture the current userId BEFORE wiping local storage, so we can clear
+        // their per-user UserDefaults entries below. `try?` on a throwing call that
+        // returns `String?` produces `String??` — collapse to `String?` with `?? nil`.
+        let userId: String? = (try? await swiftDataManager.getCurrentUserId()) ?? nil
+
         // Step 1: Sign out from Firebase
         try await loginRepository.signOut()
 
@@ -133,6 +203,12 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
 
         // Step 4: Set user as logged out in local storage
         try await swiftDataManager.setUserLoggedOut()
+
+        // Step 5: Clear the main music player flag for this user.
+        if let userId {
+            UserDefaultsManager.shared.removeMainMusicPlayer(for: userId)
+            await MusicPlayerManager.shared.clear(for: userId)
+        }
     }
 }
 

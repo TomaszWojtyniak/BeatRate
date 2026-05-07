@@ -7,17 +7,39 @@
 
 import SwiftUI
 import CoreUI
+import Models
+import CoreApp
+import Onboarding
 
 @MainActor
 public struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var dataModel = SettingsDataModel()
+    private let musicPlayerManager = MusicPlayerManager.shared
 
     public init() {}
 
     public var body: some View {
         NavigationStack {
             List {
+                Section {
+                    NavigationLink {
+                        MusicPlayerPickerView(mode: .change)
+                    } label: {
+                        HStack(spacing: Spacing.sm) {
+                            Text("Player")
+                                .textStyle(.bodyEmphasis)
+
+                            Spacer(minLength: Spacing.xs)
+
+                            Text(musicPlayerManager.current?.displayName ?? "Not set")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } header: {
+                    Text("Main music player")
+                }
+
                 Section {
                     ConnectorRow(
                         iconName: "apple_music_logo_icon",

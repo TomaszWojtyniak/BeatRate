@@ -9,7 +9,7 @@ import OSLog
 import Analytics
 import MusicKitService
 import Models
-import SpotifyService
+@_exported import SpotifyService
 
 struct AlbumNotFoundError: Error {
     let id: String
@@ -48,9 +48,12 @@ public protocol MusicRepositoryProtocol: Sendable {
     func requestSpotifyAuthorization() async throws -> SpotifyAuthorizationInfo
     func fetchSpotifyRecentlyPlayed() async throws
     func isSpotifyTokenAvailable() async -> Bool
+    func verifySpotifyConnection() async -> SpotifyConnectionState
     func isAppleMusicAuthorized() async -> Bool
+    func isMusicKitAuthorizationDetermined() async -> Bool
     func getAlbumDataById(_ id: String) async throws -> AppleMusicAlbumData
     func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData]
+    func searchSpotifyAlbumId(name: String, artist: String) async -> String?
 }
 
 // MARK: - MusicRepository
@@ -143,7 +146,19 @@ public actor MusicRepository: MusicRepositoryProtocol {
         await spotifyService.hasAccessToken()
     }
 
+    public func verifySpotifyConnection() async -> SpotifyConnectionState {
+        await spotifyService.verifyConnection()
+    }
+
     public func isAppleMusicAuthorized() async -> Bool {
         await musicKitService.isAuthorized()
+    }
+
+    public func isMusicKitAuthorizationDetermined() async -> Bool {
+        await musicKitService.isAuthorizationDetermined()
+    }
+
+    public func searchSpotifyAlbumId(name: String, artist: String) async -> String? {
+        await spotifyService.searchAlbumId(name: name, artist: artist)
     }
 }

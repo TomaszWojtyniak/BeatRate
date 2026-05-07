@@ -104,6 +104,23 @@ public extension Color {
         dark:  rgb(90, 174, 255, 0.12)
     )
 
+    // MARK: – Status
+
+    /// Adaptive red used for error text. Slightly brighter in dark mode for legibility
+    /// against the warm cream foreground; deeper in light mode against the off-white
+    /// background.
+    static let errorRed: Color = dynamicColor(
+        light: rgb(200, 40, 50),
+        dark:  rgb(255, 95, 100)
+    )
+
+    /// Hairline stroke used on adaptive card surfaces. Pairs with `Stroke.hairline`.
+    /// Subtle in both light and dark — just enough to define the edge.
+    static let surfaceStroke: Color = dynamicColor(
+        light: rgb(0, 0, 0, 0.08),
+        dark:  rgb(255, 255, 255, 0.10)
+    )
+
     // MARK: – Decorative gradients
 
     /// Full-bleed background gradient used by the Splash and Login screens.
@@ -125,6 +142,17 @@ public extension Color {
         colors: [
             Color(red: 1.00, green: 0.18, blue: 0.33),
             Color(red: 0.98, green: 0.10, blue: 0.45)
+        ],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+
+    /// Spotify brand gradient — signature green to a deeper green.
+    /// Used for the "Open in Spotify" CTA on AlbumDetails.
+    static let spotifyGradient = LinearGradient(
+        colors: [
+            Color(red: 0.11, green: 0.73, blue: 0.33),
+            Color(red: 0.05, green: 0.50, blue: 0.22)
         ],
         startPoint: .topLeading,
         endPoint: .bottomTrailing

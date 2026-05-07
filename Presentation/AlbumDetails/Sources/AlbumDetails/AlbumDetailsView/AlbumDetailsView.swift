@@ -51,7 +51,12 @@ struct AlbumDetailsView: View {
                         AlbumTracklistView(tracks: tracks)
                     }
 
-                    AlbumDetailsFooterView(album: dataModel.album.appleMusicAlbumData)
+                    AlbumDetailsFooterView(
+                        album: dataModel.album.appleMusicAlbumData,
+                        playUrl: dataModel.playUrl,
+                        playLabel: dataModel.playLabel,
+                        playPlayer: dataModel.playPlayer
+                    )
                 }
                 .padding(.horizontal, Spacing.lg)
                 .padding(.bottom, Spacing.xl)
@@ -68,6 +73,9 @@ struct AlbumDetailsView: View {
         }
         .task {
             await dataModel.loadMeshColors()
+        }
+        .task {
+            await dataModel.resolvePlayUrl()
         }
     }
 }

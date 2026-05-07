@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreUI
+import Onboarding
 
 @MainActor
 public struct SplashView: View {
@@ -27,115 +28,106 @@ public struct SplashView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
-            // Logomark with soft accent halo for depth
-            ZStack {
-                Circle()
-                    .fill(Color.accentPrimarySoft)
-                    .frame(width: Halo.large, height: Halo.large)
-                    .blur(radius: Blur.haloMedium)
-
-                RoundedRectangle(cornerRadius: Radius.logomark, style: .continuous)
-                    .fill(Color.accentPrimaryGradient)
-                    .frame(width: Size.logomark, height: Size.logomark)
-                    .overlay(
-                        Image(systemName: "star.square.on.square.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .padding(Size.logomarkInset)
-                            .foregroundStyle(Color.white.opacity(0.95))
-                    )
-                    .appShadow(.accentLift)
+        ZStack {
+            SplashContentView(
+                isRetrying: dataModel.isRetrying,
+                errorMessage: dataModel.errorMessage
+            )
+            .task { await loadAndCompleteIfReady() }
+            .alert(alertTitle, isPresented: isAlertPresented) {
+                SplashAlertButtons(
+                    alertType: dataModel.alertType,
+                    onOpenSettings: handleOpenSettings,
+                    onRetry: handleRetry,
+                    onLogout: handleLogout,
+                    onReconnectSpotify: handleReconnectSpotify,
+                    onSkipSpotify: handleSkipSpotify
+                )
+            } message: {
+                Text(alertMessage)
             }
 
-            // Wordmark
-            Text("login.app.name", bundle: .module)
-                .textStyle(.displayLarge, color: .accentPrimary)
-                .padding(.top, Spacing.xl)
-
-            // Tagline
-            Text("Rate every album.")
-                .textStyle(.body, color: .secondaryTextOnDark)
-                .padding(.top, Spacing.xxs)
-
-            Spacer()
-
-            // Show retry status if retrying — otherwise iOS-style activity indicator
-            if dataModel.isRetrying {
-                VStack(spacing: Spacing.xs) {
-                    ProgressView()
-                        .tint(Color.accentPrimary)
-                    Text(dataModel.errorMessage)
-                        .textStyle(.caption, color: .primaryTextOnDark)
-                        .multilineTextAlignment(.center)
-                }
-                .padding(.bottom, Spacing.lg)
-            } else {
-                ProgressView()
-                    .tint(Color.accentPrimary)
-                    .padding(.bottom, Spacing.lg)
+            if dataModel.showsMusicKitExplainer {
+                MusicLibraryPermissionExplainerView(onContinue: handleExplainerContinue)
+                    .transition(.opacity)
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, Spacing.lg)
-        .padding(.vertical, Spacing.xl)
-        .background(Color.backgroundGradient)
-        .task {
-            await dataModel.loadInitialData()
-            // Only proceed if there are no critical errors
+        .animation(AppAnimation.smooth, value: dataModel.showsMusicKitExplainer)
+    }
+
+    // MARK: - Actions
+
+    private func loadAndCompleteIfReady() async {
+        await dataModel.loadInitialData()
+        if dataModel.shouldComplete {
+            onComplete()
+        }
+    }
+
+    private func handleExplainerContinue() {
+        Task {
+            await dataModel.continueAfterExplainer()
             if dataModel.shouldComplete {
                 onComplete()
             }
-            // If shouldComplete is false, we stay on splash screen with error alert
         }
-        .alert(
-            dataModel.alertType == .connectionError ? "Connection Error" : "Apple Music Access Required",
-            isPresented: isAlertPresented
-        ) {
-            if dataModel.alertType == .musicKitDenied {
-                Button("Open Settings") {
-                    if let url = URL(string: UIApplication.openSettingsURLString) {
-                        UIApplication.shared.open(url)
-                    }
-                }
-                Button("Try Again") {
-                    Task {
-                        await dataModel.retryAfterSettingsChange()
-                        if dataModel.shouldComplete {
-                            onComplete()
-                        }
-                    }
-                }
-                Button("Cancel", role: .cancel) {
-                    Task {
-                        await dataModel.logout()
-                        onComplete()
-                    }
-                }
-            } else {
-                // Connection error - offer retry
-                Button("Retry") {
-                    Task {
-                        await dataModel.retryAfterSettingsChange()
-                        if dataModel.shouldComplete {
-                            onComplete()
-                        }
-                    }
-                }
-                Button("Logout", role: .destructive) {
-                    Task {
-                        await dataModel.logout()
-                        onComplete()
-                    }
-                }
-                Button("Cancel", role: .cancel) {
-                    // Stay on splash screen with error showing
-                }
+    }
+
+    private func handleRetry() {
+        Task {
+            await dataModel.retryAfterSettingsChange()
+            if dataModel.shouldComplete {
+                onComplete()
             }
-        } message: {
-            Text(dataModel.errorMessage)
+        }
+    }
+
+    private func handleLogout() {
+        Task {
+            await dataModel.logout()
+            onComplete()
+        }
+    }
+
+    private func handleOpenSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
+    }
+
+    private func handleReconnectSpotify() {
+        Task {
+            _ = await dataModel.reconnectSpotify()
+            if dataModel.shouldComplete {
+                onComplete()
+            }
+        }
+    }
+
+    private func handleSkipSpotify() {
+        Task {
+            await dataModel.skipSpotifyReconnect()
+            if dataModel.shouldComplete {
+                onComplete()
+            }
+        }
+    }
+
+    // MARK: - Alert content
+
+    private var alertTitle: String {
+        switch dataModel.alertType {
+        case .musicKitDenied: "Apple Music Access Required"
+        case .spotifyReconnect: "Spotify needs reconnecting"
+        case .connectionError, .none: "Connection Error"
+        }
+    }
+
+    private var alertMessage: String {
+        switch dataModel.alertType {
+        case .spotifyReconnect:
+            "Your Spotify session has expired or was revoked. Reconnect now to keep using Spotify links."
+        default:
+            dataModel.errorMessage
         }
     }
 }
