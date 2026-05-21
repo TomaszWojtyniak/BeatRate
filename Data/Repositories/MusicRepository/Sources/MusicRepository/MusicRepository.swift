@@ -9,7 +9,7 @@ import OSLog
 import Analytics
 import MusicKitService
 import Models
-@_exported import SpotifyService
+import SpotifyService
 
 struct AlbumNotFoundError: Error {
     let id: String

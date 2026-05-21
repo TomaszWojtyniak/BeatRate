@@ -190,7 +190,13 @@ public actor SpotifyService: SpotifyServiceProtocol {
             return nil
         }
 
-        let query = "album:\(name) artist:\(artist)"
+        // Spotify search treats `:` and unescaped double-quotes as field/operator syntax.
+        // Wrap the field values in double quotes (the documented way to match exact phrases)
+        // and strip embedded quotes so values like `Look: An EP` or `Dr. Dre` don't corrupt
+        // the query (e.g. `album:"Look: An EP" artist:"Dr. Dre"`).
+        let sanitizedName = name.replacingOccurrences(of: "\"", with: "")
+        let sanitizedArtist = artist.replacingOccurrences(of: "\"", with: "")
+        let query = "album:\"\(sanitizedName)\" artist:\"\(sanitizedArtist)\""
         guard var components = URLComponents(string: SpotifyAPI.searchURL) else { return nil }
         components.queryItems = [
             URLQueryItem(name: "q", value: query),

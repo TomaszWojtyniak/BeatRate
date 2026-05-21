@@ -20,8 +20,7 @@ struct AlbumDetailsFooterView: View {
                 Link(destination: url) {
                     HStack(spacing: Spacing.xs) {
                         Image(systemName: "play.fill")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.white)
+                            .textStyle(.bodyEmphasis, color: .white)
 
                         Text(playLabel)
                             .textStyle(.bodyEmphasis, color: .white)

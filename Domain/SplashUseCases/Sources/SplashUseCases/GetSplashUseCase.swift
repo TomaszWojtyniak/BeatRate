@@ -7,12 +7,15 @@
 
 import SwiftUI
 import MusicRepository
+import SpotifyService
 import HomeRepository
 import LoginRepository
 import SwiftDataManager
 import LoginUseCases
 import CoreApp
 import Models
+import Analytics
+import OSLog
 import AuthenticationServices
 
 public protocol GetSplashUseCaseProtocol: Sendable {
@@ -101,6 +104,12 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
     /// Loads the main music player from local storage (UserDefaults), falling back to the
     /// Firebase user profile. Hydrates `MusicPlayerManager.shared`. Returns true when a player
     /// is set, false when the user still needs to pick one.
+    ///
+    /// Distinguishes "no value on file anywhere" (genuine first-time / unpicked) from
+    /// "transient fetch failure" (cold-launch network blip). For a transient failure we
+    /// optimistically assume the user has *already* picked something — the splash will
+    /// proceed without forcing them through the picker again. The Firebase write that
+    /// drives this branch is the source of truth; the next launch will retry.
     public func hydrateMainMusicPlayer() async -> Bool {
         let userId: String
         do {
@@ -115,7 +124,18 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
             return true
         }
 
-        let profile = try? await getLoginUseCase.getUserProfile(userId: userId)
+        // Local cache is empty — consult the Firebase profile.
+        let profile: FirebaseUserProfile?
+        do {
+            profile = try await getLoginUseCase.getUserProfile(userId: userId)
+        } catch {
+            // Transient failure (e.g. cold-launch network blip). Don't bounce the user
+            // into the picker — they may have a saved choice in Firebase we just can't
+            // reach right now. Treat as "already picked"; next launch will retry.
+            Logger.splash.warning("hydrateMainMusicPlayer: profile fetch failed (\(error)); skipping picker")
+            return true
+        }
+
         guard let raw = profile?.mainMusicPlayer,
               let player = Models.MusicPlayer(rawValue: raw) else {
             return false

@@ -7,9 +7,8 @@ import SwiftUI
 import Models
 import CoreApp
 import SettingUseCases
+import Analytics
 import OSLog
-
-private let logger = Logger(subsystem: "com.beatrate.app", category: "onboarding")
 
 @MainActor
 @Observable
@@ -32,6 +31,9 @@ final class MusicPlayerPickerDataModel {
     }
 
     /// Returns true when the screen should dismiss (selection complete).
+    /// For Spotify, the choice is **only** persisted after a successful OAuth — cancelling
+    /// or failing the connect leaves `MusicPlayerManager.current` untouched so we don't
+    /// strand the user with a player selection that has no valid token.
     func select(_ player: MusicPlayer) async -> Bool {
         isProcessing = true
         pendingChoice = player
@@ -41,30 +43,34 @@ final class MusicPlayerPickerDataModel {
             pendingChoice = nil
         }
 
-        do {
-            try await setSettingsUseCase.setMainMusicPlayer(player)
-        } catch {
-            logger.error("Failed to set main music player: \(error)")
-            errorMessage = "Couldn't save your choice. Please try again."
-            return false
-        }
-
         switch player {
         case .appleMusic:
-            return true
+            return await persist(player)
 
         case .spotify:
             do {
                 let connected = try await ensureSpotifyConnected()
-                if !connected {
+                guard connected else {
                     errorMessage = "Spotify connection was cancelled."
+                    return false
                 }
-                return connected
             } catch {
-                logger.error("Spotify connect failed: \(error)")
+                Logger.onboarding.error("Spotify connect failed: \(error)")
                 errorMessage = "Couldn't connect Spotify. Please try again."
                 return false
             }
+            return await persist(player)
+        }
+    }
+
+    private func persist(_ player: MusicPlayer) async -> Bool {
+        do {
+            try await setSettingsUseCase.setMainMusicPlayer(player)
+            return true
+        } catch {
+            Logger.onboarding.error("Failed to set main music player: \(error)")
+            errorMessage = "Couldn't save your choice. Please try again."
+            return false
         }
     }
 

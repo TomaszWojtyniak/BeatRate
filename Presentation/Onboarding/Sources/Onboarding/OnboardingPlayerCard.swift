@@ -17,38 +17,72 @@ struct OnboardingPlayerCard: View {
 
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: Spacing.md) {
-                Image(iconName, bundle: .module)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: Size.thumbnailSmall, height: Size.thumbnailSmall)
-                    .clipShape(.rect(cornerRadius: Radius.medium, style: .continuous))
-                    .appShadow(.low)
-
-                VStack(alignment: .leading, spacing: Spacing.xxs) {
-                    Text(player.displayName)
-                        .textStyle(.bodyEmphasis, color: titleColor)
-                    Text(subtitle)
-                        .textStyle(.caption, color: subtitleColor)
-                        .multilineTextAlignment(.leading)
-                }
-
-                Spacer(minLength: Spacing.xs)
-
-                trailingAccessory
-            }
-            .padding(Spacing.lg)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(cardBackground)
-            .overlay(
-                RoundedRectangle(cornerRadius: Radius.large, style: .continuous)
-                    .strokeBorder(strokeColor, lineWidth: Stroke.hairline)
-            )
-            .appShadow(.medium)
+            content
         }
         .buttonStyle(.plain)
         .disabled(isDisabled)
         .opacity(isDisabled && !isPending ? 0.6 : 1)
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if isOnboarding {
+            cardRow
+                .padding(Spacing.lg)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(onGradientBackground)
+                .overlay(
+                    RoundedRectangle(cornerRadius: Radius.large, style: .continuous)
+                        .strokeBorder(
+                            isSelected ? Color.surfaceStrokeSelected : Color.surfaceOnGradientStroke,
+                            lineWidth: Stroke.hairline
+                        )
+                )
+                .appShadow(.medium)
+        } else {
+            cardRow
+                .padding(Spacing.lg)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .roundedMaterialBackground()
+                .overlay(
+                    RoundedRectangle(cornerRadius: Radius.large, style: .continuous)
+                        .strokeBorder(
+                            isSelected ? Color.surfaceStrokeSelected : Color.surfaceStroke,
+                            lineWidth: Stroke.hairline
+                        )
+                )
+        }
+    }
+
+    private var cardRow: some View {
+        HStack(spacing: Spacing.md) {
+            Image(iconName, bundle: .module)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: Size.thumbnailSmall, height: Size.thumbnailSmall)
+                .clipShape(.rect(cornerRadius: Radius.medium, style: .continuous))
+                .appShadow(.low)
+
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
+                Text(player.displayName)
+                    .textStyle(.bodyEmphasis, color: titleColor)
+                Text(subtitle)
+                    .textStyle(.caption, color: subtitleColor)
+                    .multilineTextAlignment(.leading)
+            }
+
+            Spacer(minLength: Spacing.xs)
+
+            trailingAccessory
+        }
+    }
+
+    @ViewBuilder
+    private var onGradientBackground: some View {
+        let shape = RoundedRectangle(cornerRadius: Radius.large, style: .continuous)
+        shape
+            .fill(Color.surfaceOnGradientFill)
+            .overlay(shape.fill(Color.surfaceOnGradientSheen))
     }
 
     private var titleColor: Color {
@@ -80,42 +114,11 @@ struct OnboardingPlayerCard: View {
                 .tint(Color.accentPrimary)
         } else if isSelected {
             Image(systemName: "checkmark.circle.fill")
-                .font(.title2)
-                .foregroundStyle(Color.accentPrimary)
+                .textStyle(.iconAction, color: .accentPrimary)
         } else {
             Image(systemName: "chevron.right")
-                .font(.body)
-                .foregroundStyle(.tertiary)
+                .textStyle(.iconRowAccessory, foreground: .tertiary)
         }
     }
 
-    @ViewBuilder
-    private var cardBackground: some View {
-        let shape = RoundedRectangle(cornerRadius: Radius.large, style: .continuous)
-        if isOnboarding {
-            shape
-                .fill(Color.black.opacity(0.22))
-                .overlay(
-                    shape.fill(
-                        LinearGradient(
-                            colors: [Color.white.opacity(0.10), Color.white.opacity(0.02)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                )
-        } else {
-            shape.fill(.regularMaterial)
-        }
-    }
-
-    private var strokeColor: Color {
-        if isOnboarding {
-            return isSelected
-                ? Color.accentPrimary.opacity(0.55)
-                : Color.white.opacity(0.14)
-        } else {
-            return isSelected ? Color.accentPrimary.opacity(0.6) : Color.surfaceStroke
-        }
-    }
 }

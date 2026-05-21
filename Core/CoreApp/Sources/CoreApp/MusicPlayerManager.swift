@@ -5,9 +5,8 @@
 
 import Foundation
 import Models
+import Analytics
 import OSLog
-
-private let logger = Logger(subsystem: "com.beatrate.app", category: "musicPlayer")
 
 @Observable
 @MainActor
@@ -24,18 +23,18 @@ public final class MusicPlayerManager {
 
     public func hydrate(for userId: String) {
         current = userDefaultsManager.mainMusicPlayer(for: userId)
-        logger.debug("Hydrated for user \(userId): \(self.current?.rawValue ?? "nil")")
+        Logger.musicPlayer.debug("Hydrated for user \(userId): \(self.current?.rawValue ?? "nil")")
     }
 
     public func set(_ player: MusicPlayer, for userId: String) {
         userDefaultsManager.setMainMusicPlayer(player, for: userId)
         current = player
-        logger.info("Set to \(player.rawValue) for user \(userId)")
+        Logger.musicPlayer.info("Set to \(player.rawValue) for user \(userId)")
     }
 
     public func clear(for userId: String) {
         userDefaultsManager.removeMainMusicPlayer(for: userId)
         current = nil
-        logger.info("Cleared for user \(userId)")
+        Logger.musicPlayer.info("Cleared for user \(userId)")
     }
 }

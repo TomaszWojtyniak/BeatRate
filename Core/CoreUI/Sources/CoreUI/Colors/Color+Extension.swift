@@ -121,6 +121,26 @@ public extension Color {
         dark:  rgb(255, 255, 255, 0.10)
     )
 
+    /// Honey accent border used when a selectable surface is in the selected state.
+    /// Pairs with `Color.surfaceStroke` for the default state.
+    static let surfaceStrokeSelected: Color = .accentPrimary.opacity(0.55)
+
+    /// Tinted-dark fill for cards placed on the brand `backgroundGradient` (Splash/Login/
+    /// onboarding gradient). `.roundedMaterialBackground()` is for adaptive surfaces;
+    /// this is its fixed-dark cousin.
+    static let surfaceOnGradientFill: Color = .black.opacity(0.22)
+
+    /// Top-down glass sheen used over `surfaceOnGradientFill` so dark cards on the
+    /// brand gradient read as glass rather than a flat tile.
+    static let surfaceOnGradientSheen = LinearGradient(
+        colors: [Color.white.opacity(0.10), Color.white.opacity(0.02)],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+
+    /// Hairline edge used on `surfaceOnGradientFill` cards in the default (unselected) state.
+    static let surfaceOnGradientStroke: Color = .white.opacity(0.14)
+
     // MARK: – Decorative gradients
 
     /// Full-bleed background gradient used by the Splash and Login screens.
