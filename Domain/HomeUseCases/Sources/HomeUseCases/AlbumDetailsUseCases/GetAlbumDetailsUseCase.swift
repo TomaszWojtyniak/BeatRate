@@ -7,19 +7,24 @@
 
 import Foundation
 import HomeRepository
+import MusicRepository
 import Models
 
 public protocol GetAlbumDetailsUseCaseProtocol: Sendable {
     func getUserRating(albumId: String) async throws -> Double?
     func saveAlbumRating(albumId: String, rating: Double, albumMetadata: (artist: String, title: String)?) async throws
     func getUpdatedAlbum(albumId: String) async throws -> AlbumModel?
+    func searchSpotifyAlbumId(name: String, artist: String) async -> String?
 }
 
 public actor GetAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol {
     let homeRepository: HomeRepositoryProtocol
+    let musicRepository: MusicRepositoryProtocol
 
-    public init(homeRepository: HomeRepositoryProtocol = HomeRepository.shared) {
+    public init(homeRepository: HomeRepositoryProtocol = HomeRepository.shared,
+                musicRepository: MusicRepositoryProtocol = MusicRepository.shared) {
         self.homeRepository = homeRepository
+        self.musicRepository = musicRepository
     }
 
     public func getUserRating(albumId: String) async throws -> Double? {
@@ -32,5 +37,9 @@ public actor GetAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol {
 
     public func getUpdatedAlbum(albumId: String) async throws -> AlbumModel? {
         return try await self.homeRepository.getCachedAlbum(albumId: albumId)
+    }
+
+    public func searchSpotifyAlbumId(name: String, artist: String) async -> String? {
+        await musicRepository.searchSpotifyAlbumId(name: name, artist: artist)
     }
 }

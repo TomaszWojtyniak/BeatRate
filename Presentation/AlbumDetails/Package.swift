@@ -17,6 +17,7 @@ let package = Package(
     dependencies: [
         .package(path: "../../Core/Models"),
         .package(path: "../../Core/CoreUI"),
+        .package(path: "../../Core/CoreApp"),
         .package(path: "../../Domain/HomeUseCases"),
         .package(path: "../../Data/Services/SwiftDataManager")
     ],
@@ -28,6 +29,7 @@ let package = Package(
             dependencies: [
                 "Models",
                 "CoreUI",
+                "CoreApp",
                 "HomeUseCases",
                 "SwiftDataManager"
             ],

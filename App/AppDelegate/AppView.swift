@@ -10,10 +10,13 @@ import TabBar
 import Login
 import Models
 import Splash
+import Onboarding
+import CoreApp
 
 @MainActor
 struct AppView: View {
     @State private var dataModel = AppDataModel()
+    private let musicPlayerManager = MusicPlayerManager.shared
 
     @State private var selection: TabBarScreen? = .home
 
@@ -30,6 +33,10 @@ struct AppView: View {
                     .task {
                         await dataModel.getCurrentUser()
                         dataModel.setUserId()
+                    }
+                } else if musicPlayerManager.current == nil {
+                    NavigationStack {
+                        MusicPlayerPickerView(mode: .onboarding)
                     }
                 } else {
                     TabBarView(selection: $selection)

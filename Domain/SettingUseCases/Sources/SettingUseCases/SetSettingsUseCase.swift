@@ -10,11 +10,13 @@ import LoginUseCases
 import SwiftDataManager
 import Models
 import Analytics
+import CoreApp
 import OSLog
 
 public protocol SetSettingsUseCaseProtocol: Sendable {
     func connectAppleMusic() async throws -> Bool
     func connectSpotify() async throws -> Bool
+    func setMainMusicPlayer(_ player: MusicPlayer) async throws
 }
 
 public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
@@ -55,7 +57,8 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
             lastName: existingProfile?.lastName,
             hasAppleMusicSubscription: hasSubscription,
             hasSpotifyConnection: existingProfile?.hasSpotifyConnection,
-            hasSpotifyPremium: existingProfile?.hasSpotifyPremium
+            hasSpotifyPremium: existingProfile?.hasSpotifyPremium,
+            mainMusicPlayer: existingProfile?.mainMusicPlayer
         )
 
         try await setLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
@@ -85,12 +88,43 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
             lastName: existingProfile?.lastName,
             hasAppleMusicSubscription: existingProfile?.hasAppleMusicSubscription,
             hasSpotifyConnection: true,
-            hasSpotifyPremium: isPremium
+            hasSpotifyPremium: isPremium,
+            mainMusicPlayer: existingProfile?.mainMusicPlayer
         )
 
         try await setLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
         Logger.settings.info("Spotify connected, premium: \(isPremium)")
 
         return true
+    }
+
+    /// Persists the user's main music player choice locally (UserDefaults + observable manager)
+    /// and asynchronously syncs it to the Firebase user profile.
+    /// Local write is the source of truth; Firebase failures are logged but do not throw.
+    public func setMainMusicPlayer(_ player: MusicPlayer) async throws {
+        guard let userId = try await swiftDataManager.getCurrentUserId() else {
+            Logger.settings.error("No user ID found when saving main music player")
+            return
+        }
+
+        await MusicPlayerManager.shared.set(player, for: userId)
+        Logger.settings.info("Main music player set to \(player.rawValue)")
+
+        do {
+            let existingProfile = try await getLoginUseCase.getUserProfile(userId: userId)
+            let updatedProfile = FirebaseUserProfile(
+                email: existingProfile?.email,
+                firstName: existingProfile?.firstName,
+                lastName: existingProfile?.lastName,
+                hasAppleMusicSubscription: existingProfile?.hasAppleMusicSubscription,
+                hasSpotifyConnection: existingProfile?.hasSpotifyConnection,
+                hasSpotifyPremium: existingProfile?.hasSpotifyPremium,
+                mainMusicPlayer: player.rawValue
+            )
+            try await setLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
+            Logger.settings.info("Main music player synced to Firebase")
+        } catch {
+            Logger.settings.error("Failed to sync main music player to Firebase: \(error)")
+        }
     }
 }

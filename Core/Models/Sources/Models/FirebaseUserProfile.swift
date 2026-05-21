@@ -14,13 +14,15 @@ public struct FirebaseUserProfile: Codable, Sendable {
     public let hasAppleMusicSubscription: Bool?
     public let hasSpotifyConnection: Bool?
     public let hasSpotifyPremium: Bool?
+    public let mainMusicPlayer: String?
 
     public init(email: String?,
                 firstName: String?,
                 lastName: String?,
                 hasAppleMusicSubscription: Bool? = nil,
                 hasSpotifyConnection: Bool? = nil,
-                hasSpotifyPremium: Bool? = nil
+                hasSpotifyPremium: Bool? = nil,
+                mainMusicPlayer: String? = nil
     ) {
         self.email = email
         self.firstName = firstName
@@ -28,5 +30,6 @@ public struct FirebaseUserProfile: Codable, Sendable {
         self.hasAppleMusicSubscription = hasAppleMusicSubscription
         self.hasSpotifyConnection = hasSpotifyConnection
         self.hasSpotifyPremium = hasSpotifyPremium
+        self.mainMusicPlayer = mainMusicPlayer
     }
 }
