@@ -56,25 +56,18 @@ public actor MusicKitService: MusicKitServiceProtocol {
     
     public func fetchAlbumData(by id: String) async throws -> AppleMusicAlbumData? {
         let musicId = createMusicItemID(from: id)
-        var request = MusicCatalogResourceRequest<Album>(matching: \.id, equalTo: musicId)
+        let request = MusicCatalogResourceRequest<Album>(matching: \.id, equalTo: musicId)
 
-        request.properties = [.genres, .tracks]
+        // The track list is fetched as raw Apple Music API JSON instead of via the
+        // `.tracks` extended property: MusicKit's decoder logs a spurious
+        // "[Model] No catalogID..." console error for every track it decodes.
+        async let tracksTask = fetchTracks(albumId: id)
 
         let response = try await request.response()
 
         if let album = response.items.first {
             let coverUrl = album.artwork?.url(width: Constants.albumCoverSize, height: Constants.albumCoverSize)
             let genre: String? = album.genreNames.first
-            let tracks: [Models.Track]? = album.tracks?.map { track in
-                Models.Track(
-                    id: track.id.rawValue,
-                    title: track.title,
-                    trackNumber: track.trackNumber,
-                    discNumber: track.discNumber,
-                    duration: track.duration,
-                    isExplicit: track.contentRating == .explicit
-                )
-            }
 
             return AppleMusicAlbumData(
                 id: album.id.rawValue,
@@ -83,7 +76,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
                 coverUrl: coverUrl,
                 releaseDate: album.releaseDate,
                 genre: genre,
-                tracks: tracks,
+                tracks: try await tracksTask,
                 recordLabel: album.recordLabelName,
                 copyright: album.copyright,
                 appleMusicUrl: album.url
@@ -91,6 +84,57 @@ public actor MusicKitService: MusicKitServiceProtocol {
         } else {
             return nil
         }
+    }
+
+    /// Fetches an album's tracks through the Apple Music API `tracks` relationship
+    /// endpoint, following pagination until the full list is collected.
+    private func fetchTracks(albumId: String) async throws -> [Models.Track] {
+        let countryCode = try await currentCountryCode()
+
+        var components = URLComponents()
+        components.scheme = AppleMusicAPI.scheme
+        components.host = AppleMusicAPI.host
+        components.path = "/v1/catalog/\(countryCode)/albums/\(albumId)/tracks"
+        components.queryItems = [URLQueryItem(name: "limit", value: String(Constants.trackPageLimit))]
+
+        var tracks: [Models.Track] = []
+        var nextURL = components.url
+
+        while let url = nextURL {
+            let response = try await MusicDataRequest(urlRequest: URLRequest(url: url)).response()
+            let page = try JSONDecoder().decode(AppleMusicTracksPage.self, from: response.data)
+
+            for resource in page.data {
+                tracks.append(Models.Track(
+                    id: resource.id,
+                    title: resource.attributes.name,
+                    trackNumber: resource.attributes.trackNumber,
+                    discNumber: resource.attributes.discNumber,
+                    duration: resource.attributes.durationInMillis.map { TimeInterval($0) / 1000 },
+                    isExplicit: resource.attributes.contentRating == AppleMusicAPI.explicitRating
+                ))
+            }
+
+            nextURL = page.next.map { next in
+                var nextComponents = URLComponents()
+                nextComponents.scheme = AppleMusicAPI.scheme
+                nextComponents.host = AppleMusicAPI.host
+                return nextComponents.url.flatMap { URL(string: next, relativeTo: $0) }
+            } ?? nil
+        }
+
+        return tracks
+    }
+
+    private var cachedCountryCode: String?
+
+    private func currentCountryCode() async throws -> String {
+        if let cachedCountryCode {
+            return cachedCountryCode
+        }
+        let countryCode = try await MusicDataRequest.currentCountryCode
+        cachedCountryCode = countryCode
+        return countryCode
     }
     
     public func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData] {
@@ -187,5 +231,32 @@ public actor MusicKitService: MusicKitServiceProtocol {
         static let albumCoverSize: Int = 300
         static let albumSearchLimit: Int = 20
         static let albumRecentLimit: Int = 10
+        // Maximum the relationship endpoint accepts per page
+        static let trackPageLimit: Int = 300
+    }
+}
+
+private nonisolated enum AppleMusicAPI {
+    static let scheme = "https"
+    static let host = "api.music.apple.com"
+    static let explicitRating = "explicit"
+}
+
+/// Minimal shape of one page of the Apple Music API `albums/{id}/tracks` payload.
+private nonisolated struct AppleMusicTracksPage: Decodable {
+    let data: [Resource]
+    let next: String?
+
+    struct Resource: Decodable {
+        let id: String
+        let attributes: Attributes
+
+        struct Attributes: Decodable {
+            let name: String
+            let trackNumber: Int?
+            let discNumber: Int?
+            let durationInMillis: Int?
+            let contentRating: String?
+        }
     }
 }
