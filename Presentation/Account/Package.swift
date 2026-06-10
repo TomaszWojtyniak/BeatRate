@@ -19,6 +19,7 @@ let package = Package(
         .package(path: "../../Presentation/AlbumDetails"),
         .package(path: "../../Core/Models"),
         .package(path: "../../Core/CoreUI"),
+        .package(path: "../../Core/CoreApp"),
         .package(path: "../../Domain/LoginUseCases"),
         .package(path: "../../Domain/AccountUseCases")
     ],
@@ -32,6 +33,7 @@ let package = Package(
                 "AlbumDetails",
                 "Models",
                 "CoreUI",
+                "CoreApp",
                 "LoginUseCases",
                 "AccountUseCases",
             ],

@@ -1,0 +1,13 @@
+{
+  "id" : "30898b4d-dd56-4b2c-92ee-a0672bc1a6f3",
+  "targets" : [
+    {
+      "id" : "680170D9-1104-4697-A158-C7283E035198",
+      "name" : "BeatRate"
+    },
+    {
+      "id" : "7E0499E8-7BAF-4CF5-9590-2B6425509868",
+      "name" : "BeatRate Development"
+    }
+  ]
+}

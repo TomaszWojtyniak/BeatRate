@@ -27,6 +27,7 @@ public enum SpotifyConnectionState: Sendable {
 public protocol SpotifyServiceProtocol: Sendable {
     func requestAuthorization() async throws -> SpotifyAuthResult
     func fetchRecentlyPlayed() async throws
+    func fetchRecentlyPlayedAlbums() async throws -> [SpotifyRecentAlbum]
     func hasAccessToken() async -> Bool
     func searchAlbumId(name: String, artist: String) async -> String?
     func verifyConnection() async -> SpotifyConnectionState
@@ -146,31 +147,53 @@ public actor SpotifyService: SpotifyServiceProtocol {
     // MARK: - Recently Played
 
     public func fetchRecentlyPlayed() async throws {
+        _ = try await recentlyPlayedData(limit: 10)
+    }
+
+    public func fetchRecentlyPlayedAlbums() async throws -> [SpotifyRecentAlbum] {
+        let data = try await recentlyPlayedData(limit: 50)
+        let decoded = try JSONDecoder().decode(SpotifyRecentlyPlayedResponse.self, from: data)
+
+        var seenIds = Set<String>()
+        var albums: [SpotifyRecentAlbum] = []
+        for item in decoded.items {
+            let album = item.track.album
+            guard !seenIds.contains(album.id) else { continue }
+            seenIds.insert(album.id)
+            albums.append(
+                SpotifyRecentAlbum(
+                    id: album.id,
+                    name: album.name,
+                    artist: album.artists.first?.name ?? ""
+                )
+            )
+        }
+
+        Logger.spotifyService.info("Resolved \(albums.count) recently-played Spotify albums")
+        return albums
+    }
+
+    /// Hits the recently-played endpoint, transparently refreshing the access token
+    /// on a 401 and retrying once. Returns the raw JSON payload on success.
+    private func recentlyPlayedData(limit: Int) async throws -> Data {
         guard let accessToken = try await keychainManager.loadSpotifyAccessToken() else {
             Logger.spotifyService.error("No Spotify access token found")
             throw SpotifyAuthError.missingAccessToken
         }
 
-        let (data, response) = try await URLSession.shared.data(
-            for: authenticatedRequest(url: "\(SpotifyAPI.recentlyPlayedURL)?limit=10", accessToken: accessToken)
+        let url = "\(SpotifyAPI.recentlyPlayedURL)?limit=\(limit)"
+        var (data, response) = try await URLSession.shared.data(
+            for: authenticatedRequest(url: url, accessToken: accessToken)
         )
-
-        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+        var statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
 
         if statusCode == 401 {
             Logger.spotifyService.info("Access token expired, attempting refresh")
             let newAccessToken = try await refreshAccessToken()
-            let (retryData, retryResponse) = try await URLSession.shared.data(
-                for: authenticatedRequest(url: "\(SpotifyAPI.recentlyPlayedURL)?limit=10", accessToken: newAccessToken)
+            (data, response) = try await URLSession.shared.data(
+                for: authenticatedRequest(url: url, accessToken: newAccessToken)
             )
-            guard let retryHttp = retryResponse as? HTTPURLResponse, retryHttp.statusCode == 200 else {
-                let retryStatus = (retryResponse as? HTTPURLResponse)?.statusCode ?? -1
-                Logger.spotifyService.error("Recently played request failed after refresh with status: \(retryStatus)")
-                throw SpotifyAuthError.requestFailed(statusCode: retryStatus)
-            }
-            let json = try JSONSerialization.jsonObject(with: retryData)
-            Logger.spotifyService.info("Recently played response: \(String(describing: json))")
-            return
+            statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
         }
 
         guard statusCode == 200 else {
@@ -178,8 +201,7 @@ public actor SpotifyService: SpotifyServiceProtocol {
             throw SpotifyAuthError.requestFailed(statusCode: statusCode)
         }
 
-        let json = try JSONSerialization.jsonObject(with: data)
-        Logger.spotifyService.info("Recently played response: \(String(describing: json))")
+        return data
     }
 
     // MARK: - Album Search
@@ -411,6 +433,28 @@ private nonisolated struct SpotifySearchResponse: Decodable, Sendable {
 
     struct SpotifyAlbumItem: Decodable, Sendable {
         let id: String
+    }
+}
+
+private nonisolated struct SpotifyRecentlyPlayedResponse: Decodable, Sendable {
+    let items: [Item]
+
+    struct Item: Decodable, Sendable {
+        let track: Track
+    }
+
+    struct Track: Decodable, Sendable {
+        let album: Album
+    }
+
+    struct Album: Decodable, Sendable {
+        let id: String
+        let name: String
+        let artists: [Artist]
+    }
+
+    struct Artist: Decodable, Sendable {
+        let name: String
     }
 }
 

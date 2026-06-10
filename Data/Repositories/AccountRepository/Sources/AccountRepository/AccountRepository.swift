@@ -10,17 +10,20 @@ import OSLog
 import Analytics
 import Models
 import HomeRepository
+import MusicRepository
 import FirebaseService
 import SwiftDataManager
 
 public protocol AccountRepositoryProtocol: Sendable {
     func getUserRatedAlbums() async throws -> [AlbumModel]
+    func getRecentlyListenedAlbums(for player: MusicPlayer) async throws -> [AlbumModel]
 }
 
 public actor AccountRepository: AccountRepositoryProtocol {
     public static let shared = AccountRepository()
 
     private let homeRepository: HomeRepositoryProtocol
+    private let musicRepository: MusicRepositoryProtocol
     private let databaseFirebaseService: DatabaseFirebaseServiceProtocol
     private let swiftDataManager: SwiftDataManagerProtocol
 
@@ -30,9 +33,11 @@ public actor AccountRepository: AccountRepositoryProtocol {
     private let userIdCacheDuration: TimeInterval = 300 // 5 minutes
 
     public init(homeRepository: HomeRepositoryProtocol = HomeRepository.shared,
+                musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
                 databaseFirebaseService: DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared,
                 swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared) {
         self.homeRepository = homeRepository
+        self.musicRepository = musicRepository
         self.databaseFirebaseService = databaseFirebaseService
         self.swiftDataManager = swiftDataManager
     }
@@ -47,8 +52,28 @@ public actor AccountRepository: AccountRepositoryProtocol {
         // Fetch rated album IDs from Firebase (already sorted by timestamp, newest first)
         let albumIds = try await databaseFirebaseService.getUserRatedAlbumIds(userId: currentUserId)
 
-        // Fetch albums in parallel using task group with order preservation
-        return await withTaskGroup(of: (order: Int, album: AlbumModel?).self) { group in
+        return await albums(forIds: albumIds)
+    }
+
+    public func getRecentlyListenedAlbums(for player: MusicPlayer) async throws -> [AlbumModel] {
+        let musicData = try await musicRepository.fetchRecentlyListenedAlbums(for: player)
+
+        var seenIds = Set<String>()
+        let albums = musicData.compactMap { data -> AlbumModel? in
+            guard !seenIds.contains(data.id) else { return nil }
+            seenIds.insert(data.id)
+            return AlbumModel(id: data.id, appleMusicAlbumData: data, firebaseAlbumData: nil)
+        }
+
+        Logger.accountRepository.info("Loaded \(albums.count) recently listened albums for \(player.rawValue)")
+        return albums
+    }
+
+    // MARK: - Private Helpers
+
+    /// Hydrates a list of album IDs into full `AlbumModel`s
+    private func albums(forIds albumIds: [String]) async -> [AlbumModel] {
+        await withTaskGroup(of: (order: Int, album: AlbumModel?).self) { group in
             for (index, albumId) in albumIds.enumerated() {
                 group.addTask {
                     do {
@@ -61,13 +86,13 @@ public actor AccountRepository: AccountRepositoryProtocol {
                             return (order: index, album: album)
                         }
                     } catch {
-                        Logger.accountRepository.error("Failed to fetch rated album: \(albumId) — \(error)")
+                        Logger.accountRepository.error("Failed to fetch album: \(albumId) — \(error)")
                         return (order: index, album: nil)
                     }
                 }
             }
 
-            // Collect results and sort by original order to maintain timestamp sorting
+            // Collect results and sort by original order to maintain input ordering
             var results: [(order: Int, album: AlbumModel?)] = []
             for await result in group {
                 results.append(result)
@@ -78,8 +103,6 @@ public actor AccountRepository: AccountRepositoryProtocol {
                 .compactMap { $0.album }
         }
     }
-
-    // MARK: - Private Helpers
 
     private func getCurrentUserId() async throws -> String? {
         // Check if cached user ID is still valid

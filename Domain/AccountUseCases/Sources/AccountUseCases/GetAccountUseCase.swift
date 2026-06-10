@@ -13,6 +13,7 @@ import SwiftDataManager
 public protocol GetAccountUseCaseProtocol: Sendable {
     func getCurrentUserId() async throws -> String?
     func getUserRatedAlbums() async throws -> [AlbumModel]
+    func getRecentlyListenedAlbums(for player: MusicPlayer) async throws -> [AlbumModel]
 }
 
 public actor GetAccountUseCase: GetAccountUseCaseProtocol {
@@ -31,5 +32,9 @@ public actor GetAccountUseCase: GetAccountUseCaseProtocol {
 
     public func getUserRatedAlbums() async throws -> [AlbumModel] {
         return try await accountRepository.getUserRatedAlbums()
+    }
+
+    public func getRecentlyListenedAlbums(for player: MusicPlayer) async throws -> [AlbumModel] {
+        return try await accountRepository.getRecentlyListenedAlbums(for: player)
     }
 }

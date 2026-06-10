@@ -8,45 +8,45 @@
 import OSLog
 
 public extension Logger {
-    private static let subsystem = "BeatRate"
-    
-    static let analytics = Logger(subsystem: subsystem, category: "analytics")
-    
-    static let crashLogger = Logger(subsystem: subsystem, category: "crashLogger")
-    
-    static let homeRepository = Logger(subsystem: subsystem, category: "homeRepository")
-    
-    static let musicRepository = Logger(subsystem: subsystem, category: "musicRepository")
+    private nonisolated static let subsystem = "BeatRate"
 
-    static let musicService = Logger(subsystem: subsystem, category: "musicKit")
+    nonisolated static let analytics = Logger(subsystem: subsystem, category: "analytics")
 
-    static let loginRepository = Logger(subsystem: subsystem, category: "loginRepository")
+    nonisolated static let crashLogger = Logger(subsystem: subsystem, category: "crashLogger")
 
-    static let loginUseCases = Logger(subsystem: subsystem, category: "loginUseCases")
+    nonisolated static let homeRepository = Logger(subsystem: subsystem, category: "homeRepository")
 
-    static let firebaseService = Logger(subsystem: subsystem, category: "firebaseService")
-    
-    static let home = Logger(subsystem: subsystem, category: "home")
-    
-    static let login = Logger(subsystem: subsystem, category: "login")
-    
-    static let app = Logger(subsystem: subsystem, category: "app")
-    
-    static let splash = Logger(subsystem: subsystem, category: "splash")
+    nonisolated static let musicRepository = Logger(subsystem: subsystem, category: "musicRepository")
 
-    static let albumDetails = Logger(subsystem: subsystem, category: "albumDetails")
+    nonisolated static let musicService = Logger(subsystem: subsystem, category: "musicKit")
 
-    static let account = Logger(subsystem: subsystem, category: "account")
+    nonisolated static let loginRepository = Logger(subsystem: subsystem, category: "loginRepository")
 
-    static let accountRepository = Logger(subsystem: subsystem, category: "accountRepository")
+    nonisolated static let loginUseCases = Logger(subsystem: subsystem, category: "loginUseCases")
 
-    static let settings = Logger(subsystem: subsystem, category: "settings")
+    nonisolated static let firebaseService = Logger(subsystem: subsystem, category: "firebaseService")
 
-    static let swiftDataManager = Logger(subsystem: subsystem, category: "swiftDataManager")
-    
-    static let spotifyService = Logger(subsystem: subsystem, category: "spotifyService")
+    nonisolated static let home = Logger(subsystem: subsystem, category: "home")
 
-    static let musicPlayer = Logger(subsystem: subsystem, category: "musicPlayer")
+    nonisolated static let login = Logger(subsystem: subsystem, category: "login")
 
-    static let onboarding = Logger(subsystem: subsystem, category: "onboarding")
+    nonisolated static let app = Logger(subsystem: subsystem, category: "app")
+
+    nonisolated static let splash = Logger(subsystem: subsystem, category: "splash")
+
+    nonisolated static let albumDetails = Logger(subsystem: subsystem, category: "albumDetails")
+
+    nonisolated static let account = Logger(subsystem: subsystem, category: "account")
+
+    nonisolated static let accountRepository = Logger(subsystem: subsystem, category: "accountRepository")
+
+    nonisolated static let settings = Logger(subsystem: subsystem, category: "settings")
+
+    nonisolated static let swiftDataManager = Logger(subsystem: subsystem, category: "swiftDataManager")
+
+    nonisolated static let spotifyService = Logger(subsystem: subsystem, category: "spotifyService")
+
+    nonisolated static let musicPlayer = Logger(subsystem: subsystem, category: "musicPlayer")
+
+    nonisolated static let onboarding = Logger(subsystem: subsystem, category: "onboarding")
 }
