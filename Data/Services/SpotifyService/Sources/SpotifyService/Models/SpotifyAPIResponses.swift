@@ -1,0 +1,73 @@
+//
+//  SpotifyAPIResponses.swift
+//  SpotifyService
+//
+//  Created by Tomasz Wojtyniak on 10/06/2026.
+//
+
+import Foundation
+
+// Snake_case keys (`access_token`, ...) are handled by SpotifyNetworkClient's decoder.
+
+nonisolated struct SpotifyTokenResponse: Decodable, Sendable {
+    let accessToken: String
+    let refreshToken: String?
+}
+
+nonisolated struct SpotifyUserResponse: Decodable, Sendable {
+    let product: String?
+}
+
+nonisolated struct SpotifySearchResponse: Decodable, Sendable {
+    let albums: AlbumsPage?
+
+    struct AlbumsPage: Decodable, Sendable {
+        let items: [AlbumItem]
+    }
+
+    struct AlbumItem: Decodable, Sendable {
+        let id: String
+    }
+}
+
+nonisolated struct SpotifyRecentlyPlayedResponse: Decodable, Sendable {
+    let items: [Item]
+
+    struct Item: Decodable, Sendable {
+        let track: Track
+    }
+
+    struct Track: Decodable, Sendable {
+        let album: Album
+    }
+
+    struct Album: Decodable, Sendable {
+        let id: String
+        let name: String
+        let artists: [Artist]
+    }
+
+    struct Artist: Decodable, Sendable {
+        let name: String
+    }
+}
+
+nonisolated extension SpotifyRecentlyPlayedResponse {
+    /// Albums from the feed, deduplicated by id, in listening order.
+    var uniqueAlbums: [SpotifyRecentAlbum] {
+        var seenIds = Set<String>()
+        var albums: [SpotifyRecentAlbum] = []
+        for item in items {
+            let album = item.track.album
+            guard seenIds.insert(album.id).inserted else { continue }
+            albums.append(
+                SpotifyRecentAlbum(
+                    id: album.id,
+                    name: album.name,
+                    artist: album.artists.first?.name ?? ""
+                )
+            )
+        }
+        return albums
+    }
+}
