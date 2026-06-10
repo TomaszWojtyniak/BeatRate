@@ -8,6 +8,7 @@
 import Foundation
 import OSLog
 import Analytics
+import CoreApp
 import Models
 import HomeRepository
 import MusicRepository
@@ -71,36 +72,24 @@ public actor AccountRepository: AccountRepositoryProtocol {
 
     // MARK: - Private Helpers
 
+    /// Caps parallel cache-miss fetches (MusicKit + Firebase per album) when
+    /// hydrating long rated-album lists.
+    private nonisolated static let maxConcurrentAlbumFetches = 5
+
     /// Hydrates a list of album IDs into full `AlbumModel`s
     private func albums(forIds albumIds: [String]) async -> [AlbumModel] {
-        await withTaskGroup(of: (order: Int, album: AlbumModel?).self) { group in
-            for (index, albumId) in albumIds.enumerated() {
-                group.addTask {
-                    do {
-                        // Try cache first
-                        if let cachedAlbum = try await self.homeRepository.getCachedAlbum(albumId: albumId) {
-                            return (order: index, album: cachedAlbum)
-                        } else {
-                            // Fetch and cache album
-                            let album = try await self.homeRepository.fetchAndCacheAlbum(albumId: albumId)
-                            return (order: index, album: album)
-                        }
-                    } catch {
-                        Logger.accountRepository.error("Failed to fetch album: \(albumId) — \(error)")
-                        return (order: index, album: nil)
-                    }
+        await albumIds.concurrentCompactMap(maxConcurrent: Self.maxConcurrentAlbumFetches) { albumId in
+            do {
+                // Try cache first, then fetch and cache
+                if let cachedAlbum = try await self.homeRepository.getCachedAlbum(albumId: albumId) {
+                    return cachedAlbum
+                } else {
+                    return try await self.homeRepository.fetchAndCacheAlbum(albumId: albumId)
                 }
+            } catch {
+                Logger.accountRepository.error("Failed to fetch album: \(albumId) — \(error)")
+                return nil
             }
-
-            // Collect results and sort by original order to maintain input ordering
-            var results: [(order: Int, album: AlbumModel?)] = []
-            for await result in group {
-                results.append(result)
-            }
-
-            return results
-                .sorted { $0.order < $1.order }
-                .compactMap { $0.album }
         }
     }
 

@@ -29,7 +29,12 @@ final class SpotifyWebAuthSession: NSObject, ASWebAuthenticationPresentationCont
             session.presentationContextProvider = self
             session.prefersEphemeralWebBrowserSession = false
             activeSession = session
-            session.start()
+            // start() returning false means the completion handler will never
+            // fire — resume here or the continuation (and caller) hangs forever.
+            guard session.start() else {
+                continuation.resume(throwing: SpotifyError.authorizationFailedToStart)
+                return
+            }
         }
     }
 

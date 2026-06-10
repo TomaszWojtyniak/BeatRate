@@ -8,6 +8,7 @@
 import Foundation
 
 nonisolated enum SpotifyError: Error, LocalizedError {
+    case authorizationFailedToStart
     case missingAuthCode
     case missingAccessToken
     case invalidResponse
@@ -18,6 +19,7 @@ nonisolated enum SpotifyError: Error, LocalizedError {
 
     var errorDescription: String? {
         switch self {
+        case .authorizationFailedToStart: "Unable to start the Spotify authorization session"
         case .missingAuthCode: "No authorization code received from Spotify"
         case .missingAccessToken: "No Spotify access token found"
         case .invalidResponse: "Spotify returned a non-HTTP response"

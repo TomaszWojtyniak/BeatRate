@@ -7,6 +7,7 @@
 
 import OSLog
 import Analytics
+import CoreApp
 import MusicKitService
 import Models
 import SpotifyService
@@ -155,32 +156,23 @@ public actor MusicRepository: MusicRepositoryProtocol {
         }
     }
 
+    /// Apple throttles bursts of catalog requests, so cap how many of the up to
+    /// 50 recently-played lookups run at once.
+    private nonisolated static let maxConcurrentCatalogSearches = 5
+
     /// Looks up each Spotify-played album in the Apple Music catalog by title + artist,
     /// returning the matched Apple Music albums. Search results are loosely ranked,
     /// so each one is verified against the Spotify artist and album name.
     private func matchSpotifyAlbumsToAppleMusic(_ spotifyAlbums: [SpotifyRecentAlbum]) async -> [AppleMusicAlbumData] {
-        await withTaskGroup(of: (order: Int, album: AppleMusicAlbumData?).self) { group in
-            for (index, spotifyAlbum) in spotifyAlbums.enumerated() {
-                group.addTask {
-                    let searchTerm = "\(spotifyAlbum.name) \(spotifyAlbum.artist)"
-                        .trimmingCharacters(in: .whitespaces)
-                    let matches = (try? await self.musicKitService.searchAlbums(searchTerm: searchTerm)) ?? []
-                    guard let match = SpotifyAlbumMatcher.bestMatch(for: spotifyAlbum, in: matches) else {
-                        Logger.musicRepository.debug("No verified Apple Music match for '\(spotifyAlbum.name)' by '\(spotifyAlbum.artist)'")
-                        return (order: index, album: nil)
-                    }
-                    return (order: index, album: match)
-                }
+        await spotifyAlbums.concurrentCompactMap(maxConcurrent: Self.maxConcurrentCatalogSearches) { spotifyAlbum in
+            let searchTerm = "\(spotifyAlbum.name) \(spotifyAlbum.artist)"
+                .trimmingCharacters(in: .whitespaces)
+            let matches = (try? await self.musicKitService.searchAlbums(searchTerm: searchTerm)) ?? []
+            guard let match = SpotifyAlbumMatcher.bestMatch(for: spotifyAlbum, in: matches) else {
+                Logger.musicRepository.debug("No verified Apple Music match for '\(spotifyAlbum.name)' by '\(spotifyAlbum.artist)'")
+                return nil
             }
-
-            var results: [(order: Int, album: AppleMusicAlbumData?)] = []
-            for await result in group {
-                results.append(result)
-            }
-
-            return results
-                .sorted { $0.order < $1.order }
-                .compactMap { $0.album }
+            return match
         }
     }
 
