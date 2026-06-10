@@ -8,6 +8,7 @@
 import Foundation
 import OSLog
 import Analytics
+import CoreApp
 import Models
 import MusicRepository
 import FirebaseService
@@ -183,38 +184,26 @@ public actor HomeRepository: HomeRepositoryProtocol {
             return true
         }
 
-        // Use task group to fetch all albums in parallel
-        return await withTaskGroup(of: (order: Int, album: AlbumModel?).self) { group in
-            for (index, albumId) in uniqueAlbumIds.enumerated() {
-                group.addTask {
-                    do {
-                        try Task.checkCancellation()
-                        // Try cache first
-                        if let cachedAlbum = try await self.swiftDataManager.getCachedAlbum(id: albumId) {
-                            return (order: index, album: cachedAlbum)
-                        } else {
-                            // Fetch and cache album
-                            let album = try await self.fetchAndCacheAlbum(albumId: albumId)
-                            return (order: index, album: album)
-                        }
-                    } catch {
-                        Logger.homeRepository.error("Album not found for id: \(albumId) — \(error)")
-                        return (order: index, album: nil)
-                    }
+        // Fetch in parallel with a cap; order is preserved and failures drop out
+        return await uniqueAlbumIds.concurrentCompactMap(maxConcurrent: Self.maxConcurrentAlbumFetches) { albumId in
+            do {
+                try Task.checkCancellation()
+                // Try cache first, then fetch and cache
+                if let cachedAlbum = try await self.swiftDataManager.getCachedAlbum(id: albumId) {
+                    return cachedAlbum
+                } else {
+                    return try await self.fetchAndCacheAlbum(albumId: albumId)
                 }
+            } catch {
+                Logger.homeRepository.error("Album not found for id: \(albumId) — \(error)")
+                return nil
             }
-
-            // Collect results, sort by original order, and filter out nil albums
-            var results: [(order: Int, album: AlbumModel?)] = []
-            for await result in group {
-                results.append(result)
-            }
-
-            return results
-                .sorted { $0.order < $1.order }
-                .compactMap { $0.album }
         }
     }
+
+    /// Caps parallel cache-miss fetches (MusicKit + Firebase per album) when
+    /// hydrating a section's album list.
+    private nonisolated static let maxConcurrentAlbumFetches = 5
 
     /// Fetches album from MusicKit and Firebase, validates, and caches it
     public func fetchAndCacheAlbum(albumId: String) async throws -> AlbumModel {

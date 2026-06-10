@@ -7,6 +7,7 @@
 
 import OSLog
 import Analytics
+import CoreApp
 import MusicKitService
 import Models
 import SpotifyService
@@ -47,6 +48,7 @@ public protocol MusicRepositoryProtocol: Sendable {
     func requestMusicAuthorization() async -> MusicAuthorizationInfo
     func requestSpotifyAuthorization() async throws -> SpotifyAuthorizationInfo
     func fetchSpotifyRecentlyPlayed() async throws
+    func fetchRecentlyListenedAlbums(for player: MusicPlayer) async throws -> [AppleMusicAlbumData]
     func isSpotifyTokenAvailable() async -> Bool
     func verifySpotifyConnection() async -> SpotifyConnectionState
     func isAppleMusicAuthorized() async -> Bool
@@ -140,6 +142,38 @@ public actor MusicRepository: MusicRepositoryProtocol {
 
     public func fetchSpotifyRecentlyPlayed() async throws {
         try await spotifyService.fetchRecentlyPlayed()
+    }
+
+    // MARK: - Recently Listened
+
+    public func fetchRecentlyListenedAlbums(for player: MusicPlayer) async throws -> [AppleMusicAlbumData] {
+        switch player {
+        case .appleMusic:
+            return try await musicKitService.fetchRecentlyPlayedAlbums()
+        case .spotify:
+            let spotifyAlbums = try await spotifyService.fetchRecentlyPlayedAlbums()
+            return await matchSpotifyAlbumsToAppleMusic(spotifyAlbums)
+        }
+    }
+
+    /// Apple throttles bursts of catalog requests, so cap how many of the up to
+    /// 50 recently-played lookups run at once.
+    private nonisolated static let maxConcurrentCatalogSearches = 5
+
+    /// Looks up each Spotify-played album in the Apple Music catalog by title + artist,
+    /// returning the matched Apple Music albums. Search results are loosely ranked,
+    /// so each one is verified against the Spotify artist and album name.
+    private func matchSpotifyAlbumsToAppleMusic(_ spotifyAlbums: [SpotifyRecentAlbum]) async -> [AppleMusicAlbumData] {
+        await spotifyAlbums.concurrentCompactMap(maxConcurrent: Self.maxConcurrentCatalogSearches) { spotifyAlbum in
+            let searchTerm = "\(spotifyAlbum.name) \(spotifyAlbum.artist)"
+                .trimmingCharacters(in: .whitespaces)
+            let matches = (try? await self.musicKitService.searchAlbums(searchTerm: searchTerm)) ?? []
+            guard let match = SpotifyAlbumMatcher.bestMatch(for: spotifyAlbum, in: matches) else {
+                Logger.musicRepository.debug("No verified Apple Music match for '\(spotifyAlbum.name)' by '\(spotifyAlbum.artist)'")
+                return nil
+            }
+            return match
+        }
     }
 
     public func isSpotifyTokenAvailable() async -> Bool {

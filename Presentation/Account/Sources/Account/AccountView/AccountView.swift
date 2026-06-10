@@ -10,12 +10,14 @@ import Settings
 import Models
 import AlbumDetails
 import CoreUI
+import CoreApp
 
 public struct AccountView: View {
 
     @State private var showingSettings = false
     @State private var dataModel = AccountDataModel()
     @State private var selectedAlbum: AlbumModel?
+    private let musicPlayerManager = MusicPlayerManager.shared
 
     public init() {}
 
@@ -44,6 +46,17 @@ public struct AccountView: View {
                             .padding(.horizontal, Spacing.md)
                             .padding(.top, Spacing.xs)
 
+                        if dataModel.isShowingRecentlyListenedSection {
+                            HomeSectionView(
+                                name: "Recently Listened",
+                                albums: dataModel.recentlyListenedAlbums,
+                                selectedAlbum: $selectedAlbum
+                            )
+                            .padding(Spacing.lg)
+                            .roundedMaterialBackground()
+                            .padding(.horizontal, Spacing.md)
+                        }
+
                         if dataModel.isShowingAlbumRatingsSection {
                             HomeSectionView(
                                 name: "Ratings",
@@ -68,6 +81,9 @@ public struct AccountView: View {
                     .progressViewStyle(CircularProgressViewStyle(tint: .secondary))
                     .scaleEffect(1.3)
             }
+        }
+        .refreshable {
+            await dataModel.refresh()
         }
         .meshBackground()
         .navigationDestination(item: $selectedAlbum) { album in
@@ -94,7 +110,18 @@ public struct AccountView: View {
             }
         }
         .task {
-            await dataModel.loadUserData()
+            if dataModel.hasLoaded {
+                // Re-appearing (tab switch, popping back from album details):
+                // only ratings are likely stale, and they're a cheap fetch.
+                await dataModel.refreshRatedAlbums()
+            } else {
+                await dataModel.loadUserData()
+            }
+        }
+        .onChange(of: musicPlayerManager.current) {
+            // Main player switched (e.g. from Settings) — refresh the section to
+            // reflect the newly selected service.
+            Task { await dataModel.reloadRecentlyListenedAlbums() }
         }
     }
 

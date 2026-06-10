@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct SpotifyAuthResult: Sendable {
+public nonisolated struct SpotifyAuthResult: Sendable {
     public let isAuthorized: Bool
     public let hasSpotifyPremium: Bool
 

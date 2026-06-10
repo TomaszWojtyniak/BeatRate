@@ -30,6 +30,19 @@ When building or modifying SwiftUI views in this codebase:
 
 ## Build & Run
 
+### Verifying changes — always use the Xcode MCP
+
+After finishing any code change, **always run the Xcode MCP `BuildProject` tool**
+to verify the project builds. Do not stop work or hand back to the user until
+this has succeeded. The flow is:
+
+1. `mcp__xcode__XcodeListWindows` → get the `tabIdentifier` for `BeatRate.xcodeproj`
+2. `mcp__xcode__BuildProject` with that `tabIdentifier`
+
+Prefer the MCP over CLI `xcodebuild` — it's faster (uses the already-open Xcode
+window) and avoids the `xcode-select` developer-dir issue. Only fall back to CLI
+`xcodebuild` if the MCP is unavailable in the session.
+
 ### Building the App
 
 Two schemes available:
