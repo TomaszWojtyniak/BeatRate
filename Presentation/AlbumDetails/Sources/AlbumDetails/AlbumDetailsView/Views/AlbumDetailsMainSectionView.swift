@@ -14,7 +14,7 @@ struct AlbumDetailsCoverView: View {
     let album: AlbumModel
 
     var body: some View {
-        AlbumCoverImage(url: album.appleMusicAlbumData.coverUrl, placeholderIconStyle: .iconHero)
+        AlbumCoverImage(url: album.appleMusicAlbumData.coverUrl, contentMode: .fit, placeholderIconStyle: .iconHero)
             .frame(width: Size.coverHero, height: Size.coverHero)
             .clipShape(RoundedRectangle(cornerRadius: Radius.medium, style: .continuous))
             .appShadow(.high)

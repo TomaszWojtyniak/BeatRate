@@ -95,12 +95,12 @@ public struct AccountView: View {
         }
         .meshBackground()
         .navigationDestination(item: $selectedAlbum) { album in
-            AlbumDetailsContainer(albumId: album.id)
+            AlbumDetailsNavigationStack(album: album)
         }
         .navigationDestination(item: $selectedSection) { section in
             SectionAlbumsGridView(name: section.sectionName, albums: section.albums, selectedAlbum: $gridSelectedAlbum)
                 .navigationDestination(item: $gridSelectedAlbum) { album in
-                    AlbumDetailsContainer(albumId: album.id)
+                    AlbumDetailsNavigationStack(album: album)
                 }
         }
         .navigationTitle("Account")

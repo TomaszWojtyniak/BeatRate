@@ -82,7 +82,15 @@ public actor MusicKitService: MusicKitServiceProtocol {
         let response = try await request.response()
 
         guard let album = response.items.first else { return nil }
-        return albumData(from: album, tracks: try await tracks)
+        
+        let loadedTracks: [Models.Track]?
+        do {
+            loadedTracks = try await tracks
+        } catch {
+            Logger.musicService.error("Failed to fetch tracks for album \(id): \(error)")
+            loadedTracks = nil
+        }
+        return albumData(from: album, tracks: loadedTracks)
     }
 
     /// Fetches an album's tracks through the raw `albums/{id}/tracks` relationship

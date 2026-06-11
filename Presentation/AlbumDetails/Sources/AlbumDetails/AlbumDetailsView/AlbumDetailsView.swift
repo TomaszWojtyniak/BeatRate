@@ -75,6 +75,9 @@ struct AlbumDetailsView: View {
             await dataModel.loadMeshColors()
         }
         .task {
+            await dataModel.loadTracksIfNeeded()
+        }
+        .task {
             await dataModel.resolvePlayUrl()
         }
     }
