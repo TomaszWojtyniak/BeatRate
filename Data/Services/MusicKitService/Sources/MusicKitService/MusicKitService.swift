@@ -10,38 +10,21 @@ import OSLog
 import MusicKit
 import Models
 
-public struct MusicAuthorizationResult: Sendable {
-    public let status: MusicAuthorization.Status
-    public let hasSubscription: Bool
-
-    public init(status: MusicAuthorization.Status, hasSubscription: Bool) {
-        self.status = status
-        self.hasSubscription = hasSubscription
-    }
-}
-
-public protocol MusicKitServiceProtocol: Sendable {
-    func requestMusicAuthorization() async -> MusicAuthorizationResult
-    func isAuthorized() async -> Bool
-    func isAuthorizationDetermined() async -> Bool
-    func fetchAlbumData(by id: String) async throws -> AppleMusicAlbumData?
-    func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData]
-    func fetchRecentlyPlayedAlbums() async throws -> [AppleMusicAlbumData]
-}
-
 public actor MusicKitService: MusicKitServiceProtocol {
     public static let shared = MusicKitService()
-    let analyticsManager: AnalyticsManager
-    let crashLogger: CrashLogger
-    
-    private var canPlayAppleMusic: Bool = false
 
-    public init(analyticsManager: AnalyticsManager = .shared,
-                crashLogger: CrashLogger = .shared) {
+    let analyticsManager: AnalyticsManager
+
+    private var canPlayAppleMusic: Bool = false
+    /// The user's storefront country code, cached for the actor's lifetime.
+    private var cachedStorefront: String?
+
+    public init(analyticsManager: AnalyticsManager = .shared) {
         self.analyticsManager = analyticsManager
-        self.crashLogger = crashLogger
     }
-    
+
+    // MARK: - Authorization
+
     public func isAuthorized() async -> Bool {
         MusicAuthorization.currentStatus == .authorized
     }
@@ -50,142 +33,140 @@ public actor MusicKitService: MusicKitServiceProtocol {
         MusicAuthorization.currentStatus != .notDetermined
     }
 
-    private func createMusicItemID(from stringID: String) -> MusicItemID {
-        return MusicItemID(stringID)
+    public func requestMusicAuthorization() async -> MusicAuthorizationResult {
+        let status = await MusicAuthorization.request()
+
+        guard status == .authorized else {
+            return await MusicAuthorizationResult(status: status, hasSubscription: false)
+        }
+
+        if let subscription = await currentSubscription(timeout: Constants.subscriptionTimeout) {
+            canPlayAppleMusic = subscription.canPlayCatalogContent
+        }
+
+        return await MusicAuthorizationResult(status: status, hasSubscription: canPlayAppleMusic)
     }
-    
-    public func fetchAlbumData(by id: String) async throws -> AppleMusicAlbumData? {
-        let musicId = createMusicItemID(from: id)
-        var request = MusicCatalogResourceRequest<Album>(matching: \.id, equalTo: musicId)
 
-        request.properties = [.genres, .tracks]
-
-        let response = try await request.response()
-
-        if let album = response.items.first {
-            let coverUrl = album.artwork?.url(width: Constants.albumCoverSize, height: Constants.albumCoverSize)
-            let genre: String? = album.genreNames.first
-            let tracks: [Models.Track]? = album.tracks?.map { track in
-                Models.Track(
-                    id: track.id.rawValue,
-                    title: track.title,
-                    trackNumber: track.trackNumber,
-                    discNumber: track.discNumber,
-                    duration: track.duration,
-                    isExplicit: track.contentRating == .explicit
-                )
+    /// First value from `MusicSubscription.subscriptionUpdates`, or nil when none
+    /// arrives within `timeout` — the stream never yields on accounts without an
+    /// Apple Music capability, so the caller must not await it unbounded.
+    private func currentSubscription(timeout: Duration) async -> MusicSubscription? {
+        await withTaskGroup(of: MusicSubscription?.self) { group in
+            group.addTask {
+                for await subscription in MusicSubscription.subscriptionUpdates {
+                    return subscription
+                }
+                return nil
             }
 
-            return AppleMusicAlbumData(
-                id: album.id.rawValue,
-                title: album.title,
-                artist: album.artistName,
-                coverUrl: coverUrl,
-                releaseDate: album.releaseDate,
-                genre: genre,
-                tracks: tracks,
-                recordLabel: album.recordLabelName,
-                copyright: album.copyright,
-                appleMusicUrl: album.url
-            )
-        } else {
-            return nil
+            group.addTask {
+                try? await Task.sleep(for: timeout)
+                return nil
+            }
+
+            let first = await group.next() ?? nil
+            group.cancelAll()
+            return first
         }
     }
-    
+
+    // MARK: - Album Lookup
+
+    public func fetchAlbumData(by id: String) async throws -> AppleMusicAlbumData? {
+        // Tracks come from the raw API rather than the `.tracks` extended property:
+        // MusicKit's decoder logs a spurious "[Model] No catalogID..." console
+        // error for every track it decodes.
+        async let tracks = fetchTracks(albumId: id)
+
+        let request = MusicCatalogResourceRequest<Album>(matching: \.id, equalTo: MusicItemID(id))
+        let response = try await request.response()
+
+        guard let album = response.items.first else { return nil }
+        
+        let loadedTracks: [Models.Track]?
+        do {
+            loadedTracks = try await tracks
+        } catch {
+            Logger.musicService.error("Failed to fetch tracks for album \(id): \(error)")
+            loadedTracks = nil
+        }
+        return albumData(from: album, tracks: loadedTracks)
+    }
+
+    /// Fetches an album's tracks through the raw `albums/{id}/tracks` relationship
+    /// endpoint, following pagination until the full list is collected.
+    private func fetchTracks(albumId: String) async throws -> [Models.Track] {
+        var tracks: [Models.Track] = []
+        var nextURL: URL? = AppleMusicAPI.albumTracks(storefront: try await storefront(), albumId: albumId)
+
+        while let url = nextURL {
+            let response = try await MusicDataRequest(urlRequest: URLRequest(url: url)).response()
+            let page = try JSONDecoder().decode(AppleMusicTracksPage.self, from: response.data)
+            tracks.append(contentsOf: page.tracks)
+            nextURL = page.next.flatMap(AppleMusicAPI.nextPage)
+        }
+
+        return tracks
+    }
+
+    private func storefront() async throws -> String {
+        if let cachedStorefront {
+            return cachedStorefront
+        }
+        let storefront = try await MusicDataRequest.currentCountryCode
+        cachedStorefront = storefront
+        return storefront
+    }
+
+    // MARK: - Album Search
+
     public func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData] {
         guard !searchTerm.isEmpty else { return [] }
 
         var request = MusicCatalogSearchRequest(term: searchTerm, types: [Album.self])
         request.limit = Constants.albumSearchLimit
-
         let response = try await request.response()
 
-        return await withTaskGroup(of: AppleMusicAlbumData?.self) { group in
-            for album in response.albums {
-                group.addTask {
-                    let coverUrl = album.artwork?.url(width: Constants.albumCoverSize, height: Constants.albumCoverSize)
-                    let genre: String? = album.genreNames.first
-
-                    return AppleMusicAlbumData(
-                        id: album.id.rawValue,
-                        title: album.title,
-                        artist: album.artistName,
-                        coverUrl: coverUrl,
-                        releaseDate: album.releaseDate,
-                        genre: genre
-                    )
-                }
-            }
-
-            var results: [AppleMusicAlbumData] = []
-            for await albumData in group {
-                if let albumData = albumData {
-                    results.append(albumData)
-                }
-            }
-            return results
-        }
+        return response.albums.map { albumData(from: $0) }
     }
-    
+
+    // MARK: - Recently Played
+
     /// Returns the user's recently-played albums, most recent first.
     public func fetchRecentlyPlayedAlbums() async throws -> [AppleMusicAlbumData] {
         var request = MusicRecentlyPlayedContainerRequest()
         // Apple Music caps the recently-played limit at 10
         request.limit = Constants.albumRecentLimit
-
         let response = try await request.response()
-        return response.items.compactMap { item -> AppleMusicAlbumData? in
+
+        return response.items.compactMap { item in
             guard case let .album(album) = item else { return nil }
-            return AppleMusicAlbumData(
-                id: album.id.rawValue,
-                title: album.title,
-                artist: album.artistName,
-                coverUrl: album.artwork?.url(width: Constants.albumCoverSize, height: Constants.albumCoverSize),
-                releaseDate: album.releaseDate,
-                genre: album.genreNames.first
-            )
+            return albumData(from: album)
         }
     }
 
-    public func requestMusicAuthorization() async -> MusicAuthorizationResult {
-        let musicAuthorizationStatus = await MusicAuthorization.request()
+    // MARK: - Album Mapping
 
-        guard musicAuthorizationStatus == .authorized else {
-            return await MusicAuthorizationResult(status: musicAuthorizationStatus, hasSubscription: false)
-        }
-
-        let subscription = await withTaskGroup(of: MusicSubscription?.self) { group in
-            group.addTask {
-                for await sub in MusicSubscription.subscriptionUpdates {
-                    return sub
-                }
-                return nil
-            }
-
-            group.addTask {
-                try? await Task.sleep(for: .seconds(2))
-                return nil
-            }
-
-            let result = await group.next() ?? nil
-            group.cancelAll()
-            return result
-        }
-
-        if let subscription {
-            canPlayAppleMusic = subscription.canPlayCatalogContent
-        }
-
-        return await MusicAuthorizationResult(
-            status: musicAuthorizationStatus,
-            hasSubscription: canPlayAppleMusic
+    /// Maps a MusicKit catalog album to the app-facing model.
+    private func albumData(from album: Album, tracks: [Models.Track]? = nil) -> AppleMusicAlbumData {
+        AppleMusicAlbumData(
+            id: album.id.rawValue,
+            title: album.title,
+            artist: album.artistName,
+            coverUrl: album.artwork?.url(width: Constants.albumCoverSize, height: Constants.albumCoverSize),
+            releaseDate: album.releaseDate,
+            genre: album.genreNames.first,
+            tracks: tracks,
+            recordLabel: album.recordLabelName,
+            copyright: album.copyright,
+            appleMusicUrl: album.url
         )
     }
-    
-    private struct Constants {
+
+    private enum Constants {
         static let albumCoverSize: Int = 300
         static let albumSearchLimit: Int = 20
         static let albumRecentLimit: Int = 10
+        static let subscriptionTimeout: Duration = .seconds(2)
     }
 }

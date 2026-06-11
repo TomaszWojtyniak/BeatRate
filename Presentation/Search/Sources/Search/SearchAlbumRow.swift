@@ -15,28 +15,10 @@ struct SearchAlbumRow: View {
     var body: some View {
         HStack(spacing: Spacing.sm) {
             // Album Artwork
-            Group {
-                if let coverUrl = album.coverUrl {
-                    AsyncImage(url: coverUrl) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        Rectangle()
-                            .fill(Color.albumPlaceholderColor)
-                    }
-                } else {
-                    Rectangle()
-                        .fill(Color.albumPlaceholderColor)
-                        .overlay {
-                            Image(systemName: "music.note")
-                                .foregroundStyle(.secondary)
-                        }
-                }
-            }
-            .frame(width: Size.thumbnailSmall, height: Size.thumbnailSmall)
-            .clipShape(RoundedRectangle(cornerRadius: Radius.small, style: .continuous))
-            .appShadow(.low)
+            AlbumCoverImage(url: album.coverUrl, placeholderIconStyle: nil)
+                .frame(width: Size.thumbnailSmall, height: Size.thumbnailSmall)
+                .clipShape(RoundedRectangle(cornerRadius: Radius.small, style: .continuous))
+                .appShadow(.low)
 
             // Album Info
             VStack(alignment: .leading, spacing: Spacing.xxs) {

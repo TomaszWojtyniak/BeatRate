@@ -10,14 +10,22 @@ import Models
 
 public struct HomeSectionView: View {
 
+    private static let seeAllThreshold = 10
+
     let name: String
     let albums: [AlbumModel]
     @Binding var selectedAlbum: AlbumModel?
+    let onSeeAll: (() -> Void)?
 
-    public init(name: String, albums: [AlbumModel], selectedAlbum: Binding<AlbumModel?>) {
+    public init(name: String, albums: [AlbumModel], selectedAlbum: Binding<AlbumModel?>, onSeeAll: (() -> Void)? = nil) {
         self.name = name
         self.albums = albums
         self._selectedAlbum = selectedAlbum
+        self.onSeeAll = onSeeAll
+    }
+
+    private var visibleAlbums: [AlbumModel] {
+        onSeeAll != nil ? Array(albums.prefix(Self.seeAllThreshold)) : albums
     }
 
     public var body: some View {
@@ -28,18 +36,18 @@ public struct HomeSectionView: View {
 
                 Spacer()
 
-                Button {
-                    // TODO: navigate to full-list screen for this section
-                } label: {
-                    Text("See all")
-                        .textStyle(.captionEmphasis, color: .accentPrimary)
+                if albums.count > Self.seeAllThreshold, let onSeeAll {
+                    Button(action: onSeeAll) {
+                        Text("See all", bundle: .module)
+                            .textStyle(.captionEmphasis, color: .accentPrimary)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
 
             ScrollView(.horizontal) {
                 LazyHStack(spacing: Spacing.sm) {
-                    ForEach(albums) { album in
+                    ForEach(visibleAlbums) { album in
                         Button {
                             selectedAlbum = album
                         } label: {

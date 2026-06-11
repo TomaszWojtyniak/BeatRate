@@ -125,6 +125,16 @@ final class AlbumDetailsDataModel {
         }
     }
 
+    func loadTracksIfNeeded() async {
+        guard album.appleMusicAlbumData.tracks?.isEmpty != false else { return }
+
+        do {
+            self.album = try await getAlbumDetailsUseCase.fetchFullAlbum(albumId: album.id)
+        } catch {
+            Logger.albumDetails.error("Failed to backfill tracks for album \(self.album.id): \(error)")
+        }
+    }
+
     func refreshAlbumData() async {
         do {
             if let updatedAlbum = try await getAlbumDetailsUseCase.getUpdatedAlbum(albumId: album.id) {

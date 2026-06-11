@@ -11,38 +11,43 @@ import Models
 public struct SectionAlbumView: View {
 
     let album: AlbumModel
+    let size: CGFloat?
+
+    init(album: AlbumModel, size: CGFloat? = Size.thumbnailLarge) {
+        self.album = album
+        self.size = size
+    }
 
     public var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
-            AsyncImage(url: album.appleMusicAlbumData.coverUrl) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Rectangle()
-                    .fill(Color.albumPlaceholderColor)
-                    .overlay {
-                        Image(systemName: "music.note")
-                            .textStyle(.iconPlaceholder, color: .secondaryText)
-                    }
-            }
-            .frame(width: Size.thumbnailLarge, height: Size.thumbnailLarge)
-            .clipShape(RoundedRectangle(cornerRadius: Radius.small, style: .continuous))
-            .appShadow(.low)
+            artwork
+                .clipShape(RoundedRectangle(cornerRadius: Radius.small, style: .continuous))
+                .appShadow(.low)
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(album.appleMusicAlbumData.title)
                     .textStyle(.bodyEmphasis)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                    .frame(width: Size.thumbnailLarge, alignment: .leading)
+                    .frame(width: size, alignment: .leading)
 
                 Text(album.appleMusicAlbumData.artist)
                     .textStyle(.caption)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                    .frame(width: Size.thumbnailLarge, alignment: .leading)
+                    .frame(width: size, alignment: .leading)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var artwork: some View {
+        let cover = AlbumCoverImage(url: album.appleMusicAlbumData.coverUrl)
+
+        if let size {
+            cover.frame(width: size, height: size)
+        } else {
+            cover.aspectRatio(1, contentMode: .fit)
         }
     }
 }

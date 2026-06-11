@@ -14,21 +14,10 @@ struct AlbumDetailsCoverView: View {
     let album: AlbumModel
 
     var body: some View {
-        AsyncImage(url: album.appleMusicAlbumData.coverUrl) { image in
-            image
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-        } placeholder: {
-            Rectangle()
-                .fill(Color.albumPlaceholderColor)
-                .overlay {
-                    Image(systemName: "music.note")
-                        .textStyle(.iconHero, color: .secondaryText)
-                }
-        }
-        .frame(width: Size.coverHero, height: Size.coverHero)
-        .clipShape(RoundedRectangle(cornerRadius: Radius.medium, style: .continuous))
-        .appShadow(.high)
+        AlbumCoverImage(url: album.appleMusicAlbumData.coverUrl, contentMode: .fit, placeholderIconStyle: .iconHero)
+            .frame(width: Size.coverHero, height: Size.coverHero)
+            .clipShape(RoundedRectangle(cornerRadius: Radius.medium, style: .continuous))
+            .appShadow(.high)
     }
 }
 
