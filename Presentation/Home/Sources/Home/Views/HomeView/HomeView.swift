@@ -15,6 +15,8 @@ import CoreUI
 public struct HomeView: View {
     @State private var dataModel: HomeDataModel = HomeDataModel()
     @State private var selectedAlbum: AlbumModel?
+    @State private var selectedSection: HomeSection?
+    @State private var gridSelectedAlbum: AlbumModel?
 
     public init() {}
 
@@ -34,10 +36,15 @@ public struct HomeView: View {
                     GlassEffectContainer(spacing: Spacing.md) {
                         LazyVStack(spacing: Spacing.md) {
                             ForEach(self.dataModel.homeSections) { section in
-                                HomeSectionView(name: section.sectionName, albums: section.albums, selectedAlbum: $selectedAlbum)
-                                    .padding(Spacing.lg)
-                                    .roundedMaterialBackground()
-                                    .padding(.horizontal, Spacing.md)
+                                HomeSectionView(
+                                    name: section.sectionName,
+                                    albums: section.albums,
+                                    selectedAlbum: $selectedAlbum,
+                                    onSeeAll: { selectedSection = section }
+                                )
+                                .padding(Spacing.lg)
+                                .roundedMaterialBackground()
+                                .padding(.horizontal, Spacing.md)
                             }
                         }
                         .padding(.bottom, Spacing.lg)
@@ -51,6 +58,12 @@ public struct HomeView: View {
         }
         .navigationDestination(item: $selectedAlbum) { album in
             AlbumDetailsNavigationStack(album: album)
+        }
+        .navigationDestination(item: $selectedSection) { section in
+            SectionAlbumsGridView(name: section.sectionName, albums: section.albums, selectedAlbum: $gridSelectedAlbum)
+                .navigationDestination(item: $gridSelectedAlbum) { album in
+                    AlbumDetailsNavigationStack(album: album)
+                }
         }
         .navigationTitle(String(localized: "home.navigation.title", bundle: .module))
         .toolbarTitleDisplayMode(.inlineLarge)

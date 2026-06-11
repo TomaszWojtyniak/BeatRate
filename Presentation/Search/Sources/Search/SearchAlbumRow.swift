@@ -17,14 +17,7 @@ struct SearchAlbumRow: View {
             // Album Artwork
             Group {
                 if let coverUrl = album.coverUrl {
-                    AsyncImage(url: coverUrl) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        Rectangle()
-                            .fill(Color.albumPlaceholderColor)
-                    }
+                    AlbumCoverImage(url: coverUrl, placeholderIconStyle: nil)
                 } else {
                     Rectangle()
                         .fill(Color.albumPlaceholderColor)

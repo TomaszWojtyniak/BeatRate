@@ -17,6 +17,8 @@ public struct AccountView: View {
     @State private var showingSettings = false
     @State private var dataModel = AccountDataModel()
     @State private var selectedAlbum: AlbumModel?
+    @State private var selectedSection: HomeSection?
+    @State private var gridSelectedAlbum: AlbumModel?
     private let musicPlayerManager = MusicPlayerManager.shared
 
     public init() {}
@@ -50,7 +52,10 @@ public struct AccountView: View {
                             HomeSectionView(
                                 name: "Recently Listened",
                                 albums: dataModel.recentlyListenedAlbums,
-                                selectedAlbum: $selectedAlbum
+                                selectedAlbum: $selectedAlbum,
+                                onSeeAll: {
+                                    selectedSection = HomeSection(sectionName: "Recently Listened", albums: dataModel.recentlyListenedAlbums)
+                                }
                             )
                             .padding(Spacing.lg)
                             .roundedMaterialBackground()
@@ -61,7 +66,10 @@ public struct AccountView: View {
                             HomeSectionView(
                                 name: "Ratings",
                                 albums: dataModel.ratedAlbums,
-                                selectedAlbum: $selectedAlbum
+                                selectedAlbum: $selectedAlbum,
+                                onSeeAll: {
+                                    selectedSection = HomeSection(sectionName: "Ratings", albums: dataModel.ratedAlbums)
+                                }
                             )
                             .padding(Spacing.lg)
                             .roundedMaterialBackground()
@@ -87,7 +95,13 @@ public struct AccountView: View {
         }
         .meshBackground()
         .navigationDestination(item: $selectedAlbum) { album in
-            AlbumDetailsNavigationStack(album: album)
+            AlbumDetailsContainer(albumId: album.id)
+        }
+        .navigationDestination(item: $selectedSection) { section in
+            SectionAlbumsGridView(name: section.sectionName, albums: section.albums, selectedAlbum: $gridSelectedAlbum)
+                .navigationDestination(item: $gridSelectedAlbum) { album in
+                    AlbumDetailsContainer(albumId: album.id)
+                }
         }
         .navigationTitle("Account")
         .toolbarTitleDisplayMode(.inlineLarge)
