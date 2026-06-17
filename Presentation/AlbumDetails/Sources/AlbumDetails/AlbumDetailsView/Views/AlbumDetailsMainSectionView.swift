@@ -24,7 +24,7 @@ struct AlbumDetailsCoverView: View {
 struct AlbumDetailsMainSectionView: View {
 
     let album: AlbumModel
-    let artistButtonTappepd: () -> Void
+    let artistButtonTappped: () -> Void
 
     var body: some View {
         VStack(spacing: Spacing.md) {
@@ -35,7 +35,7 @@ struct AlbumDetailsMainSectionView: View {
                     .lineLimit(3)
 
                 Button {
-                    artistButtonTappepd()
+                    artistButtonTappped()
                 } label: {
                     HStack(spacing: Spacing.xxs) {
                         Text(album.appleMusicAlbumData.artist)
@@ -73,7 +73,7 @@ struct AlbumDetailsMainSectionView: View {
 }
 
 #Preview {
-    AlbumDetailsMainSectionView(album: AlbumModel.albumPlaceholder, artistButtonTappepd: {})
+    AlbumDetailsMainSectionView(album: AlbumModel.albumPlaceholder, artistButtonTappped: {})
         .padding()
         .background(Color.backgroundColor)
 }
