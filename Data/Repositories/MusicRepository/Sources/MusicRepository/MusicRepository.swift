@@ -20,6 +20,14 @@ struct AlbumNotFoundError: Error {
     }
 }
 
+struct ArtistNotFoundError: Error {
+    let id: String
+
+    var errorDescription: String? {
+        return "Artist for '\(id)' was not found"
+    }
+}
+
 // MARK: - Authorization Info
 
 public struct MusicAuthorizationInfo: Sendable {
@@ -54,7 +62,9 @@ public protocol MusicRepositoryProtocol: Sendable {
     func isAppleMusicAuthorized() async -> Bool
     func isMusicKitAuthorizationDetermined() async -> Bool
     func getAlbumDataById(_ id: String) async throws -> AppleMusicAlbumData
-    func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData]
+    func getArtistData(byId artistId: String) async throws -> AppleMusicArtistData
+    func getArtistData(forAlbumId albumId: String) async throws -> AppleMusicArtistData
+    func search(searchTerm: String) async throws -> MusicSearchResults
     func searchSpotifyAlbumId(name: String, artist: String) async -> String?
 }
 
@@ -119,12 +129,30 @@ public actor MusicRepository: MusicRepositoryProtocol {
         return album
     }
 
-    public func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData] {
-        Logger.musicRepository.info("Searching albums with query: '\(searchTerm)'")
+    public func getArtistData(byId artistId: String) async throws -> AppleMusicArtistData {
+        Logger.musicRepository.info("Fetching artist with ID: '\(artistId)'")
 
-        let albums = try await musicKitService.searchAlbums(searchTerm: searchTerm)
-        Logger.musicRepository.info("Found \(albums.count) albums for query: '\(searchTerm)'")
-        return albums
+        guard let artist = try await musicKitService.fetchArtistData(byId: artistId) else {
+            throw ArtistNotFoundError(id: artistId)
+        }
+        return artist
+    }
+
+    public func getArtistData(forAlbumId albumId: String) async throws -> AppleMusicArtistData {
+        Logger.musicRepository.info("Fetching artist for album: '\(albumId)'")
+
+        guard let artist = try await musicKitService.fetchArtistData(forAlbumId: albumId) else {
+            throw ArtistNotFoundError(id: albumId)
+        }
+        return artist
+    }
+
+    public func search(searchTerm: String) async throws -> MusicSearchResults {
+        Logger.musicRepository.info("Searching catalog with query: '\(searchTerm)'")
+
+        let results = try await musicKitService.search(searchTerm: searchTerm)
+        Logger.musicRepository.info("Found \(results.albums.count) albums and \(results.artists.count) artists for query: '\(searchTerm)'")
+        return results
     }
 
     // MARK: - Spotify

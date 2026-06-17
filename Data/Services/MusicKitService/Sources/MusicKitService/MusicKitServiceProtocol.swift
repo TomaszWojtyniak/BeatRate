@@ -23,6 +23,9 @@ public protocol MusicKitServiceProtocol: Sendable {
     func isAuthorized() async -> Bool
     func isAuthorizationDetermined() async -> Bool
     func fetchAlbumData(by id: String) async throws -> AppleMusicAlbumData?
+    func fetchArtistData(byId artistId: String) async throws -> AppleMusicArtistData?
+    func fetchArtistData(forAlbumId albumId: String) async throws -> AppleMusicArtistData?
     func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData]
+    func search(searchTerm: String) async throws -> MusicSearchResults
     func fetchRecentlyPlayedAlbums() async throws -> [AppleMusicAlbumData]
 }

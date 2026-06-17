@@ -115,6 +115,7 @@
 			membershipExceptions = (
 				Account,
 				AlbumDetails,
+				ArtistDetails,
 				Home,
 				Login,
 				Onboarding,
@@ -130,6 +131,7 @@
 			membershipExceptions = (
 				Account,
 				AlbumDetails,
+				ArtistDetails,
 				Home,
 				Login,
 				Onboarding,
@@ -173,6 +175,7 @@
 			membershipExceptions = (
 				AccountUseCases,
 				AppUseCases,
+				ArtistUseCase,
 				HomeUseCases,
 				LoginUseCases,
 				SettingUseCases,
@@ -185,6 +188,7 @@
 			membershipExceptions = (
 				AccountUseCases,
 				AppUseCases,
+				ArtistUseCase,
 				HomeUseCases,
 				LoginUseCases,
 				SettingUseCases,

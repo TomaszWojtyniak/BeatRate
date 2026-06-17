@@ -13,7 +13,7 @@ public struct SectionAlbumView: View {
     let album: AlbumModel
     let size: CGFloat?
 
-    init(album: AlbumModel, size: CGFloat? = Size.thumbnailLarge) {
+    public init(album: AlbumModel, size: CGFloat? = Size.thumbnailLarge) {
         self.album = album
         self.size = size
     }
