@@ -10,7 +10,7 @@ import MusicRepository
 import Models
 
 public protocol GetSearchUseCaseProtocol: Sendable {
-    func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData]
+    func search(searchTerm: String) async throws -> MusicSearchResults
 }
 
 public actor GetSearchUseCase: GetSearchUseCaseProtocol {
@@ -20,11 +20,11 @@ public actor GetSearchUseCase: GetSearchUseCaseProtocol {
         self.musicRepository = musicRepository
     }
 
-    public func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData] {
+    public func search(searchTerm: String) async throws -> MusicSearchResults {
         guard !searchTerm.isEmpty else {
-            return []
+            return .empty
         }
 
-        return try await self.musicRepository.searchAlbums(searchTerm: searchTerm)
+        return try await self.musicRepository.search(searchTerm: searchTerm)
     }
 }

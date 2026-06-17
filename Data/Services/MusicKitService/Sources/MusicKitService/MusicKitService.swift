@@ -118,7 +118,56 @@ public actor MusicKitService: MusicKitServiceProtocol {
         return storefront
     }
 
-    // MARK: - Album Search
+    // MARK: - Artist Lookup
+
+    public func fetchArtistData(byId artistId: String) async throws -> AppleMusicArtistData? {
+        let request = MusicCatalogResourceRequest<Artist>(matching: \.id, equalTo: MusicItemID(artistId))
+        let response = try await request.response()
+
+        guard let artist = response.items.first else { return nil }
+
+        let detailedArtist = try await artist.with([.fullAlbums, .singles, .latestRelease])
+        let fullAlbums = try await allBatches(of: detailedArtist.fullAlbums)
+        let singles = try await allBatches(of: detailedArtist.singles)
+
+        return artistData(
+            from: detailedArtist,
+            albums: fullAlbums.map { albumData(from: $0) },
+            singles: singles.map { albumData(from: $0) },
+            latestRelease: detailedArtist.latestRelease.map { albumData(from: $0) }
+        )
+    }
+
+    public func fetchArtistData(forAlbumId albumId: String) async throws -> AppleMusicArtistData? {
+        var request = MusicCatalogResourceRequest<Album>(matching: \.id, equalTo: MusicItemID(albumId))
+        request.properties = [.artists]
+        let response = try await request.response()
+
+        guard let artist = response.items.first?.artists?.first else { return nil }
+
+        return try await fetchArtistData(byId: artist.id.rawValue)
+    }
+
+    /// Collects an album relationship across its paginated batches, capped so
+    /// huge discographies don't fan out into unbounded requests.
+    private func allBatches(of collection: MusicItemCollection<Album>?) async throws -> [Album] {
+        guard let collection else { return [] }
+
+        var albums = Array(collection)
+        var currentBatch = collection
+        var batchCount = 1
+
+        while currentBatch.hasNextBatch, batchCount < Constants.maxArtistAlbumBatches {
+            guard let nextBatch = try await currentBatch.nextBatch() else { break }
+            albums.append(contentsOf: nextBatch)
+            currentBatch = nextBatch
+            batchCount += 1
+        }
+
+        return albums
+    }
+
+    // MARK: - Catalog Search
 
     public func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData] {
         guard !searchTerm.isEmpty else { return [] }
@@ -128,6 +177,19 @@ public actor MusicKitService: MusicKitServiceProtocol {
         let response = try await request.response()
 
         return response.albums.map { albumData(from: $0) }
+    }
+
+    public func search(searchTerm: String) async throws -> MusicSearchResults {
+        guard !searchTerm.isEmpty else { return .empty }
+
+        var request = MusicCatalogSearchRequest(term: searchTerm, types: [Album.self, Artist.self])
+        request.limit = Constants.albumSearchLimit
+        let response = try await request.response()
+
+        return MusicSearchResults(
+            albums: response.albums.map { albumData(from: $0) },
+            artists: response.artists.map { artistData(from: $0) }
+        )
     }
 
     // MARK: - Recently Played
@@ -163,10 +225,31 @@ public actor MusicKitService: MusicKitServiceProtocol {
         )
     }
 
+    // MARK: - Artist Mapping
+
+    /// Maps a MusicKit catalog artist to the app-facing model.
+    private func artistData(from artist: Artist,
+                            albums: [AppleMusicAlbumData]? = nil,
+                            singles: [AppleMusicAlbumData]? = nil,
+                            latestRelease: AppleMusicAlbumData? = nil) -> AppleMusicArtistData {
+        AppleMusicArtistData(
+            id: artist.id.rawValue,
+            name: artist.name,
+            imageUrl: artist.artwork?.url(width: Constants.albumCoverSize, height: Constants.albumCoverSize),
+            genres: artist.genreNames ?? [],
+            appleMusicUrl: artist.url,
+            albums: albums,
+            singles: singles,
+            latestRelease: latestRelease
+        )
+    }
+
     private enum Constants {
         static let albumCoverSize: Int = 300
         static let albumSearchLimit: Int = 20
         static let albumRecentLimit: Int = 10
+        // Relationship batches hold 25 items, so four batches ≈ 100 albums per section.
+        static let maxArtistAlbumBatches: Int = 4
         static let subscriptionTimeout: Duration = .seconds(2)
     }
 }

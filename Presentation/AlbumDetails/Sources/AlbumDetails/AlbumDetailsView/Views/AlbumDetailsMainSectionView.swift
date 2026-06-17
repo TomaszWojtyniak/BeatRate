@@ -24,6 +24,7 @@ struct AlbumDetailsCoverView: View {
 struct AlbumDetailsMainSectionView: View {
 
     let album: AlbumModel
+    let artistButtonTappped: () -> Void
 
     var body: some View {
         VStack(spacing: Spacing.md) {
@@ -33,10 +34,18 @@ struct AlbumDetailsMainSectionView: View {
                     .multilineTextAlignment(.center)
                     .lineLimit(3)
 
-                Text(album.appleMusicAlbumData.artist)
-                    .textStyle(.secondaryDetail, color: .secondaryText)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
+                Button {
+                    artistButtonTappped()
+                } label: {
+                    HStack(spacing: Spacing.xxs) {
+                        Text(album.appleMusicAlbumData.artist)
+                            .textStyle(.secondaryDetail, color: .accentPrimary)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                        Image(systemName: "chevron.right")
+                            .textStyle(.iconRowAccessory, color: .accentPrimary)
+                    }
+                }
             }
             .padding(.horizontal)
 
@@ -64,7 +73,7 @@ struct AlbumDetailsMainSectionView: View {
 }
 
 #Preview {
-    AlbumDetailsMainSectionView(album: AlbumModel.albumPlaceholder)
+    AlbumDetailsMainSectionView(album: AlbumModel.albumPlaceholder, artistButtonTappped: {})
         .padding()
         .background(Color.backgroundColor)
 }

@@ -57,12 +57,12 @@ public struct HomeView: View {
             }
         }
         .navigationDestination(item: $selectedAlbum) { album in
-            AlbumDetailsNavigationStack(album: album)
+            AlbumDetailsView(album: album)
         }
         .navigationDestination(item: $selectedSection) { section in
             SectionAlbumsGridView(name: section.sectionName, albums: section.albums, selectedAlbum: $gridSelectedAlbum)
                 .navigationDestination(item: $gridSelectedAlbum) { album in
-                    AlbumDetailsNavigationStack(album: album)
+                    AlbumDetailsView(album: album)
                 }
         }
         .navigationTitle(String(localized: "home.navigation.title", bundle: .module))

@@ -19,8 +19,13 @@ public final class SearchDataModel {
     private var searchTask: Task<Void, Never>?
 
     public var albums: [AppleMusicAlbumData] = []
+    public var artists: [AppleMusicArtistData] = []
     public var recentAlbums: [AppleMusicAlbumData] = []
     public var isLoading: Bool = false
+    
+    public var hasResults: Bool {
+        !albums.isEmpty || !artists.isEmpty
+    }
 
     public init(
         getSearchUseCase: GetSearchUseCaseProtocol = GetSearchUseCase(),
@@ -44,6 +49,7 @@ public final class SearchDataModel {
 
         guard !searchTerm.isEmpty else {
             albums = []
+            artists = []
             isLoading = false
             return
         }
@@ -62,7 +68,7 @@ public final class SearchDataModel {
             }
 
             do {
-                let results = try await getSearchUseCase.searchAlbums(searchTerm: searchTerm)
+                let results = try await getSearchUseCase.search(searchTerm: searchTerm)
 
                 // Check again if task was cancelled
                 guard !Task.isCancelled else {
@@ -70,7 +76,8 @@ public final class SearchDataModel {
                     return
                 }
 
-                albums = results
+                albums = results.albums
+                artists = results.artists
                 isLoading = false
             } catch {
                 guard !Task.isCancelled else {
@@ -78,6 +85,7 @@ public final class SearchDataModel {
                     return
                 }
                 albums = []
+                artists = []
                 isLoading = false
             }
         }

@@ -8,18 +8,20 @@
 import SwiftUI
 import Models
 import CoreUI
+import ArtistDetails
 
-struct AlbumDetailsView: View {
+public struct AlbumDetailsView: View {
 
     let album: AlbumModel
     @State private var dataModel: AlbumDetailsDataModel
+    @State private var selectedAlbumId: String?
 
-    init(album: AlbumModel) {
+    public init(album: AlbumModel) {
         self.album = album
         self._dataModel = State(initialValue: AlbumDetailsDataModel(album: album))
     }
 
-    var body: some View {
+    public var body: some View {
         ZStack {
             MeshBackground(
                 primary: dataModel.meshPrimary ?? .accentPrimarySoft,
@@ -32,7 +34,9 @@ struct AlbumDetailsView: View {
                     AlbumDetailsCoverView(album: dataModel.album)
                         .padding(.top, Spacing.xxs)
 
-                    AlbumDetailsMainSectionView(album: dataModel.album)
+                    AlbumDetailsMainSectionView(album: dataModel.album) {
+                        selectedAlbumId = dataModel.album.appleMusicAlbumData.id
+                    }
 
                     AlbumDetailsTilesView(album: dataModel.album)
 
@@ -65,6 +69,13 @@ struct AlbumDetailsView: View {
         .loading(
             dataModel.isLoading
         )
+        .navigationDestination(item: $selectedAlbumId) { albumId in
+            // Bare view in the existing stack. Inject the album destination so
+            // ArtistDetails can push album details back without importing AlbumDetails.
+            ArtistDetailsView(albumId: albumId) { album in
+                AnyView(AlbumDetailsView(album: album))
+            }
+        }
         .task {
             if let userRating = await dataModel.fetchUserRating() {
                 dataModel.myRating = userRating

@@ -19,7 +19,8 @@ let package = Package(
         .package(path: "../../Core/CoreUI"),
         .package(path: "../../Core/CoreApp"),
         .package(path: "../../Domain/HomeUseCases"),
-        .package(path: "../../Data/Services/SwiftDataManager")
+        .package(path: "../../Data/Services/SwiftDataManager"),
+        .package(path: "../ArtistDetails")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -31,7 +32,8 @@ let package = Package(
                 "CoreUI",
                 "CoreApp",
                 "HomeUseCases",
-                "SwiftDataManager"
+                "SwiftDataManager",
+                "ArtistDetails"
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)

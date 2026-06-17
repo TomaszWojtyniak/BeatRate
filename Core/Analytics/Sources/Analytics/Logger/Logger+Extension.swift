@@ -36,6 +36,8 @@ public extension Logger {
 
     nonisolated static let albumDetails = Logger(subsystem: subsystem, category: "albumDetails")
 
+    nonisolated static let artistDetails = Logger(subsystem: subsystem, category: "artistDetails")
+
     nonisolated static let account = Logger(subsystem: subsystem, category: "account")
 
     nonisolated static let accountRepository = Logger(subsystem: subsystem, category: "accountRepository")
