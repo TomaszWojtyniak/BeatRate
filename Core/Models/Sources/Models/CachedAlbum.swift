@@ -84,7 +84,8 @@ public final class CachedAlbum {
         AlbumModel(
             id: id,
             appleMusicAlbumData: appleMusicAlbumData,
-            firebaseAlbumData: firebaseAlbumData
+            firebaseAlbumData: firebaseAlbumData,
+            userRating: userRating
         )
     }
 }

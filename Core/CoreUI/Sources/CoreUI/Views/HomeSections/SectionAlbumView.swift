@@ -22,6 +22,13 @@ public struct SectionAlbumView: View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             artwork
                 .clipShape(RoundedRectangle(cornerRadius: Radius.small, style: .continuous))
+                .overlay(alignment: .topTrailing) {
+                    // Show the user's own rating only; a rating of 0 means unrated.
+                    if let userRating = album.userRating, userRating > 0 {
+                        RatingChip(rating: userRating)
+                            .padding(Spacing.xs)
+                    }
+                }
                 .appShadow(.low)
 
             VStack(alignment: .leading, spacing: 1) {

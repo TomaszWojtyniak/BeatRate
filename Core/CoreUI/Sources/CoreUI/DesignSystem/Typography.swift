@@ -41,6 +41,9 @@ public enum AppTextStyle {
     case statValue
     /// 26pt / rounded / bold — Account mini-stat numbers.
     case statValueCompact
+    /// `.caption2` / rounded / bold — compact rounded-bold number on chips over
+    /// artwork (e.g. Home community-rating chip). The small sibling of `statValue`.
+    case captionValue
 
     // MARK: – Body
 
@@ -74,7 +77,7 @@ public enum AppTextStyle {
     case iconLabel
     /// 11pt / semibold — SF Symbol leading a caption chip (e.g. genre chip).
     case iconChip
-    /// 12pt / semibold — list-row trailing accessory (e.g. chevron).
+    /// 9pt / semibold — list-row trailing accessory (e.g. chevron).
     case iconRowAccessory
     /// 20pt / bold — SF Symbol inside an action chip (e.g. RateAlbum star chip).
     case iconAction
@@ -95,6 +98,7 @@ public enum AppTextStyle {
         case .titleSection:      return .system(.title2, weight: .bold)
         case .statValue:         return .system(.title2, design: .rounded, weight: .bold)
         case .statValueCompact:  return .system(size: 26, weight: .bold, design: .rounded)
+        case .captionValue:      return .system(.caption2, design: .rounded, weight: .bold)
         case .bodyEmphasis:      return .system(.subheadline, weight: .semibold)
         case .body:              return .system(.subheadline)
         case .secondaryDetail:   return .system(.title3, weight: .medium)
@@ -103,7 +107,7 @@ public enum AppTextStyle {
         case .label:             return .system(.caption2, design: .rounded, weight: .semibold)
         case .mono:              return .system(.caption2, design: .monospaced)
         case .iconLabel:         return .system(.caption2, weight: .semibold)
-        case .iconChip:          return .system(size: 11, weight: .semibold)
+        case .iconChip:          return .system(size: 9, weight: .semibold)
         case .iconRowAccessory:  return .system(size: 12, weight: .semibold)
         case .iconAction:        return .system(size: 20, weight: .bold)
         case .iconRating:        return .system(.title3)

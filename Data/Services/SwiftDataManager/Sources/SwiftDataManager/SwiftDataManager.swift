@@ -21,6 +21,7 @@ public protocol SwiftDataManagerProtocol: Sendable {
     func updateCachedAlbum(albumId: String, firebaseData: FirebaseAlbumData) async throws
     func getCachedUserRating(albumId: String) async throws -> Double?
     func cacheUserRating(albumId: String, rating: Double) async throws
+    func cacheUserRatings(_ ratings: [String: Double]) async throws
     func clearCache() async throws
     func clearAllCacheForLogout() async throws
     func isCacheValid() async -> Bool
@@ -223,6 +224,27 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         cachedAlbum.userRating = rating
         cachedAlbum.userRatingUpdatedAt = Date()
         try context.save()
+    }
+
+    /// Bulk-updates the user rating on every cached album present in `ratings`.
+    /// The cache is small (home + viewed albums), so fetching all and filtering
+    /// in memory avoids a large `IN`-style predicate. Cached albums absent from
+    /// the map are left untouched.
+    public func cacheUserRatings(_ ratings: [String: Double]) async throws {
+        guard !ratings.isEmpty else { return }
+
+        let now = Date()
+        var didUpdate = false
+        for cachedAlbum in try context.fetch(FetchDescriptor<CachedAlbum>()) {
+            guard let rating = ratings[cachedAlbum.id] else { continue }
+            cachedAlbum.userRating = rating
+            cachedAlbum.userRatingUpdatedAt = now
+            didUpdate = true
+        }
+
+        if didUpdate {
+            try context.save()
+        }
     }
     
     // MARK: - User Management

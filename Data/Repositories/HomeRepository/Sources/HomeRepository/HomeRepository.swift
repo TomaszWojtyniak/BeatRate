@@ -51,21 +51,25 @@ public actor HomeRepository: HomeRepositoryProtocol {
     }
     
     public func fetchHomeSections() async throws -> [HomeSection] {
+        let sections: [HomeSection]
+
         // Try to get from cache first if valid
         if let cachedSections = try await getCachedSectionsIfValid() {
-            self.homeSections = cachedSections
-            return cachedSections
+            sections = cachedSections
+        } else {
+            // Fetch fresh data if cache miss or invalid
+            let firebaseSections = try await databaseFirebaseService.fetchSections()
+            let newHomeSections = try await buildHomeSections(from: firebaseSections)
+
+            // Update cache with new sections
+            try await swiftDataManager.cacheSections(newHomeSections)
+            sections = newHomeSections
         }
-        // Fetch fresh data if cache miss or invalid
-        let firebaseSections = try await databaseFirebaseService.fetchSections()
-        let newHomeSections = try await buildHomeSections(from: firebaseSections)
 
-        // Update cache with new sections
-        try await swiftDataManager.cacheSections(newHomeSections)
-
-        // Update the cached sections
-        self.homeSections = newHomeSections
-        return self.homeSections
+        // Overlay the signed-in user's own ratings so every rated album shows its chip
+        let enrichedSections = await applyUserRatings(to: sections)
+        self.homeSections = enrichedSections
+        return enrichedSections
     }
     
     public func getUserRating(albumId: String) async throws -> Double? {
@@ -146,6 +150,40 @@ public actor HomeRepository: HomeRepositoryProtocol {
         }
 
         return nil
+    }
+
+    /// Overlays the signed-in user's own ratings onto every section album. A
+    /// single Firebase read fetches the user's entire `user_ratings` map (the
+    /// authoritative source), which is also persisted to the local cache so the
+    /// chips survive offline loads and AlbumDetails opens warm. The map is
+    /// authoritative: albums absent from it are surfaced without a rating.
+    /// Failures degrade gracefully to whatever the per-album cache already gave.
+    private func applyUserRatings(to sections: [HomeSection]) async -> [HomeSection] {
+        guard let userId = (try? await getCurrentUserId()) ?? nil, !userId.isEmpty else {
+            return sections
+        }
+
+        // One read for the whole map; on failure (e.g. offline) keep cache values.
+        guard let ratings = try? await databaseFirebaseService.getAllUserRatings(userId: userId) else {
+            return sections
+        }
+
+        // Persist so subsequent and offline loads agree with Firebase.
+        try? await swiftDataManager.cacheUserRatings(ratings)
+
+        return sections.map { section in
+            HomeSection(
+                sectionName: section.sectionName,
+                albums: section.albums.map { album in
+                    AlbumModel(
+                        id: album.id,
+                        appleMusicAlbumData: album.appleMusicAlbumData,
+                        firebaseAlbumData: album.firebaseAlbumData,
+                        userRating: ratings[album.id]
+                    )
+                }
+            )
+        }
     }
 
     /// Builds home sections from Firebase section data
