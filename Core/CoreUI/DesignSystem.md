@@ -24,7 +24,7 @@ All tokens live in `Core/CoreUI/Sources/CoreUI/DesignSystem/`. Importing
 | **Halo** | `small` 260, `medium` 300, `large` 320, `meshSecondary` 360, `meshPrimary` 420 | `Layout.swift` |
 | **Blur** | `contentDim` 2, `haloSmall` 36, `haloMedium` 40, `meshStandard` 80 | `Layout.swift` |
 | **Stroke** | `hairline` 0.5, `thin` 1, `thick` 3 | `Layout.swift` |
-| **Typography** | 22 roles — see below | `Typography.swift` |
+| **Typography** | 23 roles — see below | `Typography.swift` |
 | **Shadow** | `low`, `medium`, `high`, `accentGlow`, `accentLift`, `destructive` | `AppShadow.swift` |
 | **Animation** | `quick` 0.2s, `standard` 0.25s, `smooth` 0.4s | `AppAnimation.swift` |
 | **Colour** | adaptive + fixed accent set | `Color+Extension.swift` |
@@ -170,6 +170,7 @@ Image(systemName: "chevron.right").textStyle(.iconRowAccessory, foreground: .ter
 | `titleSection` | `.title2` bold | primaryText | Section headers ("New Releases", "Recent") |
 | `statValue` | `.title2` rounded bold | primaryText | Stat-tile numbers |
 | `statValueCompact` | 26pt rounded bold | primaryText | Account mini-stats, RateAlbum value |
+| `captionValue` | `.caption2` rounded bold | primaryText | Compact rounded-bold number on chips over artwork (Home rating chip). |
 | `bodyEmphasis` | `.subheadline` semibold | primaryText | Button labels, list-row titles, primary actions |
 | `body` | `.subheadline` | primaryText | Body copy, descriptions, supporting text |
 | `secondaryDetail` | `.title3` medium | primaryText | Album artist, secondary detail text |
@@ -273,6 +274,7 @@ variants via `UIColor`'s dynamic provider.
 ### Misc
 - `albumPlaceholderColor` — placeholder behind loading album artwork.
 - `errorRed` — error text.
+- `glassTintOnMedia` — fixed-dark tint for Liquid Glass over album art (keeps the rating chip's white/honey content legible on light covers).
 
 ---
 
@@ -407,6 +409,28 @@ AsyncImage(url: url) { … }
 AsyncImage(url: url) { … }
     .frame(width: Size.thumbnailLarge, height: Size.thumbnailLarge)
     .clipShape(RoundedRectangle(cornerRadius: Radius.small, style: .continuous))
+    .appShadow(.low)
+```
+
+### Rating chip (over artwork)
+
+`RatingChip` is a Liquid Glass capsule (honey `★` + one-decimal score) pinned to
+the top-trailing corner of a cover. The glass carries a fixed-dark tint
+(`.glassEffect(.regular.tint(Color.glassTintOnMedia), in: Capsule())`) so the
+white number and honey star stay legible over light covers. The star uses
+`.iconChip`, the number `.captionValue` (rounded-bold) in `.primaryTextOnDark`.
+Overlay it on the **clipped** cover and gate it on a real rating — never render
+`★ 0.0`.
+
+```swift
+cover
+    .clipShape(RoundedRectangle(cornerRadius: Radius.small, style: .continuous))
+    .overlay(alignment: .topTrailing) {
+        if let userRating = album.userRating, userRating > 0 {  // hide when unrated
+            RatingChip(rating: userRating)
+                .padding(Spacing.xs)                            // ~snug inset from the corner
+        }
+    }
     .appShadow(.low)
 ```
 

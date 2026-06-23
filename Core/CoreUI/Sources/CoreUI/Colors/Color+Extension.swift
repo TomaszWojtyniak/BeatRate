@@ -141,6 +141,12 @@ public extension Color {
     /// Hairline edge used on `surfaceOnGradientFill` cards in the default (unselected) state.
     static let surfaceOnGradientStroke: Color = .white.opacity(0.14)
 
+    /// Fixed-dark tint applied to Liquid Glass that sits over photographic media
+    /// (e.g. album artwork) so light foreground content — white text, the honey
+    /// rating star — stays legible regardless of the cover's luminance.
+    /// Used by `RatingChip` over Home album covers.
+    static let glassTintOnMedia: Color = .black.opacity(0.5)
+
     // MARK: – Decorative gradients
 
     /// Full-bleed background gradient used by the Splash and Login screens.
