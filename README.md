@@ -5,11 +5,11 @@ Your BeatRate app follows a Clean Architecture pattern with a modular, layered a
 ## Core Architecture Layers
 
 ### 1. Presentation Layer
-- **Views**: SwiftUI-based UI components (LoginView, HomeView, etc.)
+- **Views**: SwiftUI-based UI components (HomeView, AccountView, etc.)
 - **Data Models**: Observable view models that manage UI state
   - `HomeDataModel`: Manages home screen state and user interactions
   - `LoginDataModel`: Handles authentication flow and login state
-- **Navigation**: Custom navigation stacks (LoginNavigationStack)
+- **Navigation**: Custom navigation stacks (AccountNavigationStack)
 
 ### 2. Domain Layer (Use Cases)
 - **Use Cases**: Business logic abstraction between UI and data layers

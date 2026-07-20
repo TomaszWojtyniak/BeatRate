@@ -160,7 +160,12 @@ public actor HomeRepository: HomeRepositoryProtocol {
     /// Failures degrade gracefully to whatever the per-album cache already gave.
     private func applyUserRatings(to sections: [HomeSection]) async -> [HomeSection] {
         guard let userId = (try? await getCurrentUserId()) ?? nil, !userId.isEmpty else {
-            return sections
+            // Browsing without an account: strip ratings rather than passing the
+            // sections through. `CachedAlbum` rows persist their `userRating`, and
+            // `cacheSections` deliberately reuses existing album rows, so a cache
+            // left behind by a previous session would otherwise surface that
+            // session's scores to a guest.
+            return applying(nil, to: sections)
         }
 
         // One read for the whole map; on failure (e.g. offline) keep cache values.
@@ -171,7 +176,14 @@ public actor HomeRepository: HomeRepositoryProtocol {
         // Persist so subsequent and offline loads agree with Firebase.
         try? await swiftDataManager.cacheUserRatings(ratings)
 
-        return sections.map { section in
+        return applying(ratings, to: sections)
+    }
+
+    /// Rebuilds `sections` with each album's `userRating` taken from `ratings`.
+    /// A `nil` map clears every rating; the map is authoritative either way, so
+    /// albums missing from it come back unrated.
+    private func applying(_ ratings: [String: Double]?, to sections: [HomeSection]) -> [HomeSection] {
+        sections.map { section in
             HomeSection(
                 sectionName: section.sectionName,
                 albums: section.albums.map { album in
@@ -179,7 +191,7 @@ public actor HomeRepository: HomeRepositoryProtocol {
                         id: album.id,
                         appleMusicAlbumData: album.appleMusicAlbumData,
                         firebaseAlbumData: album.firebaseAlbumData,
-                        userRating: ratings[album.id]
+                        userRating: ratings?[album.id]
                     )
                 }
             )

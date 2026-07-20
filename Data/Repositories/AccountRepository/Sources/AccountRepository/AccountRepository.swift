@@ -28,11 +28,6 @@ public actor AccountRepository: AccountRepositoryProtocol {
     private let databaseFirebaseService: DatabaseFirebaseServiceProtocol
     private let swiftDataManager: SwiftDataManagerProtocol
 
-    // Performance optimization: Cache user ID to avoid repeated MainActor hops
-    private var cachedUserId: String?
-    private var userIdCacheTime: Date?
-    private let userIdCacheDuration: TimeInterval = 300 // 5 minutes
-
     public init(homeRepository: HomeRepositoryProtocol = HomeRepository.shared,
                 musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
                 databaseFirebaseService: DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared,
@@ -93,18 +88,11 @@ public actor AccountRepository: AccountRepositoryProtocol {
         }
     }
 
+    /// Deliberately uncached. This has a single caller (`getUserRatedAlbums`), so a
+    /// TTL cache here saved one MainActor hop per Account-tab load — and in exchange
+    /// held the previous account's id after a logout, listing user A's rated albums
+    /// to user B when they signed in inside the TTL window. Read it fresh.
     private func getCurrentUserId() async throws -> String? {
-        // Check if cached user ID is still valid
-        if let cached = cachedUserId,
-           let cacheTime = userIdCacheTime,
-           Date().timeIntervalSince(cacheTime) < userIdCacheDuration {
-            return cached
-        }
-
-        // Fetch and cache
-        let userId = try await swiftDataManager.getCurrentUserId()
-        cachedUserId = userId
-        userIdCacheTime = Date()
-        return userId
+        try await swiftDataManager.getCurrentUserId()
     }
 }

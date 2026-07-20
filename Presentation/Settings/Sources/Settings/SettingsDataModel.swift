@@ -9,6 +9,7 @@ import SwiftUI
 import SplashUseCases
 import SettingUseCases
 import Analytics
+import CoreApp
 import OSLog
 import Models
 
@@ -71,6 +72,9 @@ final class SettingsDataModel {
         defer { isLoggingOut = false }
 
         do {
+            // Flag the intent before the state change lands, so the Account tab
+            // doesn't auto-raise the sign-in sheet the moment we drop to guest.
+            SessionManager.shared.userDidLogout()
             try await getSplashUseCase.logout()
             Logger.settings.info("Logout successful")
         } catch {

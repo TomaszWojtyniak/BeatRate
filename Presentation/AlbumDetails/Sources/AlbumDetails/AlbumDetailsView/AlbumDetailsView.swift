@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Models
+import CoreApp
 import CoreUI
 import ArtistDetails
 
@@ -48,6 +49,18 @@ public struct AlbumDetailsView: View {
                         // High priority - direct user action (rating)
                         Task.detached(priority: .userInitiated) { [dataModel] in
                             await dataModel.saveAlbumRating(rating: finalRating)
+                        }
+                    }
+                    // A guest still sees the stars — tapping them pitches an account
+                    // rather than silently no-oping in the repository. The overlay is
+                    // applied outside the disabled subtree, so it stays hit-testable,
+                    // and it catches drags too (the stars are drag-ratable).
+                    .allowsHitTesting(dataModel.isLoggedIn)
+                    .overlay {
+                        if !dataModel.isLoggedIn {
+                            Color.clear
+                                .contentShape(Rectangle())
+                                .onTapGesture { dataModel.requestLoginForRating() }
                         }
                     }
 

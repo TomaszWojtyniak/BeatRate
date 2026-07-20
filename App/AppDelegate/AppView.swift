@@ -22,28 +22,34 @@ struct AppView: View {
 
     var body: some View {
         Group {
-            if dataModel.isUserLoggedIn {
-                if dataModel.showingSplash {
-                    SplashView {
-                        withAnimation {
-                            dataModel.showingSplash = false
-                        }
+            if dataModel.showingSplash {
+                SplashView {
+                    withAnimation {
+                        dataModel.showingSplash = false
                     }
-                    .transition(.opacity)
-                    .task {
-                        await dataModel.getCurrentUser()
-                        dataModel.setUserId()
-                    }
-                } else if musicPlayerManager.current == nil {
-                    NavigationStack {
-                        MusicPlayerPickerView(mode: .onboarding)
-                    }
-                } else {
-                    TabBarView(selection: $selection)
+                }
+                .transition(.opacity)
+                .task {
+                    // Reads local storage directly, so this is correct for a guest
+                    // (no user, no analytics identity) without racing
+                    // `checkInitialLoginStatus()`.
+                    await dataModel.getCurrentUser()
+                    dataModel.setUserId()
+                }
+            } else if dataModel.isUserLoggedIn && musicPlayerManager.current == nil {
+                // Picking a main player only makes sense once there's an account to
+                // key it against. A guest keeps `current == nil`, which the play-link
+                // resolver already treats as Apple Music.
+                NavigationStack {
+                    MusicPlayerPickerView(mode: .onboarding)
                 }
             } else {
-                LoginNavigationStack()
+                TabBarView(selection: $selection)
             }
+        }
+        .sheet(isPresented: $dataModel.isPresentingLoginPrompt) {
+            LoginPromptView(reason: dataModel.loginPromptReason)
+                .presentationDragIndicator(.visible)
         }
         .task {
             await dataModel.checkInitialLoginStatus()

@@ -28,6 +28,7 @@ public protocol GetSplashUseCaseProtocol: Sendable {
     func reconnectSpotify() async throws -> Bool
     func cacheSections(_ sections: [HomeSection]) async throws
     func isCacheValid() async -> Bool
+    func isUserLoggedIn() async -> Bool
     func areCredentialsValid() async -> Bool
     func logout() async throws
 }
@@ -153,18 +154,38 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
         return await swiftDataManager.isCacheValid()
     }
     
+    /// Authoritative login state, read straight from local storage.
+    ///
+    /// Splash needs this rather than the mirrored `SessionManager.isLoggedIn`,
+    /// because splash's own `.task` races `AppDataModel.checkInitialLoginStatus()`
+    /// on cold launch and would otherwise see a stale `false` for a signed-in user.
+    public func isUserLoggedIn() async -> Bool {
+        return await swiftDataManager.isUserLoggedIn()
+    }
+
     public func areCredentialsValid() async -> Bool {
         do {
             if try await checkUserCredentials() {
                 return true
             } else {
-                try? await swiftDataManager.setUserLoggedOut()
+                await forceLogout()
                 return false
             }
         } catch {
-            try? await swiftDataManager.setUserLoggedOut()
+            await forceLogout()
             return false
         }
+    }
+
+    /// Logs the user out after their Apple credentials turn out to be gone.
+    ///
+    /// This is not user-initiated, but it has to tear down exactly as much as
+    /// `logout()` does — a partial version left the Firebase session live and, more
+    /// visibly, left `MusicPlayerManager.current` holding the departing user's
+    /// player, so the next account silently inherited it and never saw the
+    /// onboarding picker. Delegate rather than maintain a second logout path.
+    private func forceLogout() async {
+        try? await logout()
     }
 
     private func checkUserCredentials() async throws -> Bool {

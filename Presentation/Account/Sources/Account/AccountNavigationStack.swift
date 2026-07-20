@@ -8,12 +8,18 @@
 import SwiftUI
 
 public struct AccountNavigationStack: View {
-    
+
+    @State private var dataModel = AccountGuestDataModel()
+
     public init() {}
-    
+
     public var body: some View {
         NavigationStack {
-            AccountView()
+            if dataModel.isLoggedIn {
+                AccountView()
+            } else {
+                AccountGuestView(dataModel: dataModel)
+            }
         }
     }
 }
