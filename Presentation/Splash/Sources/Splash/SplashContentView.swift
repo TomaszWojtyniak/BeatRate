@@ -14,27 +14,13 @@ struct SplashContentView: View {
         VStack(spacing: 0) {
             Spacer()
 
-            ZStack {
-                Circle()
-                    .fill(Color.accentPrimarySoft)
-                    .frame(width: Halo.large, height: Halo.large)
-                    .blur(radius: Blur.haloMedium)
+            LogomarkView(
+                style: .yellow,
+                halo: Halo.large,
+                haloBlur: Blur.haloMedium
+            )
 
-                RoundedRectangle(cornerRadius: Radius.logomark, style: .continuous)
-                    .fill(Color.accentPrimaryGradient)
-                    .frame(width: Size.logomark, height: Size.logomark)
-                    .overlay(
-                        Image(systemName: "star.square.on.square.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .padding(Size.logomarkInset)
-                            .foregroundStyle(Color.white.opacity(0.95))
-                    )
-                    .appShadow(.accentLift)
-            }
-
-            Text("login.app.name", bundle: .module)
-                .textStyle(.displayLarge, color: .accentPrimary)
+            WordmarkView()
                 .padding(.top, Spacing.xl)
 
             Text("Rate every album.")

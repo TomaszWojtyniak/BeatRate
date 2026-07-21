@@ -49,8 +49,9 @@ public struct LoginPromptView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            LogomarkView()
-                .padding(.top, Spacing.xl)
+
+            WordmarkView()
+                .padding(.top, 100)
 
             Text(title, bundle: .module)
                 .textStyle(.title, color: .primaryTextOnDark)

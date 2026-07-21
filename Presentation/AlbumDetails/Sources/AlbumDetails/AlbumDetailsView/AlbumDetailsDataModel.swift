@@ -63,13 +63,19 @@ final class AlbumDetailsDataModel {
         }
     }
 
+    /// Resolves the deep link behind the play button.
+    ///
+    /// Play-through is an account feature, so this gates *every* player — the
+    /// guard sits above the switch rather than inside a branch, which is how the
+    /// Apple Music case previously leaked a button to guests.
     func resolvePlayUrl() async {
+        guard isLoggedIn else {
+            playUrl = nil
+            return
+        }
+
         switch playPlayer {
         case .spotify:
-            guard isLoggedIn else {
-                playUrl = nil
-                return
-            }
             let id = await getAlbumDetailsUseCase.searchSpotifyAlbumId(
                 name: album.appleMusicAlbumData.title,
                 artist: album.appleMusicAlbumData.artist

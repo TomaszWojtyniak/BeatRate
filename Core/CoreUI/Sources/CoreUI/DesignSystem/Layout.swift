@@ -22,8 +22,11 @@ public enum Size {
     public static let avatar:         CGFloat = 84
     /// 124 — Login / Splash logomark square.
     public static let logomark:       CGFloat = 124
-    /// 22 — SF Symbol inset within the Splash/Login logomark gradient square.
+    /// 22 — SF Symbol inset within a gradient icon square (Onboarding permission explainer).
     public static let logomarkInset:  CGFloat = 22
+    /// 220 — `AppNameLogomark` wordmark width on Splash / Login. Height follows
+    /// the artwork's 1200×340 aspect, landing near the 42pt `displayLarge` it replaced.
+    public static let wordmark:       CGFloat = 220
     /// 138 — HomeSection grid album thumbnail.
     public static let thumbnailLarge: CGFloat = 138
     /// 280 — AlbumDetails hero cover.
