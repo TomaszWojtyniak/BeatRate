@@ -19,7 +19,6 @@ public struct AccountView: View {
     @State private var selectedAlbum: AlbumModel?
     @State private var selectedSection: HomeSection?
     @State private var gridSelectedAlbum: AlbumModel?
-    private let musicPlayerManager = MusicPlayerManager.shared
 
     public init() {}
 
@@ -132,7 +131,7 @@ public struct AccountView: View {
                 await dataModel.loadUserData()
             }
         }
-        .onChange(of: musicPlayerManager.current) {
+        .onChange(of: dataModel.mainMusicPlayer) {
             // Main player switched (e.g. from Settings) — refresh the section to
             // reflect the newly selected service.
             Task { await dataModel.reloadRecentlyListenedAlbums() }

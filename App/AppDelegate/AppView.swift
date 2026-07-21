@@ -22,28 +22,28 @@ struct AppView: View {
 
     var body: some View {
         Group {
-            if dataModel.isUserLoggedIn {
-                if dataModel.showingSplash {
-                    SplashView {
-                        withAnimation {
-                            dataModel.showingSplash = false
-                        }
+            if dataModel.showingSplash {
+                SplashView {
+                    withAnimation {
+                        dataModel.showingSplash = false
                     }
-                    .transition(.opacity)
-                    .task {
-                        await dataModel.getCurrentUser()
-                        dataModel.setUserId()
-                    }
-                } else if musicPlayerManager.current == nil {
-                    NavigationStack {
-                        MusicPlayerPickerView(mode: .onboarding)
-                    }
-                } else {
-                    TabBarView(selection: $selection)
+                }
+                .transition(.opacity)
+                .task {
+                    await dataModel.getCurrentUser()
+                    dataModel.setUserId()
+                }
+            } else if dataModel.isUserLoggedIn && musicPlayerManager.current == nil {
+                NavigationStack {
+                    MusicPlayerPickerView(mode: .onboarding)
                 }
             } else {
-                LoginNavigationStack()
+                TabBarView(selection: $selection)
             }
+        }
+        .sheet(isPresented: $dataModel.isPresentingLoginPrompt) {
+            LoginPromptView(reason: dataModel.loginPromptReason)
+                .presentationDragIndicator(.visible)
         }
         .task {
             await dataModel.checkInitialLoginStatus()

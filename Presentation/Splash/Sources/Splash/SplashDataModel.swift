@@ -16,6 +16,7 @@ import CoreApp
 @MainActor
 final class SplashDataModel {
     private let getSplashUseCase: GetSplashUseCaseProtocol
+    private let musicPlayerManager: MusicPlayerManager
 
     var alertType: AlertType? = nil
     var errorMessage: String = "Unable to load data. Retrying..."
@@ -23,9 +24,6 @@ final class SplashDataModel {
     /// True when MusicKit auth is `.notDetermined` and the explainer should be shown
     /// before triggering the system permission prompt.
     var showsMusicKitExplainer: Bool = false
-    /// True when the user is logged in but hasn't picked a main music player yet.
-    /// Read by `AppView` to present the onboarding picker before the TabBar.
-    var needsMusicPlayerSelection: Bool = false
 
     private var retryCount: Int = 0
     private let maxRetries: Int = 3
@@ -34,8 +32,10 @@ final class SplashDataModel {
         retryCount > 0
     }
 
-    init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase()) {
+    init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase(),
+         musicPlayerManager: MusicPlayerManager = .shared) {
         self.getSplashUseCase = getSplashUseCase
+        self.musicPlayerManager = musicPlayerManager
     }
 
     // MARK: - Public Interface
@@ -63,9 +63,14 @@ final class SplashDataModel {
     }
 
     func loadInitialData() async {
-        // Step 1: Validate user credentials
-        guard await validateCredentials() else {
-            return
+        // Step 1: Validate user credentials — signed-in users only. A guest has no
+        // Apple user ID in the Keychain, so `areCredentialsValid()` would treat that
+        // as a revoked login and call `setUserLoggedOut()`, wiping the cached
+        // sections/albums on every single launch.
+        if await getSplashUseCase.isUserLoggedIn() {
+            guard await validateCredentials() else {
+                return
+            }
         }
 
         // Step 2a: If MusicKit auth status is .notDetermined, show the in-app explainer
@@ -101,14 +106,15 @@ final class SplashDataModel {
         }
 
         // Step 3: Hydrate the main-music-player flag (UserDefaults → Firebase fallback).
+        // `AppView` decides whether to show the picker from `MusicPlayerManager.current`,
+        // which this hydration populates — there's no flag for it to read.
         let hasPicked = await getSplashUseCase.hydrateMainMusicPlayer()
-        needsMusicPlayerSelection = !hasPicked
-        Logger.splash.info("Main music player hydrated. Needs selection: \(self.needsMusicPlayerSelection)")
+        Logger.splash.info("Main music player hydrated. Needs selection: \(!hasPicked)")
 
         // Step 4: If main player is Spotify, verify the saved token still works. If it
         // was revoked or refresh failed, surface a reconnect alert so the user can fix
         // it instantly. Skip the check otherwise.
-        if MusicPlayerManager.shared.current == .spotify {
+        if musicPlayerManager.current == .spotify {
             let state = await getSplashUseCase.verifySpotifyConnection()
             switch state {
             case .connected:
@@ -172,9 +178,10 @@ final class SplashDataModel {
             return true
         } else {
             Logger.splash.info("User credentials invalid or not logged in")
-            // Credentials invalid - setUserLoggedOut() was called in use case
-            // AsyncStream will trigger navigation to LoginView automatically
-            // We DO want onComplete() to be called so navigation can happen
+            // Credentials invalid - forceLogout() was called in the use case. The
+            // AsyncStream drops the app to guest mode; there's no login screen to
+            // navigate to any more, the user is prompted when they hit a gated
+            // feature. We DO want onComplete() so the splash dismisses either way.
             return false
         }
     }

@@ -15,7 +15,6 @@ import Onboarding
 public struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var dataModel = SettingsDataModel()
-    private let musicPlayerManager = MusicPlayerManager.shared
 
     public init() {}
 
@@ -32,7 +31,7 @@ public struct SettingsView: View {
 
                             Spacer(minLength: Spacing.xs)
 
-                            Text(musicPlayerManager.current?.displayName ?? "Not set")
+                            Text(dataModel.mainMusicPlayer?.displayName ?? "Not set")
                                 .foregroundStyle(.secondary)
                         }
                     }

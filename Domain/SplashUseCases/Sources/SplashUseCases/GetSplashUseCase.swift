@@ -28,6 +28,7 @@ public protocol GetSplashUseCaseProtocol: Sendable {
     func reconnectSpotify() async throws -> Bool
     func cacheSections(_ sections: [HomeSection]) async throws
     func isCacheValid() async -> Bool
+    func isUserLoggedIn() async -> Bool
     func areCredentialsValid() async -> Bool
     func logout() async throws
 }
@@ -39,19 +40,30 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
     private let swiftDataManager: SwiftDataManagerProtocol
     private let getLoginUseCase: GetLoginUseCaseProtocol
     private let keychainManager: KeychainManager
+    private let sessionManager: SessionManager
+    private let musicPlayerManager: MusicPlayerManager
+    private let userDefaultsManager: UserDefaultsManager
 
-    public init(musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
-         homeRepository: HomeRepositoryProtocol = HomeRepository.shared,
-         loginRepository: LoginRepositoryProtocol = LoginRepository.shared,
-         swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared,
-         getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),
-         keychainManager: KeychainManager = .shared) {
+    public init(
+        musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
+        homeRepository: HomeRepositoryProtocol = HomeRepository.shared,
+        loginRepository: LoginRepositoryProtocol = LoginRepository.shared,
+        swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared,
+        getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),
+        sessionManager: SessionManager = .shared,
+        musicPlayerManager: MusicPlayerManager = .shared,
+        userDefaultsManager: UserDefaultsManager = .shared,
+        keychainManager: KeychainManager = .shared
+    ) {
         self.musicRepository = musicRepository
         self.homeRepository = homeRepository
         self.loginRepository = loginRepository
         self.swiftDataManager = swiftDataManager
         self.getLoginUseCase = getLoginUseCase
         self.keychainManager = keychainManager
+        self.sessionManager = sessionManager
+        self.musicPlayerManager = musicPlayerManager
+        self.userDefaultsManager = userDefaultsManager
     }
     
     public func getCachedSections() async throws -> [HomeSection] {
@@ -75,9 +87,6 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
         await musicRepository.verifySpotifyConnection()
     }
 
-    /// Re-runs the Spotify OAuth flow and persists the resulting flags onto the
-    /// Firebase user profile. Mirrors `SetSettingsUseCase.connectSpotify` so Splash
-    /// can offer an instant reconnect without depending on SettingUseCases.
     public func reconnectSpotify() async throws -> Bool {
         let authResult = try await musicRepository.requestSpotifyAuthorization()
         guard await authResult.isAuthorized else { return false }
@@ -101,15 +110,6 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
         return true
     }
 
-    /// Loads the main music player from local storage (UserDefaults), falling back to the
-    /// Firebase user profile. Hydrates `MusicPlayerManager.shared`. Returns true when a player
-    /// is set, false when the user still needs to pick one.
-    ///
-    /// Distinguishes "no value on file anywhere" (genuine first-time / unpicked) from
-    /// "transient fetch failure" (cold-launch network blip). For a transient failure we
-    /// optimistically assume the user has *already* picked something — the splash will
-    /// proceed without forcing them through the picker again. The Firebase write that
-    /// drives this branch is the source of truth; the next launch will retry.
     public func hydrateMainMusicPlayer() async -> Bool {
         let userId: String
         do {
@@ -119,8 +119,8 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
             return false
         }
 
-        if UserDefaultsManager.shared.mainMusicPlayer(for: userId) != nil {
-            await MusicPlayerManager.shared.hydrate(for: userId)
+        if userDefaultsManager.mainMusicPlayer(for: userId) != nil {
+            await musicPlayerManager.hydrate(for: userId)
             return true
         }
 
@@ -141,7 +141,7 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
             return false
         }
 
-        await MusicPlayerManager.shared.set(player, for: userId)
+        await musicPlayerManager.set(player, for: userId)
         return true
     }
     
@@ -153,17 +153,46 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
         return await swiftDataManager.isCacheValid()
     }
     
+    /// Authoritative login state, read straight from local storage.
+    ///
+    /// Splash needs this rather than the mirrored `SessionManager.isLoggedIn`,
+    /// because splash's own `.task` races `AppDataModel.checkInitialLoginStatus()`
+    /// on cold launch and would otherwise see a stale `false` for a signed-in user.
+    public func isUserLoggedIn() async -> Bool {
+        return await swiftDataManager.isUserLoggedIn()
+    }
+
     public func areCredentialsValid() async -> Bool {
         do {
             if try await checkUserCredentials() {
                 return true
             } else {
-                try? await swiftDataManager.setUserLoggedOut()
+                await forceLogout()
                 return false
             }
         } catch {
-            try? await swiftDataManager.setUserLoggedOut()
+            await forceLogout()
             return false
+        }
+    }
+
+    /// Logs the user out after their Apple credentials turn out to be gone.
+    ///
+    /// This is not user-initiated, but it has to tear down exactly as much as
+    /// `logout()` does — a partial version left the Firebase session live and, more
+    /// visibly, left `MusicPlayerManager.current` holding the departing user's
+    /// player, so the next account silently inherited it and never saw the
+    /// onboarding picker. Delegate rather than maintain a second logout path.
+    ///
+    /// The error is absorbed rather than propagated — `areCredentialsValid()` answers
+    /// `false` either way and there's no user action to offer — but it must be logged.
+    /// A silent failure here leaves a half-torn-down session (Firebase still signed in,
+    /// Keychain entries alive) with nothing in the logs to explain it.
+    private func forceLogout() async {
+        do {
+            try await logout()
+        } catch {
+            Logger.splash.error("Forced logout after credential revocation failed: \(error)")
         }
     }
 
@@ -205,6 +234,9 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
     }
 
     public func logout() async throws {
+        // Flag the intent before the state change lands, so the Account tab
+        // doesn't auto-raise the sign-in sheet the moment we drop to guest.
+        await sessionManager.userDidLogout()
         // Capture the current userId BEFORE wiping local storage, so we can clear
         // their per-user UserDefaults entries below. `try?` on a throwing call that
         // returns `String?` produces `String??` — collapse to `String?` with `?? nil`.
@@ -226,8 +258,8 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
 
         // Step 5: Clear the main music player flag for this user.
         if let userId {
-            UserDefaultsManager.shared.removeMainMusicPlayer(for: userId)
-            await MusicPlayerManager.shared.clear(for: userId)
+            userDefaultsManager.removeMainMusicPlayer(for: userId)
+            await musicPlayerManager.clear(for: userId)
         }
     }
 }

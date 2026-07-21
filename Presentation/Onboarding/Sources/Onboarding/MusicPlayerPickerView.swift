@@ -11,7 +11,6 @@ import CoreApp
 public struct MusicPlayerPickerView: View {
     @State private var dataModel: MusicPlayerPickerDataModel
     @Environment(\.dismiss) private var dismiss
-    private let musicPlayerManager = MusicPlayerManager.shared
 
     private let onComplete: (() -> Void)?
 
@@ -36,7 +35,7 @@ public struct MusicPlayerPickerView: View {
                                 OnboardingPlayerCard(
                                     player: player,
                                     isOnboarding: isOnboarding,
-                                    isSelected: musicPlayerManager.current == player,
+                                    isSelected: dataModel.currentPlayer == player,
                                     isPending: dataModel.pendingChoice == player,
                                     isDisabled: dataModel.isProcessing,
                                     onTap: { handleSelection(of: player) }

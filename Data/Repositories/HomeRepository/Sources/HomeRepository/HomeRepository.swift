@@ -152,15 +152,9 @@ public actor HomeRepository: HomeRepositoryProtocol {
         return nil
     }
 
-    /// Overlays the signed-in user's own ratings onto every section album. A
-    /// single Firebase read fetches the user's entire `user_ratings` map (the
-    /// authoritative source), which is also persisted to the local cache so the
-    /// chips survive offline loads and AlbumDetails opens warm. The map is
-    /// authoritative: albums absent from it are surfaced without a rating.
-    /// Failures degrade gracefully to whatever the per-album cache already gave.
     private func applyUserRatings(to sections: [HomeSection]) async -> [HomeSection] {
         guard let userId = (try? await getCurrentUserId()) ?? nil, !userId.isEmpty else {
-            return sections
+            return applying(nil, to: sections)
         }
 
         // One read for the whole map; on failure (e.g. offline) keep cache values.
@@ -171,7 +165,14 @@ public actor HomeRepository: HomeRepositoryProtocol {
         // Persist so subsequent and offline loads agree with Firebase.
         try? await swiftDataManager.cacheUserRatings(ratings)
 
-        return sections.map { section in
+        return applying(ratings, to: sections)
+    }
+
+    /// Rebuilds `sections` with each album's `userRating` taken from `ratings`.
+    /// A `nil` map clears every rating; the map is authoritative either way, so
+    /// albums missing from it come back unrated.
+    private func applying(_ ratings: [String: Double]?, to sections: [HomeSection]) -> [HomeSection] {
+        sections.map { section in
             HomeSection(
                 sectionName: section.sectionName,
                 albums: section.albums.map { album in
@@ -179,7 +180,7 @@ public actor HomeRepository: HomeRepositoryProtocol {
                         id: album.id,
                         appleMusicAlbumData: album.appleMusicAlbumData,
                         firebaseAlbumData: album.firebaseAlbumData,
-                        userRating: ratings[album.id]
+                        userRating: ratings?[album.id]
                     )
                 }
             )

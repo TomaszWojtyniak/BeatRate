@@ -9,6 +9,7 @@ import SwiftUI
 import SplashUseCases
 import SettingUseCases
 import Analytics
+import CoreApp
 import OSLog
 import Models
 
@@ -18,6 +19,13 @@ final class SettingsDataModel {
     private let getSplashUseCase: GetSplashUseCaseProtocol
     private let getSettingsUseCase: GetSettingsUseCaseProtocol
     private let setSettingsUseCase: SetSettingsUseCaseProtocol
+    private let musicPlayerManager: MusicPlayerManager
+
+    /// The user's main player, surfaced for the view so it doesn't reach for the
+    /// manager itself.
+    var mainMusicPlayer: MusicPlayer? {
+        musicPlayerManager.current
+    }
 
     var isLoggingOut = false
     var showLogoutConfirmation = false
@@ -28,10 +36,12 @@ final class SettingsDataModel {
 
     init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase(),
          getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase(),
-         setSettingsUseCase: SetSettingsUseCaseProtocol = SetSettingsUseCase()) {
+         setSettingsUseCase: SetSettingsUseCaseProtocol = SetSettingsUseCase(),
+         musicPlayerManager: MusicPlayerManager = .shared) {
         self.getSplashUseCase = getSplashUseCase
         self.getSettingsUseCase = getSettingsUseCase
         self.setSettingsUseCase = setSettingsUseCase
+        self.musicPlayerManager = musicPlayerManager
     }
 
     func loadUserProfile() async {

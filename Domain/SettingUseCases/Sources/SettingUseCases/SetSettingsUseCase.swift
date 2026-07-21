@@ -24,15 +24,18 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
     private let getLoginUseCase: GetLoginUseCaseProtocol
     private let setLoginUseCase: SetLoginUseCaseProtocol
     private let swiftDataManager: SwiftDataManagerProtocol
+    private let musicPlayerManager: MusicPlayerManager
 
     public init(musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
                 getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),
                 setLoginUseCase: SetLoginUseCaseProtocol = SetLoginUseCase(),
-                swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared) {
+                swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared,
+                musicPlayerManager: MusicPlayerManager = .shared) {
         self.musicRepository = musicRepository
         self.getLoginUseCase = getLoginUseCase
         self.setLoginUseCase = setLoginUseCase
         self.swiftDataManager = swiftDataManager
+        self.musicPlayerManager = musicPlayerManager
     }
 
     public func connectAppleMusic() async throws -> Bool {
@@ -107,7 +110,7 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
             return
         }
 
-        await MusicPlayerManager.shared.set(player, for: userId)
+        await musicPlayerManager.set(player, for: userId)
         Logger.settings.info("Main music player set to \(player.rawValue)")
 
         do {

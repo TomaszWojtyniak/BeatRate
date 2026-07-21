@@ -21,13 +21,22 @@ final class MusicPlayerPickerDataModel {
 
     private let setSettingsUseCase: SetSettingsUseCaseProtocol
     private let getSettingsUseCase: GetSettingsUseCaseProtocol
+    private let musicPlayerManager: MusicPlayerManager
 
     init(mode: MusicPlayerPickerMode,
          setSettingsUseCase: SetSettingsUseCaseProtocol = SetSettingsUseCase(),
-         getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase()) {
+         getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase(),
+         musicPlayerManager: MusicPlayerManager = .shared) {
         self.mode = mode
         self.setSettingsUseCase = setSettingsUseCase
         self.getSettingsUseCase = getSettingsUseCase
+        self.musicPlayerManager = musicPlayerManager
+    }
+
+    /// The currently selected player, surfaced for the view so it doesn't reach for
+    /// the manager itself.
+    var currentPlayer: MusicPlayer? {
+        musicPlayerManager.current
     }
 
     /// Returns true when the screen should dismiss (selection complete).

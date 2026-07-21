@@ -295,6 +295,8 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
     }
     
     public func setUserLoggedOut() async throws {
+        defer { loginStateContinuation.yield(false) }
+
         if let existingUser = try await getCurrentUser() {
             existingUser.isLoggedIn = false
             try context.save()
@@ -315,9 +317,6 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
             // Log but don't fail - user is still logged out
             Logger.swiftDataManager.error("Failed to clear cache during logout: \(error)")
         }
-
-        // Emit login state change to stream
-        loginStateContinuation.yield(false)
     }
     
     public func isUserLoggedIn() async -> Bool {
@@ -326,7 +325,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
     }
 
     public func getCurrentUserId() async throws -> String? {
-        guard let user = try await getCurrentUser() else { return nil }
+        guard let user = try await getCurrentUser(), user.isLoggedIn else { return nil }
         return user.userId
     }
 
