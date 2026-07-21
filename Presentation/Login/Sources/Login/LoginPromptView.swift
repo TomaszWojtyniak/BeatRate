@@ -12,9 +12,8 @@ import OSLog
 
 /// Sheet-sized sign-in / sign-up prompt raised when a guest hits a gated feature.
 ///
-/// Shares `LoginDataModel` — and therefore the exact nonce and
-/// `performCompleteLogin` path — with the full-screen `LoginView`. Sign in with
-/// Apple covers both signing in and creating an account, so one button serves both.
+/// Sign in with Apple covers both signing in and creating an account, so one button
+/// serves both.
 ///
 /// Dismissal on success is implicit: `performCompleteLogin` yields `true` into the
 /// login-state stream, `AppDataModel` forwards it to `SessionManager.update`, which

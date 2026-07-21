@@ -183,8 +183,17 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
     /// visibly, left `MusicPlayerManager.current` holding the departing user's
     /// player, so the next account silently inherited it and never saw the
     /// onboarding picker. Delegate rather than maintain a second logout path.
+    ///
+    /// The error is absorbed rather than propagated — `areCredentialsValid()` answers
+    /// `false` either way and there's no user action to offer — but it must be logged.
+    /// A silent failure here leaves a half-torn-down session (Firebase still signed in,
+    /// Keychain entries alive) with nothing in the logs to explain it.
     private func forceLogout() async {
-        try? await logout()
+        do {
+            try await logout()
+        } catch {
+            Logger.splash.error("Forced logout after credential revocation failed: \(error)")
+        }
     }
 
     private func checkUserCredentials() async throws -> Bool {

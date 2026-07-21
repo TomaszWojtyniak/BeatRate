@@ -6,8 +6,7 @@
 import SwiftUI
 import CoreUI
 
-/// The app logomark with its soft accent halo, shared by the full-screen
-/// `LoginView` and the sheet-sized `LoginPromptView`.
+/// The app logomark with its soft accent halo.
 struct LogomarkView: View {
     var body: some View {
         ZStack {
