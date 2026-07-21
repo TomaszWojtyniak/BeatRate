@@ -19,6 +19,13 @@ final class SettingsDataModel {
     private let getSplashUseCase: GetSplashUseCaseProtocol
     private let getSettingsUseCase: GetSettingsUseCaseProtocol
     private let setSettingsUseCase: SetSettingsUseCaseProtocol
+    private let musicPlayerManager: MusicPlayerManager
+
+    /// The user's main player, surfaced for the view so it doesn't reach for the
+    /// manager itself.
+    var mainMusicPlayer: MusicPlayer? {
+        musicPlayerManager.current
+    }
 
     var isLoggingOut = false
     var showLogoutConfirmation = false
@@ -29,10 +36,12 @@ final class SettingsDataModel {
 
     init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase(),
          getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase(),
-         setSettingsUseCase: SetSettingsUseCaseProtocol = SetSettingsUseCase()) {
+         setSettingsUseCase: SetSettingsUseCaseProtocol = SetSettingsUseCase(),
+         musicPlayerManager: MusicPlayerManager = .shared) {
         self.getSplashUseCase = getSplashUseCase
         self.getSettingsUseCase = getSettingsUseCase
         self.setSettingsUseCase = setSettingsUseCase
+        self.musicPlayerManager = musicPlayerManager
     }
 
     func loadUserProfile() async {
@@ -72,9 +81,6 @@ final class SettingsDataModel {
         defer { isLoggingOut = false }
 
         do {
-            // Flag the intent before the state change lands, so the Account tab
-            // doesn't auto-raise the sign-in sheet the moment we drop to guest.
-            SessionManager.shared.userDidLogout()
             try await getSplashUseCase.logout()
             Logger.settings.info("Logout successful")
         } catch {

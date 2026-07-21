@@ -295,10 +295,6 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
     }
     
     public func setUserLoggedOut() async throws {
-        // Emitted even if the save below throws. Callers use `try?`, so a swallowed
-        // failure would otherwise leave the app rendering a signed-in UI while every
-        // `getCurrentUserId()` returns nil — ratings failing silently with no prompt,
-        // which is exactly the state guest mode's gating exists to prevent.
         defer { loginStateContinuation.yield(false) }
 
         if let existingUser = try await getCurrentUser() {
@@ -328,15 +324,6 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         return user.isLoggedIn
     }
 
-    /// The id of the **currently signed-in** user, or `nil` when nobody is signed in.
-    ///
-    /// `setUserLoggedOut()` only flips `isLoggedIn` and deliberately keeps `userId`
-    /// on the row, so this must check both. Every data-layer guard in the app is
-    /// written as `guard let userId = try await getCurrentUserId()`; without the
-    /// `isLoggedIn` check those guards keep passing after a logout and the previous
-    /// account's data (home rating chips, cached album ratings) stays visible.
-    /// Callers that legitimately need the id of a user being logged out — such as
-    /// `GetSplashUseCase.logout()` — capture it before calling `setUserLoggedOut()`.
     public func getCurrentUserId() async throws -> String? {
         guard let user = try await getCurrentUser(), user.isLoggedIn else { return nil }
         return user.userId

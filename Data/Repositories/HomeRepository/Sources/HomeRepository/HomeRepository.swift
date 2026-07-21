@@ -152,19 +152,8 @@ public actor HomeRepository: HomeRepositoryProtocol {
         return nil
     }
 
-    /// Overlays the signed-in user's own ratings onto every section album. A
-    /// single Firebase read fetches the user's entire `user_ratings` map (the
-    /// authoritative source), which is also persisted to the local cache so the
-    /// chips survive offline loads and AlbumDetails opens warm. The map is
-    /// authoritative: albums absent from it are surfaced without a rating.
-    /// Failures degrade gracefully to whatever the per-album cache already gave.
     private func applyUserRatings(to sections: [HomeSection]) async -> [HomeSection] {
         guard let userId = (try? await getCurrentUserId()) ?? nil, !userId.isEmpty else {
-            // Browsing without an account: strip ratings rather than passing the
-            // sections through. `CachedAlbum` rows persist their `userRating`, and
-            // `cacheSections` deliberately reuses existing album rows, so a cache
-            // left behind by a previous session would otherwise surface that
-            // session's scores to a guest.
             return applying(nil, to: sections)
         }
 

@@ -30,16 +30,10 @@ struct AppView: View {
                 }
                 .transition(.opacity)
                 .task {
-                    // Reads local storage directly, so this is correct for a guest
-                    // (no user, no analytics identity) without racing
-                    // `checkInitialLoginStatus()`.
                     await dataModel.getCurrentUser()
                     dataModel.setUserId()
                 }
             } else if dataModel.isUserLoggedIn && musicPlayerManager.current == nil {
-                // Picking a main player only makes sense once there's an account to
-                // key it against. A guest keeps `current == nil`, which the play-link
-                // resolver already treats as Apple Music.
                 NavigationStack {
                     MusicPlayerPickerView(mode: .onboarding)
                 }

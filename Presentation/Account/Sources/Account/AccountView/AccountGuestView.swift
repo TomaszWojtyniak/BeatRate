@@ -6,11 +6,6 @@
 import SwiftUI
 import CoreUI
 
-/// What a guest sees in place of the Account tab: a short pitch for what an
-/// account unlocks, plus the CTA that raises the sign-in sheet.
-///
-/// The sheet itself lives on `AppView` — this only asks the data model to open it,
-/// which keeps the Account package free of a dependency on Login.
 struct AccountGuestView: View {
     let dataModel: AccountGuestDataModel
 

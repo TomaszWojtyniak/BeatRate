@@ -18,38 +18,42 @@ import UIKit
 @Observable
 final class AlbumDetailsDataModel {
     private let getAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol
+    private let sessionManager: SessionManager
+    private let musicPlayerManager: MusicPlayerManager
 
     var album: AlbumModel
     var myRating: Double = 0
     var isLoading = false
     var hasLoadedInitialRating = false
-    /// Mesh halo tints derived from the album cover. `nil` until extracted;
-    /// view falls back to the design-system default halos in the meantime.
     var meshPrimary: Color?
     var meshSecondary: Color?
-    /// Deep-link URL for the "Play on …" footer button. Populated based on the
-    /// user's main music player (Apple Music URL from MusicKit, or the resolved
-    /// `spotify:album:{id}` URI for Spotify). `nil` while loading or unresolved.
     var playUrl: URL?
     private var previousRating: Double = 0
 
-    init(album: AlbumModel, getAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol = GetAlbumDetailsUseCase()) {
+    init(
+        album: AlbumModel,
+        sessionManager: SessionManager = .shared,
+        musicPlayerManager: MusicPlayerManager = .shared,
+        getAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol = GetAlbumDetailsUseCase()
+    ) {
         self.album = album
         self.getAlbumDetailsUseCase = getAlbumDetailsUseCase
+        self.sessionManager = sessionManager
+        self.musicPlayerManager = musicPlayerManager
     }
 
     var playPlayer: MusicPlayer? {
-        MusicPlayerManager.shared.current
+        musicPlayerManager.current
     }
 
     /// Guests see the rating stars but can't set one — the view routes their taps
     /// to ``requestLoginForRating()`` instead.
     var isLoggedIn: Bool {
-        SessionManager.shared.isLoggedIn
+        sessionManager.isLoggedIn
     }
 
     func requestLoginForRating() {
-        SessionManager.shared.requestLogin(reason: .rating)
+        sessionManager.requestLogin(reason: .rating)
     }
 
     var playLabel: String {
@@ -59,15 +63,6 @@ final class AlbumDetailsDataModel {
         }
     }
 
-    /// Resolves `playUrl` based on the user's main music player. Apple Music uses the
-    /// album's existing `appleMusicUrl`. Spotify performs an on-demand search and
-    /// returns the `spotify:album:{id}` deep link when available.
-    ///
-    /// Only the Spotify branch is account-gated — it needs a user access token a
-    /// guest doesn't have. Apple Music resolves from the album's own catalog URL,
-    /// which needs no account, and a guest already falls into that branch because
-    /// `playPlayer` is nil until a player is picked. A `nil` `playUrl` is what hides
-    /// the button in `AlbumDetailsFooterView`.
     func resolvePlayUrl() async {
         switch playPlayer {
         case .spotify:

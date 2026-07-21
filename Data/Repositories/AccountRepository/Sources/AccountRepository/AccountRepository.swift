@@ -88,10 +88,6 @@ public actor AccountRepository: AccountRepositoryProtocol {
         }
     }
 
-    /// Deliberately uncached. This has a single caller (`getUserRatedAlbums`), so a
-    /// TTL cache here saved one MainActor hop per Account-tab load — and in exchange
-    /// held the previous account's id after a logout, listing user A's rated albums
-    /// to user B when they signed in inside the TTL window. Read it fresh.
     private func getCurrentUserId() async throws -> String? {
         try await swiftDataManager.getCurrentUserId()
     }

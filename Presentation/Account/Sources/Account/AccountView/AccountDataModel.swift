@@ -18,6 +18,7 @@ final class AccountDataModel {
     private let getLoginUseCase: GetLoginUseCaseProtocol
     private let setLoginUseCase: SetLoginUseCaseProtocol
     private let getAccountUseCase: GetAccountUseCaseProtocol
+    private let musicPlayerManager: MusicPlayerManager
 
     var userProfile: FirebaseUserProfile?
     var ratedAlbums: [AlbumModel] = []
@@ -39,10 +40,18 @@ final class AccountDataModel {
 
     init(getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),
          setLoginUseCase: SetLoginUseCaseProtocol = SetLoginUseCase(),
-         getAccountUseCase: GetAccountUseCaseProtocol = GetAccountUseCase()) {
+         getAccountUseCase: GetAccountUseCaseProtocol = GetAccountUseCase(),
+         musicPlayerManager: MusicPlayerManager = .shared) {
         self.getLoginUseCase = getLoginUseCase
         self.setLoginUseCase = setLoginUseCase
         self.getAccountUseCase = getAccountUseCase
+        self.musicPlayerManager = musicPlayerManager
+    }
+
+    /// The user's main player, surfaced for the view so it doesn't reach for the
+    /// manager itself.
+    var mainMusicPlayer: MusicPlayer? {
+        musicPlayerManager.current
     }
 
     func loadUserData() async {
@@ -107,7 +116,7 @@ final class AccountDataModel {
     }
 
     private func fetchRecentlyListenedAlbums() async -> [AlbumModel] {
-        guard let player = MusicPlayerManager.shared.current else {
+        guard let player = musicPlayerManager.current else {
             Logger.account.info("No main music player selected; skipping recently listened")
             return []
         }

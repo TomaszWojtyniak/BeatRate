@@ -16,6 +16,7 @@ import CoreApp
 @MainActor
 final class SplashDataModel {
     private let getSplashUseCase: GetSplashUseCaseProtocol
+    private let musicPlayerManager: MusicPlayerManager
 
     var alertType: AlertType? = nil
     var errorMessage: String = "Unable to load data. Retrying..."
@@ -31,8 +32,10 @@ final class SplashDataModel {
         retryCount > 0
     }
 
-    init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase()) {
+    init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase(),
+         musicPlayerManager: MusicPlayerManager = .shared) {
         self.getSplashUseCase = getSplashUseCase
+        self.musicPlayerManager = musicPlayerManager
     }
 
     // MARK: - Public Interface
@@ -111,7 +114,7 @@ final class SplashDataModel {
         // Step 4: If main player is Spotify, verify the saved token still works. If it
         // was revoked or refresh failed, surface a reconnect alert so the user can fix
         // it instantly. Skip the check otherwise.
-        if MusicPlayerManager.shared.current == .spotify {
+        if musicPlayerManager.current == .spotify {
             let state = await getSplashUseCase.verifySpotifyConnection()
             switch state {
             case .connected:
