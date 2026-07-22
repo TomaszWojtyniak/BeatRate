@@ -101,7 +101,10 @@ public struct AlbumDetailsView: View {
         .task {
             await dataModel.loadTracksIfNeeded()
         }
-        .task {
+        // Keyed on login state: a guest who signs in from the rating prompt stays
+        // on this screen, so the play button has to resolve again rather than
+        // waiting for the view to be rebuilt.
+        .task(id: dataModel.isLoggedIn) {
             await dataModel.resolvePlayUrl()
         }
     }

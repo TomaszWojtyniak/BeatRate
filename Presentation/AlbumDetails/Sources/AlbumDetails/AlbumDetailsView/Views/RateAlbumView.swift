@@ -18,16 +18,10 @@ struct RateAlbumView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack(alignment: .center, spacing: Spacing.sm) {
-                // Gradient star chip
-                ZStack {
-                    RoundedRectangle(cornerRadius: Radius.small, style: .continuous)
-                        .fill(Color.accentPrimaryGradient)
-                        .frame(width: Size.touchTarget, height: Size.touchTarget)
-                        .appShadow(.accentGlow)
-
-                    Image(systemName: "star.fill")
-                        .textStyle(.iconAction, color: .white)
-                }
+                Image("AppYellowLogomark")
+                    .resizable()
+                    .frame(width: Size.touchTarget, height: Size.touchTarget)
+                    .appShadow(.accentGlow)
 
                 VStack(alignment: .leading, spacing: Spacing.xxs) {
                     Text(myRating == 0 ? "Rate this album" : "Your rating")

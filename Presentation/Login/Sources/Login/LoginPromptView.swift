@@ -20,6 +20,10 @@ import OSLog
 /// clears `isPresentingLoginPrompt` and closes this sheet.
 @MainActor
 public struct LoginPromptView: View {
+    /// Drops the wordmark below the sheet's top chrome. A one-off offset for this
+    /// screen, so it stays local rather than joining the shared `Spacing` scale.
+    private let headerTopInset: CGFloat = 100
+
     private let reason: LoginPromptReason
     @State private var dataModel = LoginDataModel()
     @Environment(\.dismiss) private var dismiss
@@ -49,8 +53,8 @@ public struct LoginPromptView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            LogomarkView()
-                .padding(.top, Spacing.xl)
+            WordmarkView()
+                .padding(.top, headerTopInset)
 
             Text(title, bundle: .module)
                 .textStyle(.title, color: .primaryTextOnDark)

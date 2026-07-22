@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "2600"
+   LastUpgradeVersion = "2700"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -15,10 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "8BED07ED2DE0D68300838DD7"
-               BuildableName = "BeatRate.app"
-               BlueprintName = "BeatRate"
-               ReferencedContainer = "container:BeatRate.xcodeproj">
+               BlueprintIdentifier = "AlbumDetails"
+               BuildableName = "AlbumDetails"
+               ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -31,25 +30,12 @@
       shouldAutocreateTestPlan = "YES">
       <Testables>
          <TestableReference
-            skipped = "NO"
-            parallelizable = "YES">
+            skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "8BED07FA2DE0D68500838DD7"
-               BuildableName = "BeatRateTests.xctest"
-               BlueprintName = "BeatRateTests"
-               ReferencedContainer = "container:BeatRate.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "8BED08042DE0D68500838DD7"
-               BuildableName = "BeatRateUITests.xctest"
-               BlueprintName = "BeatRateUITests"
-               ReferencedContainer = "container:BeatRate.xcodeproj">
+               BlueprintIdentifier = "AlbumDetailsTests"
+               BuildableName = "AlbumDetailsTests"
+               ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -63,17 +49,8 @@
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
-      allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "8BED07ED2DE0D68300838DD7"
-            BuildableName = "BeatRate.app"
-            BlueprintName = "BeatRate"
-            ReferencedContainer = "container:BeatRate.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
+      allowLocationSimulation = "YES"
+      queueDebuggingEnabled = "No">
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -81,16 +58,14 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "8BED07ED2DE0D68300838DD7"
-            BuildableName = "BeatRate.app"
-            BlueprintName = "BeatRate"
-            ReferencedContainer = "container:BeatRate.xcodeproj">
+            BlueprintIdentifier = "AlbumDetails"
+            BuildableName = "AlbumDetails"
+            ReferencedContainer = "container:">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
