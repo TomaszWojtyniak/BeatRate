@@ -14,6 +14,8 @@ public protocol GetAccountUseCaseProtocol: Sendable {
     func getCurrentUserId() async throws -> String?
     func getUserRatedAlbums() async throws -> [AlbumModel]
     func getRecentlyListenedAlbums(for player: MusicPlayer) async throws -> [AlbumModel]
+    func getAlbumSections(recentlyListenedFor player: MusicPlayer?) async throws -> (rated: [AlbumModel], recentlyListened: [AlbumModel])
+    func getFavoriteAlbums() async throws -> [AlbumModel]
 }
 
 public actor GetAccountUseCase: GetAccountUseCaseProtocol {
@@ -36,5 +38,13 @@ public actor GetAccountUseCase: GetAccountUseCaseProtocol {
 
     public func getRecentlyListenedAlbums(for player: MusicPlayer) async throws -> [AlbumModel] {
         return try await accountRepository.getRecentlyListenedAlbums(for: player)
+    }
+
+    public func getAlbumSections(recentlyListenedFor player: MusicPlayer?) async throws -> (rated: [AlbumModel], recentlyListened: [AlbumModel]) {
+        return try await accountRepository.getAlbumSections(recentlyListenedFor: player)
+    }
+
+    public func getFavoriteAlbums() async throws -> [AlbumModel] {
+        return try await accountRepository.getFavoriteAlbums()
     }
 }

@@ -22,9 +22,12 @@ public protocol DatabaseFirebaseServiceProtocol: Sendable {
     func getUserRating(userId: String, albumId: String) async throws -> Double?
     func getUserRatedAlbumIds(userId: String) async throws -> [String]
     func getAllUserRatings(userId: String) async throws -> [String: Double]
+    func getUserRatingsSorted(userId: String) async throws -> [(albumId: String, rating: Double)]
     func saveUserRating(userId: String, albumId: String, rating: Double, albumMetadata: (artist: String, title: String)?) async throws -> (avgRating: Double, ratingCount: Int)
     func getUserProfile(userId: String) async throws -> FirebaseUserProfile?
     func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws
+    func getFavoriteAlbumIds(userId: String) async throws -> [String]
+    func saveFavoriteAlbumIds(userId: String, albumIds: [String]) async throws
 }
 
 public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
@@ -210,6 +213,38 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
         return ratings
     }
 
+    /// Single read of `user_ratings` returning every rating with its album id,
+    /// newest-first by timestamp. Lets a caller that needs *both* the rated-album
+    /// ordering and the rating values read the node once instead of twice.
+    public func getUserRatingsSorted(userId: String) async throws -> [(albumId: String, rating: Double)] {
+        let ref = database.reference()
+            .child("users")
+            .child(userId)
+            .child("user_ratings")
+
+        let snapshot = try await ref.getData()
+
+        guard snapshot.exists(), let ratingsData = snapshot.value as? [String: Any] else {
+            Logger.firebaseService.info("No user ratings found for user: \(userId)")
+            return []
+        }
+
+        var entries: [(albumId: String, rating: Double, timestamp: TimeInterval)] = []
+        for (albumId, value) in ratingsData {
+            if let dict = value as? [String: Any], let rating = dict["rating"] as? Double {
+                entries.append((albumId, rating, (dict["timestamp"] as? TimeInterval) ?? 0))
+            } else if let rating = value as? Double {
+                entries.append((albumId, rating, 0))          // legacy bare number
+            } else {
+                Logger.firebaseService.warning("Unknown rating format for album \(albumId), skipping")
+            }
+        }
+
+        return entries
+            .sorted { $0.timestamp > $1.timestamp }
+            .map { (albumId: $0.albumId, rating: $0.rating) }
+    }
+
     public func saveUserRating(userId: String, albumId: String, rating: Double, albumMetadata: (artist: String, title: String)? = nil) async throws -> (avgRating: Double, ratingCount: Int) {
         try await ensureAlbumExists(albumId: albumId, albumMetadata: albumMetadata)
 
@@ -371,6 +406,43 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
         // Update all fields atomically
         try await userRef.updateChildValues(allUpdates)
         Logger.firebaseService.info("Saved user profile to Firebase for user: \(userId)")
+    }
+
+    // MARK: - Favorites
+
+    /// Reads the user's ordered favorite album IDs from `users/{uid}/favorites`.
+    /// The node is always written as a contiguous array, so RTDB returns it as
+    /// `[Any]`, preserving order.
+    public func getFavoriteAlbumIds(userId: String) async throws -> [String] {
+        let ref = database.reference()
+            .child("users")
+            .child(userId)
+            .child("favorites")
+
+        let snapshot = try await ref.getData()
+
+        guard snapshot.exists(), let array = snapshot.value as? [Any] else {
+            Logger.firebaseService.info("No favorites found for user: \(userId)")
+            return []
+        }
+
+        return array.compactMap { $0 as? String }
+    }
+
+    /// Overwrites the user's favorites with the given ordered IDs. An empty list
+    /// removes the node (deletions aren't subject to `.validate` rules).
+    public func saveFavoriteAlbumIds(userId: String, albumIds: [String]) async throws {
+        let ref = database.reference()
+            .child("users")
+            .child(userId)
+            .child("favorites")
+
+        if albumIds.isEmpty {
+            try await ref.removeValue()
+        } else {
+            try await ref.setValue(albumIds)
+        }
+        Logger.firebaseService.info("Saved \(albumIds.count) favorites for user: \(userId)")
     }
 }
 

@@ -56,6 +56,9 @@ public extension Color {
     /// Companion to `primaryTextOnDark` for captions/metadata on dark surfaces.
     static let secondaryTextOnDark: Color = Color(red: 200/255, green: 195/255, blue: 185/255)
 
+    /// Dimming layer behind full-screen modal overlays (e.g. the share card).
+    static let scrim: Color = .black.opacity(0.9)
+
     // MARK: – Primary accent (honey yellow)
 
     /// Brand honey yellow (#E6B655). Identical in light and dark mode.
