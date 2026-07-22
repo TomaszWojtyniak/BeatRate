@@ -21,7 +21,8 @@ let package = Package(
         .package(path: "../../Core/CoreUI"),
         .package(path: "../../Core/CoreApp"),
         .package(path: "../../Domain/LoginUseCases"),
-        .package(path: "../../Domain/AccountUseCases")
+        .package(path: "../../Domain/AccountUseCases"),
+        .package(path: "../../Domain/SearchUse")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -36,6 +37,7 @@ let package = Package(
                 "CoreApp",
                 "LoginUseCases",
                 "AccountUseCases",
+                "SearchUse",
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)

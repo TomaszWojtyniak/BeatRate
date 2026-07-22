@@ -25,6 +25,8 @@ public protocol DatabaseFirebaseServiceProtocol: Sendable {
     func saveUserRating(userId: String, albumId: String, rating: Double, albumMetadata: (artist: String, title: String)?) async throws -> (avgRating: Double, ratingCount: Int)
     func getUserProfile(userId: String) async throws -> FirebaseUserProfile?
     func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws
+    func getFavoriteAlbumIds(userId: String) async throws -> [String]
+    func saveFavoriteAlbumIds(userId: String, albumIds: [String]) async throws
 }
 
 public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
@@ -371,6 +373,43 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
         // Update all fields atomically
         try await userRef.updateChildValues(allUpdates)
         Logger.firebaseService.info("Saved user profile to Firebase for user: \(userId)")
+    }
+
+    // MARK: - Favorites
+
+    /// Reads the user's ordered favorite album IDs from `users/{uid}/favorites`.
+    /// The node is always written as a contiguous array, so RTDB returns it as
+    /// `[Any]`, preserving order.
+    public func getFavoriteAlbumIds(userId: String) async throws -> [String] {
+        let ref = database.reference()
+            .child("users")
+            .child(userId)
+            .child("favorites")
+
+        let snapshot = try await ref.getData()
+
+        guard snapshot.exists(), let array = snapshot.value as? [Any] else {
+            Logger.firebaseService.info("No favorites found for user: \(userId)")
+            return []
+        }
+
+        return array.compactMap { $0 as? String }
+    }
+
+    /// Overwrites the user's favorites with the given ordered IDs. An empty list
+    /// removes the node (deletions aren't subject to `.validate` rules).
+    public func saveFavoriteAlbumIds(userId: String, albumIds: [String]) async throws {
+        let ref = database.reference()
+            .child("users")
+            .child(userId)
+            .child("favorites")
+
+        if albumIds.isEmpty {
+            try await ref.removeValue()
+        } else {
+            try await ref.setValue(albumIds)
+        }
+        Logger.firebaseService.info("Saved \(albumIds.count) favorites for user: \(userId)")
     }
 }
 

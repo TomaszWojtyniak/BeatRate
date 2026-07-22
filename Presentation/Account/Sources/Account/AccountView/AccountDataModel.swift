@@ -18,16 +18,27 @@ final class AccountDataModel {
     private let getLoginUseCase: GetLoginUseCaseProtocol
     private let setLoginUseCase: SetLoginUseCaseProtocol
     private let getAccountUseCase: GetAccountUseCaseProtocol
+    private let setAccountUseCase: SetAccountUseCaseProtocol
     private let musicPlayerManager: MusicPlayerManager
+
+    /// A user can curate at most this many favorite albums.
+    static let maxFavorites = 4
 
     var userProfile: FirebaseUserProfile?
     var ratedAlbums: [AlbumModel] = []
     var recentlyListenedAlbums: [AlbumModel] = []
+    var favoriteAlbums: [AlbumModel] = []
     var isLoading = false
     var isShowingEditSheet = false
     var errorMessage: String?
     var isShowingAlbumRatingsSection: Bool = false
     var isShowingRecentlyListenedSection: Bool = false
+
+    /// The Favorites card is shown for any logged-in user once loaded, even when
+    /// empty — the empty state is what offers "add albums".
+    var isShowingFavoritesSection: Bool { hasLoaded }
+    /// The share card is a 2×2 of exactly four covers, so sharing needs a full set.
+    var canShareFavorites: Bool { favoriteAlbums.count == Self.maxFavorites }
     /// Whether the initial full load has succeeded; re-appears only refresh
     /// the cheap slices after that instead of refetching everything.
     private(set) var hasLoaded = false
@@ -41,10 +52,12 @@ final class AccountDataModel {
     init(getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),
          setLoginUseCase: SetLoginUseCaseProtocol = SetLoginUseCase(),
          getAccountUseCase: GetAccountUseCaseProtocol = GetAccountUseCase(),
+         setAccountUseCase: SetAccountUseCaseProtocol = SetAccountUseCase(),
          musicPlayerManager: MusicPlayerManager = .shared) {
         self.getLoginUseCase = getLoginUseCase
         self.setLoginUseCase = setLoginUseCase
         self.getAccountUseCase = getAccountUseCase
+        self.setAccountUseCase = setAccountUseCase
         self.musicPlayerManager = musicPlayerManager
     }
 
@@ -88,21 +101,23 @@ final class AccountDataModel {
                 return
             }
 
-            // Fetch user profile, rated albums, and recently listened albums in parallel.
+            // Fetch user profile, rated albums, recently listened, and favorites in parallel.
             async let profileTask = getLoginUseCase.getUserProfile(userId: userId)
             async let ratedAlbumsTask = getAccountUseCase.getUserRatedAlbums()
             async let recentsTask = fetchRecentlyListenedAlbums()
+            async let favoritesTask = getAccountUseCase.getFavoriteAlbums()
 
-            let (profile, albums, recents) = try await (profileTask, ratedAlbumsTask, recentsTask)
+            let (profile, albums, recents, favorites) = try await (profileTask, ratedAlbumsTask, recentsTask, favoritesTask)
 
             self.userProfile = profile
             self.ratedAlbums = albums
             self.recentlyListenedAlbums = recents
+            self.favoriteAlbums = favorites
             self.isShowingRecentlyListenedSection = !recents.isEmpty
             self.isShowingAlbumRatingsSection = !albums.isEmpty
             self.hasLoaded = true
 
-            Logger.account.info("Loaded user profile, \(albums.count) rated albums, \(recents.count) recently listened")
+            Logger.account.info("Loaded user profile, \(albums.count) rated albums, \(recents.count) recently listened, \(favorites.count) favorites")
         } catch {
             Logger.account.error("Failed to load user data: \(error)")
             errorMessage = "Failed to load user data"
@@ -126,6 +141,23 @@ final class AccountDataModel {
         } catch {
             Logger.account.error("Failed to load recently listened albums: \(error)")
             return []
+        }
+    }
+
+    /// Persists a reordered/edited favorites list. Updates the UI optimistically,
+    /// then writes the ordered IDs to Firebase; on failure the list is reloaded
+    /// from the server so the UI can't drift from what was actually stored.
+    func saveFavorites(_ albums: [AlbumModel]) async {
+        let capped = Array(albums.prefix(Self.maxFavorites))
+        favoriteAlbums = capped
+        do {
+            try await setAccountUseCase.setFavoriteAlbums(albumIds: capped.map(\.id))
+            Logger.account.info("Saved \(capped.count) favorites")
+        } catch {
+            Logger.account.error("Failed to save favorites: \(error)")
+            errorMessage = "Failed to save favorites"
+            // Re-sync with the server so the UI can't drift from what was stored.
+            favoriteAlbums = (try? await getAccountUseCase.getFavoriteAlbums()) ?? favoriteAlbums
         }
     }
 

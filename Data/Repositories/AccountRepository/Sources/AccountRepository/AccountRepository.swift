@@ -18,6 +18,8 @@ import SwiftDataManager
 public protocol AccountRepositoryProtocol: Sendable {
     func getUserRatedAlbums() async throws -> [AlbumModel]
     func getRecentlyListenedAlbums(for player: MusicPlayer) async throws -> [AlbumModel]
+    func getFavoriteAlbums() async throws -> [AlbumModel]
+    func setFavoriteAlbums(albumIds: [String]) async throws
 }
 
 public actor AccountRepository: AccountRepositoryProtocol {
@@ -54,15 +56,48 @@ public actor AccountRepository: AccountRepositoryProtocol {
     public func getRecentlyListenedAlbums(for player: MusicPlayer) async throws -> [AlbumModel] {
         let musicData = try await musicRepository.fetchRecentlyListenedAlbums(for: player)
 
+        // These come straight from MusicKit with no rating, so merge in the
+        // user's own ratings to badge any they've already rated.
+        let ratings = await userRatings()
+
         var seenIds = Set<String>()
         let albums = musicData.compactMap { data -> AlbumModel? in
             guard !seenIds.contains(data.id) else { return nil }
             seenIds.insert(data.id)
-            return AlbumModel(id: data.id, appleMusicAlbumData: data, firebaseAlbumData: nil)
+            return AlbumModel(id: data.id, appleMusicAlbumData: data, firebaseAlbumData: nil, userRating: ratings?[data.id])
         }
 
         Logger.accountRepository.info("Loaded \(albums.count) recently listened albums for \(player.rawValue)")
         return albums
+    }
+
+    /// The user's `albumId -> rating` map, for badging albums that arrive from a
+    /// rating-less source. One Firebase read; `nil` on failure (e.g. offline) so
+    /// callers gracefully fall back to unrated.
+    private func userRatings() async -> [String: Double]? {
+        guard let userId = (try? await getCurrentUserId()) ?? nil, !userId.isEmpty else {
+            return nil
+        }
+        return try? await databaseFirebaseService.getAllUserRatings(userId: userId)
+    }
+
+    public func getFavoriteAlbums() async throws -> [AlbumModel] {
+        guard let currentUserId = try await getCurrentUserId(), !currentUserId.isEmpty else {
+            Logger.accountRepository.info("Cannot get favorites: User not logged in")
+            return []
+        }
+
+        let albumIds = try await databaseFirebaseService.getFavoriteAlbumIds(userId: currentUserId)
+        return await albums(forIds: albumIds)
+    }
+
+    public func setFavoriteAlbums(albumIds: [String]) async throws {
+        guard let currentUserId = try await getCurrentUserId(), !currentUserId.isEmpty else {
+            Logger.accountRepository.info("Cannot save favorites: User not logged in")
+            return
+        }
+
+        try await databaseFirebaseService.saveFavoriteAlbumIds(userId: currentUserId, albumIds: albumIds)
     }
 
     // MARK: - Private Helpers

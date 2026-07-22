@@ -19,6 +19,8 @@ public struct AccountView: View {
     @State private var selectedAlbum: AlbumModel?
     @State private var selectedSection: HomeSection?
     @State private var gridSelectedAlbum: AlbumModel?
+    @State private var isShowingFavoritesManager = false
+    @State private var isShowingShareCard = false
 
     public init() {}
 
@@ -46,6 +48,19 @@ public struct AccountView: View {
                         profileCard
                             .padding(.horizontal, Spacing.md)
                             .padding(.top, Spacing.xs)
+
+                        if dataModel.isShowingFavoritesSection {
+                            FavoritesSectionView(
+                                albums: dataModel.favoriteAlbums,
+                                canShare: dataModel.canShareFavorites,
+                                selectedAlbum: $selectedAlbum,
+                                onManage: { isShowingFavoritesManager = true },
+                                onShare: { isShowingShareCard = true }
+                            )
+                            .padding(Spacing.lg)
+                            .roundedMaterialBackground()
+                            .padding(.horizontal, Spacing.md)
+                        }
 
                         if dataModel.isShowingRecentlyListenedSection {
                             HomeSectionView(
@@ -114,13 +129,26 @@ public struct AccountView: View {
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
+        .sheet(isPresented: $isShowingFavoritesManager) {
+            FavoritesManagerView(initial: dataModel.favoriteAlbums) { newFavorites in
+                await dataModel.saveFavorites(newFavorites)
+            }
+        }
+        .fullScreenCover(isPresented: $isShowingShareCard) {
+            FavoritesShareView(name: dataModel.fullName ?? "", albums: dataModel.favoriteAlbums)
+        }
         .sheet(isPresented: $dataModel.isShowingEditSheet) {
             EditProfileView(
                 firstName: dataModel.userProfile?.firstName,
-                lastName: dataModel.userProfile?.lastName
-            ) { firstName, lastName in
-                await dataModel.saveUserProfile(firstName: firstName, lastName: lastName)
-            }
+                lastName: dataModel.userProfile?.lastName,
+                favorites: dataModel.favoriteAlbums,
+                onSave: { firstName, lastName in
+                    await dataModel.saveUserProfile(firstName: firstName, lastName: lastName)
+                },
+                onSaveFavorites: { updated in
+                    await dataModel.saveFavorites(updated)
+                }
+            )
         }
         .task {
             if dataModel.hasLoaded {
