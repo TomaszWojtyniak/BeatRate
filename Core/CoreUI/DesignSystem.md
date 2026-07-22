@@ -91,7 +91,6 @@ thumbnails, touch targets, and hero artwork.
 | `Size.avatar` | 84 | Account profile avatar. |
 | `Size.logomark` | 124 | Login + Splash logomark square. |
 | `Size.logomarkInset` | 22 | SF Symbol inset within a gradient icon square (Onboarding permission explainer). |
-| `Size.wordmark` | 220 | `AppNameLogomark` wordmark width on Splash / Login. |
 | `Size.thumbnailLarge` | 138 | HomeSection grid album thumbnail. |
 | `Size.coverHero` | 280 | AlbumDetails hero cover. |
 | `Size.signInButton` | 54 | Sign-In-with-Apple button height (Apple HIG). |
@@ -454,25 +453,23 @@ content.loading(isLoading, message: "Saving…")
 
 ### Hero mark (Splash / Login / permission screens)
 
-Never rebuild the halo-plus-rounded-square chrome by hand — use one of the two
-shared views. Both are `Size.logomark` (124) on a blurred `accentPrimarySoft`
+Never rebuild the halo-plus-rounded-square chrome by hand — use `LogomarkView`.
+It renders the mark at `Size.logomark` (124) on a blurred `accentPrimarySoft`
 halo with `.appShadow(.accentLift)`; pass a larger halo for full-screen moments.
 
 ```swift
 LogomarkView()                                            // Login — brand mark
 LogomarkView(halo: Halo.large, haloBlur: Blur.haloMedium) // Splash
-LogomarkView(style: .yellow)                              // on-backdrop variant
-SymbolMarkView(systemName: "music.note.list")             // illustrative glyph
+LogomarkView(style: .yellow)                              // gold-on-transparency variant
 WordmarkView()                                            // the "BeatRate" name
 ```
 
 | View | Renders | Use for |
 |---|---|---|
 | `LogomarkView` | Mark artwork clipped to `Radius.logomark`. `.fullColor` is the app icon on its own navy tile; `.yellow` is gold-on-transparency. | The brand mark itself — Splash, Login, onboarding. |
-| `SymbolMarkView` | An SF Symbol inset by `Size.logomarkInset` on `accentPrimaryGradient`. | Screens needing their own glyph — permission explainers, empty states. |
-| `WordmarkView` | The `AppNameLogomark` wordmark at `Size.wordmark`. | Spelling out the app name under a mark. |
+| `WordmarkView` | The `AppNameLogomark` wordmark. No intrinsic size cap — it fills the width it's given, so constrain it at the call site. | Spelling out the app name. |
 
-All three read artwork from the **app target's** asset catalog via `Bundle.main`,
+Both read artwork from the **app target's** asset catalog via `Bundle.main`,
 so they render blank in a CoreUI-only SwiftUI preview. Preview them from an
 app-target view instead.
 

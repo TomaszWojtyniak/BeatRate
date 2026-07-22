@@ -5,7 +5,9 @@
 
 import SwiftUI
 
-/// The "BeatRate" wordmark, sized to `Size.wordmark`.
+/// The "BeatRate" wordmark. It carries no intrinsic size cap — it fills the
+/// width it's given and scales to the artwork's aspect, so constrain it at the
+/// call site if the container is wider than you want the mark.
 ///
 /// - Important: `AppNameLogomark` ships a light and a dark variant, and iOS picks
 ///   between them on the *device's* appearance. Every screen that shows the
