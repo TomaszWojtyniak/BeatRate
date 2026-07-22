@@ -101,23 +101,23 @@ final class AccountDataModel {
                 return
             }
 
-            // Fetch user profile, rated albums, recently listened, and favorites in parallel.
+            // Fetch profile, album sections (rated + recently listened share one
+            // user_ratings read), and favorites in parallel.
             async let profileTask = getLoginUseCase.getUserProfile(userId: userId)
-            async let ratedAlbumsTask = getAccountUseCase.getUserRatedAlbums()
-            async let recentsTask = fetchRecentlyListenedAlbums()
+            async let sectionsTask = getAccountUseCase.getAlbumSections(recentlyListenedFor: musicPlayerManager.current)
             async let favoritesTask = getAccountUseCase.getFavoriteAlbums()
 
-            let (profile, albums, recents, favorites) = try await (profileTask, ratedAlbumsTask, recentsTask, favoritesTask)
+            let (profile, sections, favorites) = try await (profileTask, sectionsTask, favoritesTask)
 
             self.userProfile = profile
-            self.ratedAlbums = albums
-            self.recentlyListenedAlbums = recents
+            self.ratedAlbums = sections.rated
+            self.recentlyListenedAlbums = sections.recentlyListened
             self.favoriteAlbums = favorites
-            self.isShowingRecentlyListenedSection = !recents.isEmpty
-            self.isShowingAlbumRatingsSection = !albums.isEmpty
+            self.isShowingRecentlyListenedSection = !sections.recentlyListened.isEmpty
+            self.isShowingAlbumRatingsSection = !sections.rated.isEmpty
             self.hasLoaded = true
 
-            Logger.account.info("Loaded user profile, \(albums.count) rated albums, \(recents.count) recently listened, \(favorites.count) favorites")
+            Logger.account.info("Loaded user profile, \(sections.rated.count) rated albums, \(sections.recentlyListened.count) recently listened, \(favorites.count) favorites")
         } catch {
             Logger.account.error("Failed to load user data: \(error)")
             errorMessage = "Failed to load user data"

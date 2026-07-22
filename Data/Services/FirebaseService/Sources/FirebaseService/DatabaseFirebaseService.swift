@@ -22,6 +22,7 @@ public protocol DatabaseFirebaseServiceProtocol: Sendable {
     func getUserRating(userId: String, albumId: String) async throws -> Double?
     func getUserRatedAlbumIds(userId: String) async throws -> [String]
     func getAllUserRatings(userId: String) async throws -> [String: Double]
+    func getUserRatingsSorted(userId: String) async throws -> [(albumId: String, rating: Double)]
     func saveUserRating(userId: String, albumId: String, rating: Double, albumMetadata: (artist: String, title: String)?) async throws -> (avgRating: Double, ratingCount: Int)
     func getUserProfile(userId: String) async throws -> FirebaseUserProfile?
     func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws
@@ -210,6 +211,38 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
 
         Logger.firebaseService.info("Fetched \(ratings.count) user ratings for user: \(userId)")
         return ratings
+    }
+
+    /// Single read of `user_ratings` returning every rating with its album id,
+    /// newest-first by timestamp. Lets a caller that needs *both* the rated-album
+    /// ordering and the rating values read the node once instead of twice.
+    public func getUserRatingsSorted(userId: String) async throws -> [(albumId: String, rating: Double)] {
+        let ref = database.reference()
+            .child("users")
+            .child(userId)
+            .child("user_ratings")
+
+        let snapshot = try await ref.getData()
+
+        guard snapshot.exists(), let ratingsData = snapshot.value as? [String: Any] else {
+            Logger.firebaseService.info("No user ratings found for user: \(userId)")
+            return []
+        }
+
+        var entries: [(albumId: String, rating: Double, timestamp: TimeInterval)] = []
+        for (albumId, value) in ratingsData {
+            if let dict = value as? [String: Any], let rating = dict["rating"] as? Double {
+                entries.append((albumId, rating, (dict["timestamp"] as? TimeInterval) ?? 0))
+            } else if let rating = value as? Double {
+                entries.append((albumId, rating, 0))          // legacy bare number
+            } else {
+                Logger.firebaseService.warning("Unknown rating format for album \(albumId), skipping")
+            }
+        }
+
+        return entries
+            .sorted { $0.timestamp > $1.timestamp }
+            .map { (albumId: $0.albumId, rating: $0.rating) }
     }
 
     public func saveUserRating(userId: String, albumId: String, rating: Double, albumMetadata: (artist: String, title: String)? = nil) async throws -> (avgRating: Double, ratingCount: Int) {
