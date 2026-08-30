@@ -117,9 +117,9 @@ final class SplashDataModel {
         if musicPlayerManager.current == .spotify {
             let state = await getSplashUseCase.verifySpotifyConnection()
             switch state {
-            case .connected:
+            case .connected, .unavailable, .notAllowlisted:
                 Logger.splash.info("Spotify connection verified")
-            case .notConnected, .invalid:
+            case .notConnected, .needsReauth:
                 Logger.splash.error("Spotify connection broken: \(String(describing: state)) — prompting reconnect")
                 alertType = .spotifyReconnect
                 shouldComplete = false

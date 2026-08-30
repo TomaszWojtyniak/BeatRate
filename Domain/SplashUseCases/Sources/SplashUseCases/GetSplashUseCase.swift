@@ -97,7 +97,7 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
             return false
         }
 
-        let isPremium = await authResult.hasSpotifyPremium
+        let isPremium = await authResult.premium.isPremium
         let existingProfile = try await getLoginUseCase.getUserProfile(userId: userId)
         let updatedProfile = FirebaseUserProfile(
             email: existingProfile?.email,
@@ -105,7 +105,7 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
             lastName: existingProfile?.lastName,
             hasAppleMusicSubscription: existingProfile?.hasAppleMusicSubscription,
             hasSpotifyConnection: true,
-            hasSpotifyPremium: isPremium,
+            hasSpotifyPremium: isPremium ?? existingProfile?.hasSpotifyPremium,
             mainMusicPlayer: existingProfile?.mainMusicPlayer
         )
         try await loginRepository.saveUserProfile(userId: userId, profile: updatedProfile)

@@ -28,22 +28,6 @@ nonisolated enum SpotifyAPI {
             ])
     }
 
-    /// Spotify search treats `:` and unescaped double-quotes as field/operator syntax.
-    /// Wrap the field values in double quotes (the documented way to match exact phrases)
-    /// and strip embedded quotes so values like `Look: An EP` or `Dr. Dre` don't corrupt
-    /// the query (e.g. `album:"Look: An EP" artist:"Dr. Dre"`).
-    static func searchAlbum(name: String, artist: String) -> URL {
-        let sanitizedName = name.replacingOccurrences(of: "\"", with: "")
-        let sanitizedArtist = artist.replacingOccurrences(of: "\"", with: "")
-        let query = "album:\"\(sanitizedName)\" artist:\"\(sanitizedArtist)\""
-        return base.appending(path: "search")
-            .appending(queryItems: [
-                URLQueryItem(name: Param.query, value: query),
-                URLQueryItem(name: Param.type, value: Value.searchTypeAlbum),
-                URLQueryItem(name: Param.limit, value: String(Limit.search))
-            ])
-    }
-
     // MARK: - OAuth
 
     static let scopes = "user-read-private user-read-recently-played"
@@ -61,8 +45,6 @@ nonisolated enum SpotifyAPI {
         static let code = "code"
         static let codeVerifier = "code_verifier"
         static let refreshToken = "refresh_token"
-        static let query = "q"
-        static let type = "type"
         static let limit = "limit"
     }
 
@@ -76,18 +58,13 @@ nonisolated enum SpotifyAPI {
     enum Value {
         static let responseTypeCode = "code"
         static let challengeMethodS256 = "S256"
-        static let searchTypeAlbum = "album"
         static let premiumProduct = "premium"
     }
 
     // MARK: - Page Limits
 
     enum Limit {
-        /// Small page used when only probing that the recently-played call succeeds.
-        static let recentlyPlayedProbe = 10
         /// Full page used when resolving albums from listening history.
         static let recentlyPlayedPage = 50
-        /// Album search only needs the top match.
-        static let search = 1
     }
 }

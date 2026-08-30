@@ -30,18 +30,6 @@ nonisolated struct SpotifyUserResponse: Decodable, Sendable {
     let product: String?
 }
 
-nonisolated struct SpotifySearchResponse: Decodable, Sendable {
-    let albums: AlbumsPage?
-
-    struct AlbumsPage: Decodable, Sendable {
-        let items: [AlbumItem]
-    }
-
-    struct AlbumItem: Decodable, Sendable {
-        let id: String
-    }
-}
-
 nonisolated struct SpotifyRecentlyPlayedResponse: Decodable, Sendable {
     let items: [Item]
 

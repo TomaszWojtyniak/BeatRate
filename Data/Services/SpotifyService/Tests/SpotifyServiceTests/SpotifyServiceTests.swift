@@ -65,16 +65,6 @@ struct ResponseDecodingTests {
 // MARK: - Search URL
 
 struct SpotifyAPITests {
-    @Test func searchAlbumURLQuotesFieldsAndStripsEmbeddedQuotes() throws {
-        let url = SpotifyAPI.searchAlbum(name: #"Look: "An" EP"#, artist: "Dr. Dre")
-        let queryItems = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems)
-
-        #expect(queryItems.first { $0.name == SpotifyAPI.Param.query }?.value
-                == #"album:"Look: An EP" artist:"Dr. Dre""#)
-        #expect(queryItems.first { $0.name == SpotifyAPI.Param.type }?.value == "album")
-        #expect(queryItems.first { $0.name == SpotifyAPI.Param.limit }?.value == "1")
-    }
-
     @Test func recentlyPlayedURLCarriesLimit() throws {
         let url = SpotifyAPI.recentlyPlayed(limit: SpotifyAPI.Limit.recentlyPlayedPage)
         let queryItems = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems)
