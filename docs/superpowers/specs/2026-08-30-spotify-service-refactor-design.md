@@ -224,7 +224,10 @@ and never sets an accessibility attribute.
 - Collapse the triplets into generic `save(_:for:)` / `load(_:)` / `delete(_:)`
 - Set `kSecAttrAccessibleAfterFirstUnlock` on all items
 - Use `SecItemUpdate` when the item exists rather than delete-then-add
-- Add a `spotifyTokenExpiry` key
+- Store the whole token set as one JSON item under a single `spotifyTokens` key,
+  rather than separate access/refresh/expiry items — one item cannot half-write.
+  Migrate the pre-refactor `spotifyAccessToken` / `spotifyRefreshToken` pair on
+  first read so existing users are not signed out by this change.
 
 Net deletion of roughly 60 lines. Existing Apple-user-ID behavior is preserved.
 

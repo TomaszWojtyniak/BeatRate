@@ -626,9 +626,24 @@ Replace everything from `private let service` to the end of the actor with:
 }
 ```
 
-- [ ] **Step 2: Verify it fails to build where expected**
+- [ ] **Step 2: Fix the second consumer**
 
-Run `mcp__xcode__BuildProject`. Expected: errors in `SpotifyTokenStore.swift` — `loadSpotifyAccessToken` and friends no longer exist. That is correct; Task 5 fixes it.
+`SpotifyTokenStore` is **not** the only caller of the removed methods — found during execution. `GetSplashUseCase.logout()` also clears them directly. In `Domain/SplashUseCases/Sources/SplashUseCases/GetSplashUseCase.swift`, replace these two lines in the "Step 2: Clear the Keychain" block:
+
+```swift
+        try await keychainManager.deleteSpotifyAccessToken()
+        try await keychainManager.deleteSpotifyRefreshToken()
+```
+
+with the single call, which deletes the new item and both legacy keys:
+
+```swift
+        try await keychainManager.deleteSpotifyTokens()
+```
+
+- [ ] **Step 3: Verify it fails to build where expected**
+
+Run `mcp__xcode__BuildProject`. Expected: remaining errors confined to `SpotifyService.swift`, which still calls the old token-store API. That is correct; Task 10 fixes it. Tasks 4 and 5 should land as **one commit** so no commit leaves the tree broken beyond that known point.
 
 - [ ] **Step 3: Commit**
 
