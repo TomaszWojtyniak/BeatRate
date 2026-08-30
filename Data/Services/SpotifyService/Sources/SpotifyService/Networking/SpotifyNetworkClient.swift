@@ -17,6 +17,7 @@ nonisolated enum HTTP {
     enum Header {
         static let authorization = "Authorization"
         static let contentType = "Content-Type"
+        static let retryAfter = "Retry-After"
     }
 
     enum HeaderValue {
