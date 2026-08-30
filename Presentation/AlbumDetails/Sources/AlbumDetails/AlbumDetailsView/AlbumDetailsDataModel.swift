@@ -102,7 +102,9 @@ final class AlbumDetailsDataModel {
         defer { isLoading = false }
 
         do {
-            return try await self.getAlbumDetailsUseCase.getUserRating(albumId: album.id)
+            let rating = try await self.getAlbumDetailsUseCase.getUserRating(albumId: album.id)
+            previousRating = rating ?? 0
+            return rating
         } catch let error {
             Logger.albumDetails.error("error fetching user rating: \(error)")
             return nil
@@ -110,8 +112,9 @@ final class AlbumDetailsDataModel {
     }
 
     func saveAlbumRating(rating: Double) async {
-        // Store previous rating for rollback in case of error
-        previousRating = myRating
+        // Tapping the star you already have, or the left dead zone on an unrated
+        // album, would otherwise cost a write plus an aggregate recompute.
+        guard rating != previousRating else { return }
 
         do {
             // Pass album metadata (artist, title) for new albums
@@ -122,6 +125,10 @@ final class AlbumDetailsDataModel {
                 rating: rating,
                 albumMetadata: metadata
             )
+            // Only now is this the value a failed save should roll back to.
+            // Reading `myRating` at entry would capture the value the stars just
+            // wrote, making the rollback below a no-op.
+            previousRating = rating
             Logger.albumDetails.info("Successfully saved rating: \(rating)")
 
             // Refresh album data to get updated avgRating from cache

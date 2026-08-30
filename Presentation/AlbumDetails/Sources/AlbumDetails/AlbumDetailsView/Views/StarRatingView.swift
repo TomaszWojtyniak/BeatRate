@@ -70,7 +70,12 @@ struct StarRatingView: View {
                     guard containerWidth > 0 else { return }
                     let isTap = value.translation.width.magnitude < 5 &&
                                 value.translation.height.magnitude < 5
-                    if isTap {
+                    // `rating == 0` means the drag reached the dead zone left of
+                    // the first half-star, i.e. the user cleared it. Honour that
+                    // even when the movement was short enough to look like a tap —
+                    // `handleTap` can only ever produce >= 0.5, so routing there
+                    // would snap a low rating back up instead of removing it.
+                    if isTap && rating > 0 {
                         handleTap(at: value.startLocation)
                     } else {
                         onRatingFinalized?(rating)

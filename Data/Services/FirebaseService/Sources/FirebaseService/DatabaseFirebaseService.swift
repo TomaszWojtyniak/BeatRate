@@ -24,10 +24,12 @@ public protocol DatabaseFirebaseServiceProtocol: Sendable {
     func getAllUserRatings(userId: String) async throws -> [String: Double]
     func getUserRatingsSorted(userId: String) async throws -> [(albumId: String, rating: Double)]
     func saveUserRating(userId: String, albumId: String, rating: Double, albumMetadata: (artist: String, title: String)?) async throws -> (avgRating: Double, ratingCount: Int)
+    func removeUserRating(userId: String, albumId: String) async throws -> (avgRating: Double, ratingCount: Int)
     func getUserProfile(userId: String) async throws -> FirebaseUserProfile?
     func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws
     func getFavoriteAlbumIds(userId: String) async throws -> [String]
     func saveFavoriteAlbumIds(userId: String, albumIds: [String]) async throws
+    func deleteUserData(userId: String) async throws
 }
 
 public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
@@ -248,22 +250,36 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     public func saveUserRating(userId: String, albumId: String, rating: Double, albumMetadata: (artist: String, title: String)? = nil) async throws -> (avgRating: Double, ratingCount: Int) {
         try await ensureAlbumExists(albumId: albumId, albumMetadata: albumMetadata)
 
-        // Write to both Firebase nodes in parallel using task group
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            group.addTask {
-                try await self.saveRatingToUserNode(userId: userId, albumId: albumId, rating: rating)
-            }
-            group.addTask {
-                try await self.saveRatingToAlbumNode(userId: userId, albumId: albumId, rating: rating)
-            }
-            try await group.waitForAll()
-        }
+        // One atomic multi-location write, mirroring `removeUserRating`. Writing
+        // the two nodes separately can half-succeed, and an `album_ratings` entry
+        // with no matching user-node entry is invisible to account deletion —
+        // which walks the user node — so it would outlive the account forever.
+        try await database.reference().updateChildValues([
+            "/users/\(userId)/user_ratings/\(albumId)": [
+                "rating": rating,
+                "timestamp": Date().timeIntervalSince1970
+            ],
+            "/album_ratings/\(albumId)/\(userId)": rating
+        ])
 
-        let stats = try await calculateAlbumStats(userId: userId, albumId: albumId, rating: rating)
-        try await updateAlbumStats(albumId: albumId, avgRating: stats.avgRating, ratingCount: stats.ratingCount)
+        let stats = try await recalculateAlbumStats(albumId: albumId)
 
         Logger.firebaseService.info("Saved rating \(rating) for album: \(albumId). Avg: \(stats.avgRating), Count: \(stats.ratingCount)")
 
+        return stats
+    }
+
+    /// Removes a user's rating for an album — their own entry and their
+    /// contribution to the shared aggregate — then recomputes the album's stats
+    /// from the ratings that remain. Returns the fresh avg/count.
+    public func removeUserRating(userId: String, albumId: String) async throws -> (avgRating: Double, ratingCount: Int) {
+        try await database.reference().updateChildValues([
+            "/users/\(userId)/user_ratings/\(albumId)": NSNull(),
+            "/album_ratings/\(albumId)/\(userId)": NSNull()
+        ])
+
+        let stats = try await recalculateAlbumStats(albumId: albumId)
+        Logger.firebaseService.info("Removed rating for album: \(albumId). Avg: \(stats.avgRating), Count: \(stats.ratingCount)")
         return stats
     }
 
@@ -290,46 +306,26 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
         Logger.firebaseService.info("Created album: \(albumId) with artist: \(metadata.artist), title: \(metadata.title)")
     }
 
-    private func saveRatingToUserNode(userId: String, albumId: String, rating: Double) async throws {
-        let db = database.reference()
-        let userRatingRef = db.child("users").child(userId).child("user_ratings").child(albumId)
+    /// Recomputes an album's aggregate from whatever ratings currently remain in
+    /// `album_ratings`. Used after a rating is removed (e.g. account deletion or
+    /// a user clearing their rating); an empty node zeroes the stats.
+    @discardableResult
+    private func recalculateAlbumStats(albumId: String) async throws -> (avgRating: Double, ratingCount: Int) {
+        let snapshot = try await database.reference().child("album_ratings").child(albumId).getData()
 
-        // Save rating with timestamp for proper ordering
-        let timestamp = Date().timeIntervalSince1970
-        let ratingData: [String: Any] = [
-            "rating": rating,
-            "timestamp": timestamp
-        ]
+        // Per-entry cast, not `as? [String: Double]`: that is all-or-nothing, so a
+        // single malformed child would yield an empty list and wipe every other
+        // user's contribution. Ignore 0/null entries — 0 means "not rated".
+        let values = (snapshot.value as? [String: Any])?
+            .values
+            .compactMap { $0 as? Double }
+            .filter { $0 > 0 } ?? []
+        let stats: (avgRating: Double, ratingCount: Int) = values.isEmpty
+            ? (0.0, 0)
+            : (values.reduce(0.0, +) / Double(values.count), values.count)
 
-        try await userRatingRef.setValue(ratingData)
-        Logger.firebaseService.debug("Saved rating \(rating) with timestamp \(timestamp) for album \(albumId)")
-    }
-
-    private func saveRatingToAlbumNode(userId: String, albumId: String, rating: Double) async throws {
-        let db = database.reference()
-        let albumRatingRef = db.child("album_ratings").child(albumId).child(userId)
-        try await albumRatingRef.setValue(rating)
-    }
-
-    private func calculateAlbumStats(userId: String, albumId: String, rating: Double) async throws -> (avgRating: Double, ratingCount: Int) {
-        let db = database.reference()
-        let allRatingsRef = db.child("album_ratings").child(albumId)
-        let snapshot = try await allRatingsRef.getData()
-
-        let ratingsDict: [String: Double]
-        if snapshot.exists(), let existingRatings = snapshot.value as? [String: Double] {
-            ratingsDict = existingRatings
-        } else {
-            // First rating for this album
-            ratingsDict = [userId: rating]
-            Logger.firebaseService.info("First rating for album: \(albumId)")
-        }
-
-        let ratings = Array(ratingsDict.values)
-        let avgRating = ratings.reduce(0.0, +) / Double(ratings.count)
-        let ratingCount = ratings.count
-
-        return (avgRating: avgRating, ratingCount: ratingCount)
+        try await updateAlbumStats(albumId: albumId, avgRating: stats.avgRating, ratingCount: stats.ratingCount)
+        return stats
     }
 
     private func updateAlbumStats(albumId: String, avgRating: Double, ratingCount: Int) async throws {
@@ -443,6 +439,40 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
             try await ref.setValue(albumIds)
         }
         Logger.firebaseService.info("Saved \(albumIds.count) favorites for user: \(userId)")
+    }
+
+    /// Wipes every trace of a user for account deletion: their whole `users/<id>`
+    /// node (profile, ratings, favorites) plus their per-album entries in the
+    /// shared `album_ratings` aggregate. The deletes go out as one atomic
+    /// multi-location update; the aggregate recompute that follows does not.
+    public func deleteUserData(userId: String) async throws {
+        let ratedAlbumIds = try await getUserRatedAlbumIds(userId: userId)
+
+        var updates: [String: Any] = ["/users/\(userId)": NSNull()]
+        for albumId in ratedAlbumIds {
+            updates["/album_ratings/\(albumId)/\(userId)"] = NSNull()
+        }
+
+        try await database.reference().updateChildValues(updates)
+        Logger.firebaseService.info("Deleted RTDB data for user: \(userId) (\(ratedAlbumIds.count) album ratings)")
+
+        // Recompute each affected album's aggregate from the ratings that remain.
+        // Concurrent, because until an album's turn comes its public avg/count
+        // still counts the deleted user — and if the app dies mid-pass that
+        // stale total sticks until someone else rates the album.
+        // Best-effort: a stale average is a data-quality issue, not a reason to
+        // abort account deletion, so failures are logged and skipped.
+        // ponytail: non-atomic read-then-write, same race as the rating path; a
+        // Cloud Function on album_ratings delete would remove the race entirely.
+        _ = await ratedAlbumIds.concurrentCompactMap(maxConcurrent: 8) { albumId -> Bool? in
+            do {
+                try await self.recalculateAlbumStats(albumId: albumId)
+                return true
+            } catch {
+                Logger.firebaseService.error("Failed to recompute stats for album \(albumId): \(error.localizedDescription)")
+                return nil
+            }
+        }
     }
 }
 

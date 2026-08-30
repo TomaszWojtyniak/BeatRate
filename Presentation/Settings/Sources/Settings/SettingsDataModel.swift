@@ -12,6 +12,8 @@ import Analytics
 import CoreApp
 import OSLog
 import Models
+import AuthenticationServices
+import CryptoKit
 
 @MainActor
 @Observable
@@ -29,6 +31,8 @@ final class SettingsDataModel {
 
     var isLoggingOut = false
     var showLogoutConfirmation = false
+    var isDeletingAccount = false
+    var showDeleteAccountSheet = false
     var isAppleMusicConnected = false
     var isConnectingAppleMusic = false
     var isSpotifyConnected = false
@@ -85,6 +89,28 @@ final class SettingsDataModel {
             Logger.settings.info("Logout successful")
         } catch {
             Logger.settings.error("Logout failed: \(error)")
+            throw error
+        }
+    }
+
+    func getCurrentNonce() async -> String {
+        await getSplashUseCase.getCurrentNonce()
+    }
+
+    func sha256(_ input: String) -> String {
+        let hashed = SHA256.hash(data: Data(input.utf8))
+        return hashed.compactMap { String(format: "%02x", $0) }.joined()
+    }
+
+    func deleteAccount(authResult: ASAuthorization) async throws {
+        isDeletingAccount = true
+        defer { isDeletingAccount = false }
+
+        do {
+            try await getSplashUseCase.deleteAccount(authResult: authResult)
+            Logger.settings.info("Account deletion successful")
+        } catch {
+            Logger.settings.error("Account deletion failed: \(error)")
             throw error
         }
     }

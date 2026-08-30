@@ -27,10 +27,10 @@ struct RateAlbumView: View {
                     Text(myRating == 0 ? "Rate this album" : "Your rating")
                         .textStyle(.bodyEmphasis)
 
-                    Text(myRating == 0
-                         ? "Tap or drag a star to rate"
-                         : "Double-tap a star for a half rating")
-                        .textStyle(.caption)
+                    if myRating == 0 {
+                        Text("Tap or drag a star to rate")
+                            .textStyle(.caption)
+                    }
                 }
 
                 Spacer(minLength: 0)
@@ -42,25 +42,14 @@ struct RateAlbumView: View {
                 }
             }
 
-            StarRatingView(rating: $myRating, onRatingFinalized: { final in
-                onRatingFinalized?(final)
-                withAnimation(AppAnimation.quick) {
-                    showSavedFlash = true
-                }
-                Task {
-                    try? await Task.sleep(for: .seconds(1.4))
-                    withAnimation(AppAnimation.standard) {
-                        showSavedFlash = false
-                    }
-                }
-            })
-            .padding(.vertical, Spacing.xxs)
+            StarRatingView(rating: $myRating, onRatingFinalized: finalize)
+                .padding(.vertical, Spacing.xxs)
 
             if showSavedFlash {
                 HStack(spacing: Spacing.xs) {
-                    Image(systemName: "checkmark.circle.fill")
+                    Image(systemName: myRating == 0 ? "xmark.circle.fill" : "checkmark.circle.fill")
                         .foregroundStyle(Color.accentPrimary)
-                    Text("Saved to your library")
+                    Text(myRating == 0 ? "Rating removed" : "Saved to your library")
                         .textStyle(.captionEmphasis)
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
@@ -68,6 +57,22 @@ struct RateAlbumView: View {
         }
         .padding(Spacing.lg)
         .roundedMaterialBackground()
+    }
+
+    /// Pushes the finalized value up (0 means remove) and flashes a confirmation.
+    /// Optimistic: the flash fires before the write resolves. A failed write rolls
+    /// the stars back in `AlbumDetailsDataModel.saveAlbumRating`.
+    private func finalize(_ value: Double) {
+        onRatingFinalized?(value)
+        withAnimation(AppAnimation.quick) {
+            showSavedFlash = true
+        }
+        Task {
+            try? await Task.sleep(for: .seconds(1.4))
+            withAnimation(AppAnimation.standard) {
+                showSavedFlash = false
+            }
+        }
     }
 }
 

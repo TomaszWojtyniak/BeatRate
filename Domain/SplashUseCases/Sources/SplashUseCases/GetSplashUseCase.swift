@@ -31,6 +31,8 @@ public protocol GetSplashUseCaseProtocol: Sendable {
     func isUserLoggedIn() async -> Bool
     func areCredentialsValid() async -> Bool
     func logout() async throws
+    func getCurrentNonce() async -> String
+    func deleteAccount(authResult: ASAuthorization) async throws
 }
 
 public actor GetSplashUseCase: GetSplashUseCaseProtocol {
@@ -231,6 +233,23 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
                 continuation.resume(returning: state)
             }
         }
+    }
+
+    public func getCurrentNonce() async -> String {
+        await loginRepository.getCurrentNonce()
+    }
+
+    /// Deletes the account remotely (Apple token revoke + Firebase user + RTDB
+    /// data) then reuses `logout()` for the identical local teardown.
+    public func deleteAccount(authResult: ASAuthorization) async throws {
+        // Without a userId nothing can be deleted remotely — fail loudly instead
+        // of logging out and reporting a deletion that never happened.
+        guard let userId: String = (try? await swiftDataManager.getCurrentUserId()) ?? nil else {
+            Logger.splash.error("Account deletion attempted with no current user id")
+            throw LoginError.wrongData
+        }
+        try await loginRepository.deleteAccount(userId: userId, authResult: authResult)
+        try await logout()
     }
 
     public func logout() async throws {

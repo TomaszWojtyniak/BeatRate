@@ -16,9 +16,15 @@ import CoreApp
 @preconcurrency import FirebaseAuth
 import AuthenticationServices
 
+public enum AuthFirebaseServiceError: Error {
+    case noCurrentUser
+}
+
 public protocol AuthFirebaseServiceProtocol: Sendable {
     func setLoginData(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws -> String
     func signOut() async throws
+    func reauthenticate(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws
+    func revokeAndDeleteUser(authorizationCode: String?) async throws
 }
 
 public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
@@ -82,6 +88,45 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
             Logger.firebaseService.error("Failed to delete Apple user ID from Keychain: \(error.localizedDescription)")
             // Don't throw - Keychain cleanup is not critical for sign out
         }
+    }
+
+    /// Proves recent login with a fresh Apple credential — Firebase requires this
+    /// before `delete()`, otherwise it throws `requiresRecentLogin`.
+    public func reauthenticate(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws {
+        guard let user = Auth.auth().currentUser else {
+            throw AuthFirebaseServiceError.noCurrentUser
+        }
+        let credential = OAuthProvider.appleCredential(
+            withIDToken: idTokenString,
+            rawNonce: nonce,
+            fullName: appleIDCredential.fullName
+        )
+        try await user.reauthenticate(with: credential)
+        Logger.firebaseService.debug("Reauthenticated user for account deletion")
+    }
+
+    /// Revokes the Apple token (so the app drops out of the user's Apple ID
+    /// settings — App Review requires this for Sign in with Apple) and then
+    /// deletes the Firebase auth user. Must run while still authenticated.
+    public func revokeAndDeleteUser(authorizationCode: String?) async throws {
+        guard let user = Auth.auth().currentUser else {
+            throw AuthFirebaseServiceError.noCurrentUser
+        }
+
+        if let authorizationCode {
+            do {
+                try await Auth.auth().revokeToken(withAuthorizationCode: authorizationCode)
+                Logger.firebaseService.debug("Revoked Apple token")
+            } catch {
+                // Non-fatal: still delete the account even if revocation fails,
+                // but surface it — a persistent failure means stale Apple grants.
+                Logger.firebaseService.error("Apple token revoke failed: \(error.localizedDescription)")
+                await crashLogger.reportToCrashlytics(error: error)
+            }
+        }
+
+        try await user.delete()
+        Logger.firebaseService.info("Deleted Firebase auth user")
     }
 
     private func signInWithFirebase(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws -> AuthDataResult {

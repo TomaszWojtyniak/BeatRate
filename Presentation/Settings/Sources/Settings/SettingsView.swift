@@ -10,6 +10,7 @@ import CoreUI
 import Models
 import CoreApp
 import Onboarding
+import AuthenticationServices
 
 @MainActor
 public struct SettingsView: View {
@@ -60,6 +61,17 @@ public struct SettingsView: View {
                 } header: {
                     Text("Accounts")
                 }
+
+                Section {
+                    Button(role: .destructive) {
+                        dataModel.showDeleteAccountSheet = true
+                    } label: {
+                        Text("Delete Account")
+                    }
+                    .disabled(dataModel.isDeletingAccount)
+                } footer: {
+                    Text("Permanently deletes your account and all your ratings and favorites. This can't be undone.")
+                }
             }
             .listStyle(.insetGrouped)
             .safeAreaInset(edge: .bottom) {
@@ -103,6 +115,98 @@ public struct SettingsView: View {
                 }
             }
             .tint(.red)
+        }
+        .sheet(isPresented: $dataModel.showDeleteAccountSheet) {
+            DeleteAccountSheet(dataModel: dataModel) { dismiss() }
+        }
+    }
+}
+
+/// Account deletion is gated behind a fresh Sign in with Apple: it proves recent
+/// login for the delete and yields the authorization code needed to revoke the
+/// Apple token. On success the whole Settings sheet is dismissed via `onDeleted`.
+private struct DeleteAccountSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let dataModel: SettingsDataModel
+    let onDeleted: () -> Void
+
+    @State private var errorMessage: String?
+    /// Hashed ahead of the tap. `onRequest` is synchronous — assigning the nonce
+    /// inside a `Task` there races the request being handed to the system, and a
+    /// request that goes out without it fails reauthentication.
+    @State private var hashedNonce: String?
+
+    var body: some View {
+        VStack(spacing: Spacing.lg) {
+            Spacer(minLength: Spacing.xl)
+
+            Image(systemName: "exclamationmark.triangle.fill")
+                .textStyle(.iconPlaceholder, color: Color.errorRed)
+
+            Text("Delete Account")
+                .textStyle(.title)
+
+            Text("This permanently deletes your account and all your ratings and favorites. This can't be undone. Confirm with your Apple ID to continue.")
+                .textStyle(.body, color: .secondaryText)
+                .multilineTextAlignment(.center)
+
+            if let errorMessage {
+                Text(errorMessage)
+                    .textStyle(.caption, color: Color.errorRed)
+                    .multilineTextAlignment(.center)
+            }
+
+            Spacer()
+
+            if dataModel.isDeletingAccount || hashedNonce == nil {
+                ProgressView()
+                    .frame(maxWidth: .infinity, minHeight: Size.signInButton)
+            } else {
+                SignInWithAppleButton(.continue, onRequest: { request in
+                    request.requestedScopes = [.fullName, .email]
+                    request.nonce = hashedNonce
+                }, onCompletion: handleAuthorization)
+                .signInWithAppleButtonStyle(.black)
+                .frame(maxWidth: .infinity, maxHeight: Size.signInButton)
+                .clipShape(RoundedRectangle(cornerRadius: Radius.signInButton, style: .continuous))
+            }
+
+            Button("Cancel") { dismiss() }
+                .disabled(dataModel.isDeletingAccount)
+                .padding(.bottom, Spacing.xs)
+        }
+        .padding(.horizontal, Spacing.lg)
+        .padding(.bottom, Spacing.lg)
+        .presentationDetents([.medium])
+        .interactiveDismissDisabled(dataModel.isDeletingAccount)
+        .task {
+            hashedNonce = dataModel.sha256(await dataModel.getCurrentNonce())
+        }
+    }
+
+    private func handleAuthorization(_ result: Result<ASAuthorization, Error>) {
+        errorMessage = nil
+        Task {
+            switch result {
+            case .success(let authResult):
+                do {
+                    try await dataModel.deleteAccount(authResult: authResult)
+                    // Dismissing Settings takes this sheet with it; dismissing
+                    // both in the same tick is the flaky nested-sheet pattern.
+                    onDeleted()
+                } catch {
+                    // The wipe runs before the auth user is deleted, so a failure
+                    // here can leave an emptied-but-live account. Retrying finishes
+                    // the job (the second wipe is a no-op), so say so.
+                    errorMessage = "We couldn't finish deleting your account. Please try again."
+                }
+            case .failure(let error):
+                // Cancellation is a normal outcome — leave the sheet open, no error.
+                if let authError = error as? ASAuthorizationError, authError.code == .canceled {
+                    return
+                }
+                errorMessage = "Couldn't verify your Apple ID. Please try again."
+            }
         }
     }
 }

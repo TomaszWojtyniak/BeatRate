@@ -96,8 +96,13 @@ public actor HomeRepository: HomeRepositoryProtocol {
             throw HomeRepositoryError.albumDataMismatch
         }
 
-        // Write to Firebase and update cache
-        try await writeAndCacheUserRating(albumId: albumId, userId: currentUserId, rating: rating, albumMetadata: albumMetadata)
+        // A rating of 0 means "remove my rating", not "store a zero" — otherwise
+        // the 0 drags the album average down and counts as a vote.
+        if rating <= 0 {
+            try await removeAndUncacheUserRating(albumId: albumId, userId: currentUserId)
+        } else {
+            try await writeAndCacheUserRating(albumId: albumId, userId: currentUserId, rating: rating, albumMetadata: albumMetadata)
+        }
     }
 
     public func getCachedAlbum(albumId: String) async throws -> AlbumModel? {
@@ -364,5 +369,27 @@ public actor HomeRepository: HomeRepositoryProtocol {
         }
 
         Logger.homeRepository.info("Wrote and cached user rating for album: \(albumId), new avg: \(avgRating)")
+    }
+
+    /// Removes the user's rating in Firebase and clears it from the cache, then
+    /// refreshes the cached album with the recomputed avg/count. Mirrors
+    /// `writeAndCacheUserRating` for the removal path.
+    private func removeAndUncacheUserRating(albumId: String, userId: String) async throws {
+        let (avgRating, ratingCount) = try await databaseFirebaseService.removeUserRating(userId: userId, albumId: albumId)
+
+        try await swiftDataManager.removeCachedUserRating(albumId: albumId)
+
+        if let cachedAlbum = try await swiftDataManager.getCachedAlbum(id: albumId)?.firebaseAlbumData {
+            let updatedFirebaseData = FirebaseAlbumData(
+                artist: cachedAlbum.artist,
+                avgRating: avgRating,
+                createdAt: cachedAlbum.createdAt,
+                ratingCount: ratingCount,
+                title: cachedAlbum.title
+            )
+            try await swiftDataManager.updateCachedAlbum(albumId: albumId, firebaseData: updatedFirebaseData)
+        }
+
+        Logger.homeRepository.info("Removed and uncached user rating for album: \(albumId), new avg: \(avgRating)")
     }
 }
