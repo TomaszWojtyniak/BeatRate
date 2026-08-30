@@ -14,14 +14,21 @@
 
 ## Before you start — read this
 
-**Test execution is manual in this repo.** `swift test --package-path Data/Services/SpotifyService` cannot run: the package is `platforms: [.iOS(.v26)]` only, and it depends on `CoreApp`, which imports SwiftData in `SessionManager.swift`. There is no working CLI test path.
+**Verification procedure — corrected during execution of Task 2.**
 
-Therefore every "verify" step in this plan is **`mcp__xcode__BuildProject`**, per `CLAUDE.md`:
+The original assumption here was wrong in an important way. Building the **`BeatRate Development`** scheme with `buildForTesting: true` reports BUILD SUCCEEDED **without ever compiling the test target** — its test plan has zero tests wired in. A green build on that scheme proves nothing about your tests.
 
-1. `mcp__xcode__XcodeListWindows` → get the `tabIdentifier` for `BeatRate.xcodeproj`
-2. `mcp__xcode__BuildProject` with that `tabIdentifier`
+Use the **per-package scheme** instead. Every local package has an auto-generated Xcode scheme with a real test plan (`SpotifyService` enumerates all 18 tests).
 
-Tests must be **written and kept compiling**, then run by the developer from Xcode (⌘U) against a real device. Do not claim a test passed that you did not observe pass.
+For each verification step:
+
+1. `mcp__xcode__XcodeSwitchScheme` → `"SpotifyService"` (or `"Models"` for Task 12's Models tests)
+2. `mcp__xcode__BuildProject` with `tabIdentifier: "windowtab-TEQdEess69"` and `buildForTesting: true`
+3. Then switch to `"BeatRate Development"` and build again, to catch app-level breakage in Domain/Presentation
+
+Run destination must be **`Any iOS Device (arm64, arm64_32, x86_64)`**. Do not use `My Mac` — the package imports UIKit in `SpotifyWebAuthSession.swift`, so the macOS build fails outright.
+
+**Tests compile but cannot be executed right now.** `RunAllTests` reports "18 not run": the only real iOS destination, `iPhone Tomasz`, is currently disconnected and shows as incompatible. Tests must be written and kept compiling; the developer runs them from Xcode with the phone attached. **Never report a test as passing — you cannot observe that.**
 
 **Two deliberate deviations from the spec**, both for testability, both intentional:
 
