@@ -22,6 +22,7 @@ public protocol LoginRepositoryProtocol: Sendable {
     func getUserProfile(userId: String) async throws -> FirebaseUserProfile?
     func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws
     func signOut() async throws
+    func deleteAccount(userId: String, authResult: ASAuthorization) async throws
 }
 
 public actor LoginRepository: LoginRepositoryProtocol {
@@ -101,5 +102,32 @@ public actor LoginRepository: LoginRepositoryProtocol {
         Logger.loginRepository.info("Signing out user from Firebase")
         try await authFirebaseService.signOut()
         Logger.loginRepository.info("User signed out successfully")
+    }
+
+    /// Permanently deletes the account. `authResult` is a fresh Sign in with Apple
+    /// re-authentication — required to prove recent login before deletion and to
+    /// obtain the authorization code Firebase needs to revoke the Apple token.
+    public func deleteAccount(userId: String, authResult: ASAuthorization) async throws {
+        guard let appleIDCredential = authResult.credential as? ASAuthorizationAppleIDCredential else {
+            throw LoginError.wrongData
+        }
+        guard let nonce = currentNonce else {
+            Logger.loginRepository.error("Account deletion attempted with no nonce in flight")
+            throw LoginError.wrongData
+        }
+        guard let appleIDToken = appleIDCredential.identityToken,
+              let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
+            Logger.loginRepository.error("Unable to serialize identity token for account deletion")
+            throw LoginError.wrongData
+        }
+        let authorizationCode = appleIDCredential.authorizationCode
+            .flatMap { String(data: $0, encoding: .utf8) }
+
+        // Order matters: reauth and data wipe must happen while still signed in;
+        // the auth user is deleted last.
+        try await authFirebaseService.reauthenticate(idTokenString: idTokenString, nonce: nonce, appleIDCredential: appleIDCredential)
+        try await databaseFirebaseService.deleteUserData(userId: userId)
+        try await authFirebaseService.revokeAndDeleteUser(authorizationCode: authorizationCode)
+        Logger.loginRepository.info("Account deleted for user: \(userId)")
     }
 }

@@ -21,6 +21,7 @@ public protocol SwiftDataManagerProtocol: Sendable {
     func updateCachedAlbum(albumId: String, firebaseData: FirebaseAlbumData) async throws
     func getCachedUserRating(albumId: String) async throws -> Double?
     func cacheUserRating(albumId: String, rating: Double) async throws
+    func removeCachedUserRating(albumId: String) async throws
     func cacheUserRatings(_ ratings: [String: Double]) async throws
     func clearCache() async throws
     func clearAllCacheForLogout() async throws
@@ -226,19 +227,38 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         try context.save()
     }
 
-    /// Bulk-updates the user rating on every cached album present in `ratings`.
-    /// The cache is small (home + viewed albums), so fetching all and filtering
-    /// in memory avoids a large `IN`-style predicate. Cached albums absent from
-    /// the map are left untouched.
-    public func cacheUserRatings(_ ratings: [String: Double]) async throws {
-        guard !ratings.isEmpty else { return }
+    /// Clears the cached user rating so a removed rating isn't served for the
+    /// 7-day cache window. Nils both fields → `getCachedUserRating` misses.
+    public func removeCachedUserRating(albumId: String) async throws {
+        let descriptor = FetchDescriptor<CachedAlbum>(
+            predicate: #Predicate { $0.id == albumId }
+        )
 
+        guard let cachedAlbum = try context.fetch(descriptor).first else {
+            return
+        }
+
+        cachedAlbum.userRating = nil
+        cachedAlbum.userRatingUpdatedAt = nil
+        try context.save()
+    }
+
+    /// Bulk-syncs the user rating on every cached album against `ratings`, the
+    /// complete server-side map. Authoritative in both directions — an album
+    /// missing from the map is cleared, matching `HomeRepository.applying(_:to:)`;
+    /// leaving it set is how a rating removed on another device used to linger
+    /// here for the rest of the cache window.
+    ///
+    /// The cache is small (home + viewed albums), so fetching all and filtering
+    /// in memory avoids a large `IN`-style predicate.
+    public func cacheUserRatings(_ ratings: [String: Double]) async throws {
         let now = Date()
         var didUpdate = false
         for cachedAlbum in try context.fetch(FetchDescriptor<CachedAlbum>()) {
-            guard let rating = ratings[cachedAlbum.id] else { continue }
+            let rating = ratings[cachedAlbum.id]
+            guard cachedAlbum.userRating != rating else { continue }
             cachedAlbum.userRating = rating
-            cachedAlbum.userRatingUpdatedAt = now
+            cachedAlbum.userRatingUpdatedAt = rating == nil ? nil : now
             didUpdate = true
         }
 
