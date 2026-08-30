@@ -18,7 +18,7 @@ nonisolated protocol SpotifyTokenStoring: Sendable {
 
 /// Keychain-backed store. Persists the token set as one JSON item.
 nonisolated struct SpotifyTokenStore: SpotifyTokenStoring {
-    let keychain: KeychainManager
+    let keychain: any SpotifyKeychain
 
     func load() async throws -> SpotifyTokens? {
         if let data = try await keychain.loadSpotifyTokens() {
