@@ -81,7 +81,7 @@ nonisolated struct SpotifyNetworkClient: Sendable {
 
     /// Percent-encodes via URLComponents; `+` is valid in a URL query but means
     /// a space in form-urlencoded bodies, so it needs escaping on top.
-    private static func formEncode(_ fields: [(name: String, value: String)]) -> Data? {
+    static func formEncode(_ fields: [(name: String, value: String)]) -> Data? {
         var components = URLComponents()
         components.queryItems = fields.map { URLQueryItem(name: $0.name, value: $0.value) }
         return components.percentEncodedQuery?
