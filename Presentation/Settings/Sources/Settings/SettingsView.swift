@@ -58,6 +58,11 @@ public struct SettingsView: View {
                     ) {
                         Task { await dataModel.connectSpotify() }
                     }
+
+                    if let notice = dataModel.spotifyNotice {
+                        Text(notice.message)
+                            .textStyle(.caption)
+                    }
                 } header: {
                     Text("Accounts")
                 }

@@ -33,6 +33,7 @@ final class AccountDataModel {
     var errorMessage: String?
     var isShowingAlbumRatingsSection: Bool = false
     var isShowingRecentlyListenedSection: Bool = false
+    var recentlyListenedFailed = false
 
     /// The Favorites card is shown for any logged-in user once loaded, even when
     /// empty — the empty state is what offers "add albums".
@@ -127,19 +128,25 @@ final class AccountDataModel {
     func reloadRecentlyListenedAlbums() async {
         let recents = await fetchRecentlyListenedAlbums()
         self.recentlyListenedAlbums = recents
-        self.isShowingRecentlyListenedSection = !recents.isEmpty
+        self.isShowingRecentlyListenedSection = !recents.isEmpty || recentlyListenedFailed
     }
 
     private func fetchRecentlyListenedAlbums() async -> [AlbumModel] {
         guard let player = musicPlayerManager.current else {
             Logger.account.info("No main music player selected; skipping recently listened")
+            recentlyListenedFailed = false
             return []
         }
 
         do {
-            return try await getAccountUseCase.getRecentlyListenedAlbums(for: player)
+            let albums = try await getAccountUseCase.getRecentlyListenedAlbums(for: player)
+            recentlyListenedFailed = false
+            return albums
         } catch {
+            // Distinct from "no history" — the section can say so rather than
+            // silently vanishing.
             Logger.account.error("Failed to load recently listened albums: \(error)")
+            recentlyListenedFailed = true
             return []
         }
     }
