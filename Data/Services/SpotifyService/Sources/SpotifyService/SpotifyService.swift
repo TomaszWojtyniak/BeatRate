@@ -53,7 +53,7 @@ public actor SpotifyService: SpotifyServiceProtocol {
         // connecting costs one request rather than two.
         let premium = await currentPremiumStatus()
         Logger.spotifyService.info("Spotify authorized, premium: \(String(describing: premium))")
-        return await SpotifyAuthResult(isAuthorized: true, premium: premium)
+        return SpotifyAuthResult(isAuthorized: true, premium: premium)
     }
 
     // MARK: - Connection State
@@ -68,7 +68,7 @@ public actor SpotifyService: SpotifyServiceProtocol {
     public func verifyConnection() async -> SpotifyConnectionState {
         do {
             let user: SpotifyUserResponse = try await client.get(SpotifyAPI.me, session: session)
-            return .connected(premium: await SpotifyPremiumStatus(product: user.product))
+            return .connected(premium: SpotifyPremiumStatus(product: user.product))
         } catch SpotifyFailure.noSession {
             return .notConnected
         } catch SpotifyFailure.sessionExpired {
@@ -101,7 +101,7 @@ public actor SpotifyService: SpotifyServiceProtocol {
     private func currentPremiumStatus() async -> SpotifyPremiumStatus {
         do {
             let user: SpotifyUserResponse = try await client.get(SpotifyAPI.me, session: session)
-            return await SpotifyPremiumStatus(product: user.product)
+            return SpotifyPremiumStatus(product: user.product)
         } catch {
             // Unknown, never "free" — a failed check must not read as a downgrade.
             Logger.spotifyService.error("Spotify premium check failed: \(error)")
