@@ -777,10 +777,159 @@ git commit -m "Add SpotifyTransport seam for testable networking"
 
 ---
 
-## Task 7: Test doubles
+## Task 7: Test doubles and the Keychain seam
+
+Amended during execution. The legacy-token migration in Task 5 is the one path in this refactor whose regression would silently sign out **every existing user**, and it currently cannot be tested: `SpotifyTokenStore` holds a concrete `KeychainManager`. This task adds a narrow protocol seam so that path gets a real test.
 
 **Files:**
+- Create: `Data/Services/SpotifyService/Sources/SpotifyService/Auth/SpotifyKeychain.swift`
+- Modify: `Data/Services/SpotifyService/Sources/SpotifyService/Auth/SpotifyTokenStore.swift`
 - Create: `Data/Services/SpotifyService/Tests/SpotifyServiceTests/SpotifyTestDoubles.swift`
+- Create: `Data/Services/SpotifyService/Tests/SpotifyServiceTests/SpotifyTokenStoreTests.swift`
+
+- [ ] **Step 0a: Add the Keychain seam**
+
+Create `Sources/SpotifyService/Auth/SpotifyKeychain.swift`:
+
+```swift
+//
+//  SpotifyKeychain.swift
+//  SpotifyService
+//
+//  Created by Tomasz Wojtyniak on 30/08/2026.
+//
+
+import Foundation
+import CoreApp
+
+/// Exactly the Keychain surface the Spotify token store needs, so the
+/// legacy-token migration can be tested without a real Keychain. Migration is
+/// the one path here whose regression would sign out every existing user.
+nonisolated protocol SpotifyKeychain: Sendable {
+    func loadSpotifyTokens() async throws -> Data?
+    func saveSpotifyTokens(_ data: Data) async throws
+    func deleteSpotifyTokens() async throws
+    func loadLegacySpotifyTokenPair() async throws -> (accessToken: String, refreshToken: String?)?
+    func deleteLegacySpotifyTokens() async throws
+}
+
+extension KeychainManager: SpotifyKeychain {}
+```
+
+- [ ] **Step 0b: Point the store at the seam**
+
+In `Auth/SpotifyTokenStore.swift`, change the stored property only:
+
+```swift
+    let keychain: any SpotifyKeychain
+```
+
+Everything else in that file stays as it is. `SpotifyService.swift` constructs it with `SpotifyTokenStore(keychain: keychainManager)`, which still satisfies the memberwise init.
+
+- [ ] **Step 0c: Test the migration**
+
+Create `Tests/SpotifyServiceTests/SpotifyTokenStoreTests.swift`:
+
+```swift
+import Foundation
+import Testing
+@testable import SpotifyService
+
+struct SpotifyTokenStoreTests {
+
+    @Test func legacyTokensAreCarriedForwardNotDiscarded() async throws {
+        let keychain = StubKeychain(legacyPair: (accessToken: "old-access", refreshToken: "old-refresh"))
+        let store = SpotifyTokenStore(keychain: keychain)
+
+        let tokens = try await #require(store.load())
+
+        // The whole point: an existing user must not be signed out by the
+        // move to single-item storage.
+        #expect(tokens.accessToken == "old-access")
+        #expect(tokens.refreshToken == "old-refresh")
+        // No expiry existed in the old format, so force one refresh on first use.
+        #expect(!tokens.isFresh())
+    }
+
+    @Test func migrationPersistsToTheNewItemAndClearsLegacyKeys() async throws {
+        let keychain = StubKeychain(legacyPair: (accessToken: "old-access", refreshToken: "old-refresh"))
+        let store = SpotifyTokenStore(keychain: keychain)
+
+        _ = try await store.load()
+
+        #expect(await keychain.savedTokenData() != nil)
+        #expect(await keychain.legacyCleared)
+    }
+
+    @Test func migrationRunsOnlyOnce() async throws {
+        let keychain = StubKeychain(legacyPair: (accessToken: "old-access", refreshToken: "old-refresh"))
+        let store = SpotifyTokenStore(keychain: keychain)
+
+        _ = try await store.load()
+        _ = try await store.load()
+
+        #expect(await keychain.legacyReadCount == 1)
+    }
+
+    @Test func newFormatIsReadDirectlyWithoutMigration() async throws {
+        let existing = SpotifyTokens(accessToken: "a", refreshToken: "r", expiresAt: .distantFuture)
+        let keychain = StubKeychain(tokenData: try existing.encoded())
+        let store = SpotifyTokenStore(keychain: keychain)
+
+        let tokens = try await #require(store.load())
+
+        #expect(tokens == existing)
+        #expect(await keychain.legacyReadCount == 0)
+    }
+
+    @Test func emptyKeychainYieldsNoTokens() async throws {
+        let store = SpotifyTokenStore(keychain: StubKeychain())
+        #expect(try await store.load() == nil)
+    }
+}
+```
+
+- [ ] **Step 0d: Add the Keychain stub**
+
+Append to `Tests/SpotifyServiceTests/SpotifyTestDoubles.swift` (created in Step 1 below):
+
+```swift
+/// In-memory stand-in for the Keychain, so the legacy-token migration can be
+/// exercised without touching the real one.
+actor StubKeychain: SpotifyKeychain {
+    private var tokenData: Data?
+    private var legacyPair: (accessToken: String, refreshToken: String?)?
+    private(set) var legacyReadCount = 0
+    private(set) var legacyCleared = false
+
+    init(tokenData: Data? = nil, legacyPair: (accessToken: String, refreshToken: String?)? = nil) {
+        self.tokenData = tokenData
+        self.legacyPair = legacyPair
+    }
+
+    func savedTokenData() -> Data? { tokenData }
+
+    func loadSpotifyTokens() async throws -> Data? { tokenData }
+
+    func saveSpotifyTokens(_ data: Data) async throws { tokenData = data }
+
+    func deleteSpotifyTokens() async throws {
+        tokenData = nil
+        legacyPair = nil
+        legacyCleared = true
+    }
+
+    func loadLegacySpotifyTokenPair() async throws -> (accessToken: String, refreshToken: String?)? {
+        legacyReadCount += 1
+        return legacyPair
+    }
+
+    func deleteLegacySpotifyTokens() async throws {
+        legacyPair = nil
+        legacyCleared = true
+    }
+}
+```
 
 - [ ] **Step 1: Create the doubles**
 
