@@ -32,7 +32,7 @@ final class SpotifyWebAuthSession: NSObject, ASWebAuthenticationPresentationCont
             // start() returning false means the completion handler will never
             // fire — resume here or the continuation (and caller) hangs forever.
             guard session.start() else {
-                continuation.resume(throwing: SpotifyError.authorizationFailedToStart)
+                continuation.resume(throwing: SpotifyFailure.authorizationFailed)
                 return
             }
         }
@@ -43,12 +43,15 @@ final class SpotifyWebAuthSession: NSObject, ASWebAuthenticationPresentationCont
         error: Error?
     ) -> Result<String, Error> {
         if let error {
-            return .failure(error)
+            // Dismissing the sheet is a choice, not a failure — callers must not
+            // surface it as an error.
+            let isCancellation = (error as? ASWebAuthenticationSessionError)?.code == .canceledLogin
+            return .failure(isCancellation ? SpotifyFailure.authCancelled : SpotifyFailure.authorizationFailed)
         }
         guard let callbackURL,
               let code = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)?
                 .queryItems?.first(where: { $0.name == SpotifyAPI.Param.code })?.value else {
-            return .failure(SpotifyError.missingAuthCode)
+            return .failure(SpotifyFailure.authorizationFailed)
         }
         return .success(code)
     }

@@ -9,10 +9,10 @@ import Foundation
 
 public nonisolated struct SpotifyAuthResult: Sendable {
     public let isAuthorized: Bool
-    public let hasSpotifyPremium: Bool
+    public let premium: SpotifyPremiumStatus
 
-    public init(isAuthorized: Bool, hasSpotifyPremium: Bool) {
+    public init(isAuthorized: Bool, premium: SpotifyPremiumStatus) {
         self.isAuthorized = isAuthorized
-        self.hasSpotifyPremium = hasSpotifyPremium
+        self.premium = premium
     }
 }
