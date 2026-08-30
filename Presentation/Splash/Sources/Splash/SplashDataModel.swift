@@ -111,19 +111,21 @@ final class SplashDataModel {
         let hasPicked = await getSplashUseCase.hydrateMainMusicPlayer()
         Logger.splash.info("Main music player hydrated. Needs selection: \(!hasPicked)")
 
-        // Step 4: If main player is Spotify, verify the saved token still works. If it
-        // was revoked or refresh failed, surface a reconnect alert so the user can fix
-        // it instantly. Skip the check otherwise.
+        // Step 4: If the main player is Spotify, check the saved session for
+        // telemetry and premium freshness — but never block launch and never
+        // prompt here. A network blip is not a logout, and treating it as one is
+        // what forced users to reconnect repeatedly. Re-auth lives in Settings.
         if musicPlayerManager.current == .spotify {
-            let state = await getSplashUseCase.verifySpotifyConnection()
-            switch state {
-            case .connected, .unavailable, .notAllowlisted:
+            switch await getSplashUseCase.verifySpotifyConnection() {
+            case .connected(let premium):
                 Logger.splash.info("Spotify connection verified")
+                await getSplashUseCase.refreshSpotifyPremium(premium)
+            case .unavailable:
+                Logger.splash.info("Spotify unreachable right now — continuing, session left intact")
+            case .notAllowlisted:
+                Logger.splash.error("Spotify account not on the Development Mode allowlist — continuing")
             case .notConnected, .needsReauth:
-                Logger.splash.error("Spotify connection broken: \(String(describing: state)) — prompting reconnect")
-                alertType = .spotifyReconnect
-                shouldComplete = false
-                return
+                Logger.splash.info("Spotify session needs attention — surfaced in Settings, launch continues")
             }
         }
 
@@ -133,40 +135,6 @@ final class SplashDataModel {
         }
 
         // Step 6: Fetch fresh data with retry logic
-        await fetchFreshData()
-    }
-
-    func reconnectSpotify() async -> Bool {
-        do {
-            let success = try await getSplashUseCase.reconnectSpotify()
-            if success {
-                Logger.splash.info("Spotify reconnect succeeded")
-                shouldComplete = true
-                alertType = nil
-                if await loadFromCache() {
-                    return true
-                }
-                await fetchFreshData()
-                return true
-            } else {
-                Logger.splash.info("Spotify reconnect cancelled or denied")
-                return false
-            }
-        } catch {
-            Logger.splash.error("Spotify reconnect failed: \(error)")
-            return false
-        }
-    }
-
-    /// Skip the Spotify reconnect prompt — user proceeds without a working Spotify token.
-    /// They can still use the app; the play button on Album Details will gracefully hide
-    /// when no Spotify URL can be resolved.
-    func skipSpotifyReconnect() async {
-        alertType = nil
-        shouldComplete = true
-        if await loadFromCache() {
-            return
-        }
         await fetchFreshData()
     }
 

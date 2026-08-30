@@ -25,7 +25,7 @@ public protocol GetSplashUseCaseProtocol: Sendable {
     func isMusicKitAuthorizationDetermined() async -> Bool
     func hydrateMainMusicPlayer() async -> Bool
     func verifySpotifyConnection() async -> SpotifyConnectionState
-    func reconnectSpotify() async throws -> Bool
+    func refreshSpotifyPremium(_ premium: SpotifyPremiumStatus) async
     func cacheSections(_ sections: [HomeSection]) async throws
     func isCacheValid() async -> Bool
     func isUserLoggedIn() async -> Bool
@@ -89,27 +89,30 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
         await musicRepository.verifySpotifyConnection()
     }
 
-    public func reconnectSpotify() async throws -> Bool {
-        let authResult = try await musicRepository.requestSpotifyAuthorization()
-        guard await authResult.isAuthorized else { return false }
+    /// Writes a freshly observed premium status to the profile. Called on every
+    /// launch from the connection check, so upgrading to Premium is picked up
+    /// without reconnecting. Unknown is ignored rather than written.
+    public func refreshSpotifyPremium(_ premium: SpotifyPremiumStatus) async {
+        guard let isPremium = premium.isPremium else { return }
+        do {
+            guard let userId = try await swiftDataManager.getCurrentUserId() else { return }
+            let existingProfile = try await getLoginUseCase.getUserProfile(userId: userId)
+            guard existingProfile?.hasSpotifyPremium != isPremium else { return }
 
-        guard let userId = try await swiftDataManager.getCurrentUserId() else {
-            return false
+            let updatedProfile = FirebaseUserProfile(
+                email: existingProfile?.email,
+                firstName: existingProfile?.firstName,
+                lastName: existingProfile?.lastName,
+                hasAppleMusicSubscription: existingProfile?.hasAppleMusicSubscription,
+                hasSpotifyConnection: existingProfile?.hasSpotifyConnection,
+                hasSpotifyPremium: isPremium,
+                mainMusicPlayer: existingProfile?.mainMusicPlayer
+            )
+            try await loginRepository.saveUserProfile(userId: userId, profile: updatedProfile)
+            Logger.splash.info("Spotify premium refreshed to \(isPremium)")
+        } catch {
+            Logger.splash.error("Failed to refresh Spotify premium: \(error)")
         }
-
-        let isPremium = await authResult.premium.isPremium
-        let existingProfile = try await getLoginUseCase.getUserProfile(userId: userId)
-        let updatedProfile = FirebaseUserProfile(
-            email: existingProfile?.email,
-            firstName: existingProfile?.firstName,
-            lastName: existingProfile?.lastName,
-            hasAppleMusicSubscription: existingProfile?.hasAppleMusicSubscription,
-            hasSpotifyConnection: true,
-            hasSpotifyPremium: isPremium ?? existingProfile?.hasSpotifyPremium,
-            mainMusicPlayer: existingProfile?.mainMusicPlayer
-        )
-        try await loginRepository.saveUserProfile(userId: userId, profile: updatedProfile)
-        return true
     }
 
     public func hydrateMainMusicPlayer() async -> Bool {

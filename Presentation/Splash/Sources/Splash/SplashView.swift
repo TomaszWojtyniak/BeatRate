@@ -39,9 +39,7 @@ public struct SplashView: View {
                     alertType: dataModel.alertType,
                     onOpenSettings: handleOpenSettings,
                     onRetry: handleRetry,
-                    onLogout: handleLogout,
-                    onReconnectSpotify: handleReconnectSpotify,
-                    onSkipSpotify: handleSkipSpotify
+                    onLogout: handleLogout
                 )
             } message: {
                 Text(alertMessage)
@@ -94,41 +92,17 @@ public struct SplashView: View {
         UIApplication.shared.open(url)
     }
 
-    private func handleReconnectSpotify() {
-        Task {
-            _ = await dataModel.reconnectSpotify()
-            if dataModel.shouldComplete {
-                onComplete()
-            }
-        }
-    }
-
-    private func handleSkipSpotify() {
-        Task {
-            await dataModel.skipSpotifyReconnect()
-            if dataModel.shouldComplete {
-                onComplete()
-            }
-        }
-    }
-
     // MARK: - Alert content
 
     private var alertTitle: String {
         switch dataModel.alertType {
         case .musicKitDenied: "Apple Music Access Required"
-        case .spotifyReconnect: "Spotify needs reconnecting"
         case .connectionError, .none: "Connection Error"
         }
     }
 
     private var alertMessage: String {
-        switch dataModel.alertType {
-        case .spotifyReconnect:
-            "Your Spotify session has expired or was revoked. Reconnect now to keep using Spotify links."
-        default:
-            dataModel.errorMessage
-        }
+        dataModel.errorMessage
     }
 }
 
