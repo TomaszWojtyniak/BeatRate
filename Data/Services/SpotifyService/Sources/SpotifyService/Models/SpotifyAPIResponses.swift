@@ -12,6 +12,18 @@ import Foundation
 nonisolated struct SpotifyTokenResponse: Decodable, Sendable {
     let accessToken: String
     let refreshToken: String?
+    let expiresIn: TimeInterval?
+
+    /// Spotify access tokens are one hour unless told otherwise.
+    static let defaultLifetime: TimeInterval = 3600
+
+    func tokens(issuedAt: Date = Date()) -> SpotifyTokens {
+        SpotifyTokens(
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+            expiresAt: issuedAt.addingTimeInterval(expiresIn ?? Self.defaultLifetime)
+        )
+    }
 }
 
 nonisolated struct SpotifyUserResponse: Decodable, Sendable {
