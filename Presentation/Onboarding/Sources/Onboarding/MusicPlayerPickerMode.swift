@@ -4,9 +4,8 @@
 //
 
 public enum MusicPlayerPickerMode: Sendable {
-    /// Initial onboarding pick — selecting Spotify auto-runs the Spotify connect flow.
+    /// Initial onboarding pick.
     case onboarding
-    /// Settings change — persists selection. If switching to a provider that isn't connected,
-    /// kicks off that connect flow.
+    /// Settings change — dismisses itself once the pick lands.
     case change
 }

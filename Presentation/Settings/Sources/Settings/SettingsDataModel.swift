@@ -20,7 +20,6 @@ import CryptoKit
 final class SettingsDataModel {
     private let getSplashUseCase: GetSplashUseCaseProtocol
     private let getSettingsUseCase: GetSettingsUseCaseProtocol
-    private let setSettingsUseCase: SetSettingsUseCaseProtocol
     private let musicPlayerManager: MusicPlayerManager
 
     /// The user's main player, surfaced for the view so it doesn't reach for the
@@ -33,44 +32,23 @@ final class SettingsDataModel {
     var showLogoutConfirmation = false
     var isDeletingAccount = false
     var showDeleteAccountSheet = false
-    var isAppleMusicConnected = false
-    var isConnectingAppleMusic = false
     var isSpotifyConnected = false
-    var isConnectingSpotify = false
-    /// What the last connection check actually said. Drives the inline notice
-    /// under the Spotify row; nil means nothing to report.
-    var spotifyNotice: SpotifyNotice?
-
-    enum SpotifyNotice {
-        case notAllowlisted
-        case needsReauth
-
-        var message: String {
-            switch self {
-            case .notAllowlisted:
-                "This Spotify account isn't enabled for BeatRate yet. Spotify access is currently limited to approved accounts."
-            case .needsReauth:
-                "Your Spotify session expired. Reconnect to keep your listening history up to date."
-            }
-        }
-    }
+    /// Drives the footer under the player row; nil means nothing to report.
+    var spotifyNotice: String?
 
     init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase(),
          getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase(),
-         setSettingsUseCase: SetSettingsUseCaseProtocol = SetSettingsUseCase(),
          musicPlayerManager: MusicPlayerManager = .shared) {
         self.getSplashUseCase = getSplashUseCase
         self.getSettingsUseCase = getSettingsUseCase
-        self.setSettingsUseCase = setSettingsUseCase
         self.musicPlayerManager = musicPlayerManager
     }
 
     func loadUserProfile() async {
         do {
-            isAppleMusicConnected = try await getSettingsUseCase.loadAppleMusicStatus()
             isSpotifyConnected = try await getSettingsUseCase.loadSpotifyStatus()
             await refreshSpotifyNotice()
-            Logger.settings.info("Loaded user profile, Apple Music: \(self.isAppleMusicConnected), Spotify: \(self.isSpotifyConnected)")
+            Logger.settings.info("Loaded user profile, Spotify: \(self.isSpotifyConnected)")
         } catch {
             Logger.settings.error("Failed to load user profile: \(error)")
         }
@@ -84,32 +62,10 @@ final class SettingsDataModel {
             return
         }
         switch await getSplashUseCase.verifySpotifyConnection() {
-        case .notAllowlisted: spotifyNotice = .notAllowlisted
-        case .needsReauth, .notConnected: spotifyNotice = .needsReauth
-        case .connected, .unavailable: spotifyNotice = nil
-        }
-    }
-
-    func connectAppleMusic() async {
-        isConnectingAppleMusic = true
-        defer { isConnectingAppleMusic = false }
-
-        do {
-            isAppleMusicConnected = try await setSettingsUseCase.connectAppleMusic()
-        } catch {
-            Logger.settings.error("Failed to connect Apple Music: \(error)")
-        }
-    }
-    
-    func connectSpotify() async {
-        isConnectingSpotify = true
-        defer { isConnectingSpotify = false }
-        
-        do {
-            isSpotifyConnected = try await setSettingsUseCase.connectSpotify()
-            await refreshSpotifyNotice()
-        } catch {
-            Logger.settings.error("Failed to connect Spotify: \(error)")
+        case .needsReauth, .notConnected:
+            spotifyNotice = "Your Spotify session expired. Pick Spotify again to reconnect."
+        case .connected, .unavailable, .notAllowlisted:
+            spotifyNotice = nil
         }
     }
 
