@@ -37,6 +37,23 @@ final class SettingsDataModel {
     var isConnectingAppleMusic = false
     var isSpotifyConnected = false
     var isConnectingSpotify = false
+    /// What the last connection check actually said. Drives the inline notice
+    /// under the Spotify row; nil means nothing to report.
+    var spotifyNotice: SpotifyNotice?
+
+    enum SpotifyNotice {
+        case notAllowlisted
+        case needsReauth
+
+        var message: String {
+            switch self {
+            case .notAllowlisted:
+                "This Spotify account isn't enabled for BeatRate yet. Spotify access is currently limited to approved accounts."
+            case .needsReauth:
+                "Your Spotify session expired. Reconnect to keep your listening history up to date."
+            }
+        }
+    }
 
     init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase(),
          getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase(),
@@ -52,9 +69,24 @@ final class SettingsDataModel {
         do {
             isAppleMusicConnected = try await getSettingsUseCase.loadAppleMusicStatus()
             isSpotifyConnected = try await getSettingsUseCase.loadSpotifyStatus()
+            await refreshSpotifyNotice()
             Logger.settings.info("Loaded user profile, Apple Music: \(self.isAppleMusicConnected), Spotify: \(self.isSpotifyConnected)")
         } catch {
             Logger.settings.error("Failed to load user profile: \(error)")
+        }
+    }
+
+    /// Only meaningful once we hold credentials. A transient failure reports
+    /// nothing — the user does not need to know the network hiccuped.
+    private func refreshSpotifyNotice() async {
+        guard isSpotifyConnected else {
+            spotifyNotice = nil
+            return
+        }
+        switch await getSplashUseCase.verifySpotifyConnection() {
+        case .notAllowlisted: spotifyNotice = .notAllowlisted
+        case .needsReauth, .notConnected: spotifyNotice = .needsReauth
+        case .connected, .unavailable: spotifyNotice = nil
         }
     }
 
@@ -75,6 +107,7 @@ final class SettingsDataModel {
         
         do {
             isSpotifyConnected = try await setSettingsUseCase.connectSpotify()
+            await refreshSpotifyNotice()
         } catch {
             Logger.settings.error("Failed to connect Spotify: \(error)")
         }

@@ -82,7 +82,7 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
             return false
         }
 
-        let isPremium = await authResult.hasSpotifyPremium
+        let isPremium = await authResult.premium.isPremium
 
         let existingProfile = try await getLoginUseCase.getUserProfile(userId: userId)
         let updatedProfile = FirebaseUserProfile(
@@ -91,12 +91,12 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
             lastName: existingProfile?.lastName,
             hasAppleMusicSubscription: existingProfile?.hasAppleMusicSubscription,
             hasSpotifyConnection: true,
-            hasSpotifyPremium: isPremium,
+            hasSpotifyPremium: isPremium ?? existingProfile?.hasSpotifyPremium,
             mainMusicPlayer: existingProfile?.mainMusicPlayer
         )
 
         try await setLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
-        Logger.settings.info("Spotify connected, premium: \(isPremium)")
+        Logger.settings.info("Spotify connected, premium: \(String(describing: isPremium))")
 
         return true
     }

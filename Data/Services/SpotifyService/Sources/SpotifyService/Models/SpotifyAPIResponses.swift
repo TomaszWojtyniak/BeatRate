@@ -12,22 +12,22 @@ import Foundation
 nonisolated struct SpotifyTokenResponse: Decodable, Sendable {
     let accessToken: String
     let refreshToken: String?
+    let expiresIn: TimeInterval?
+
+    /// Spotify access tokens are one hour unless told otherwise.
+    static let defaultLifetime: TimeInterval = 3600
+
+    func tokens(issuedAt: Date = Date()) -> SpotifyTokens {
+        SpotifyTokens(
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+            expiresAt: issuedAt.addingTimeInterval(expiresIn ?? Self.defaultLifetime)
+        )
+    }
 }
 
 nonisolated struct SpotifyUserResponse: Decodable, Sendable {
     let product: String?
-}
-
-nonisolated struct SpotifySearchResponse: Decodable, Sendable {
-    let albums: AlbumsPage?
-
-    struct AlbumsPage: Decodable, Sendable {
-        let items: [AlbumItem]
-    }
-
-    struct AlbumItem: Decodable, Sendable {
-        let id: String
-    }
 }
 
 nonisolated struct SpotifyRecentlyPlayedResponse: Decodable, Sendable {

@@ -15,7 +15,6 @@ public protocol GetAlbumDetailsUseCaseProtocol: Sendable {
     func saveAlbumRating(albumId: String, rating: Double, albumMetadata: (artist: String, title: String)?) async throws
     func getUpdatedAlbum(albumId: String) async throws -> AlbumModel?
     func fetchFullAlbum(albumId: String) async throws -> AlbumModel
-    func searchSpotifyAlbumId(name: String, artist: String) async -> String?
 }
 
 public actor GetAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol {
@@ -42,9 +41,5 @@ public actor GetAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol {
 
     public func fetchFullAlbum(albumId: String) async throws -> AlbumModel {
         return try await self.homeRepository.fetchAndCacheAlbum(albumId: albumId)
-    }
-
-    public func searchSpotifyAlbumId(name: String, artist: String) async -> String? {
-        await musicRepository.searchSpotifyAlbumId(name: name, artist: artist)
     }
 }

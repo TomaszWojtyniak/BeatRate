@@ -56,7 +56,7 @@ public actor AccountRepository: AccountRepositoryProtocol {
 
     public func getRecentlyListenedAlbums(for player: MusicPlayer) async throws -> [AlbumModel] {
         let ratings = await userRatings() ?? [:]
-        return await recentlyListened(for: player, ratings: ratings)
+        return try await recentlyListened(for: player, ratings: ratings)
     }
 
     /// Loads the Account album sections (rated + recently listened) from a **single**
@@ -66,7 +66,7 @@ public actor AccountRepository: AccountRepositoryProtocol {
     public func getAlbumSections(recentlyListenedFor player: MusicPlayer?) async throws -> (rated: [AlbumModel], recentlyListened: [AlbumModel]) {
         guard let userId = try await getCurrentUserId(), !userId.isEmpty else {
             // Not logged in: no rated albums; recently listened is MusicKit-only.
-            return (rated: [], recentlyListened: await recentlyListened(for: player, ratings: [:]))
+            return (rated: [], recentlyListened: (try? await recentlyListened(for: player, ratings: [:])) ?? [])
         }
 
         let entries = (try? await databaseFirebaseService.getUserRatingsSorted(userId: userId)) ?? []
@@ -74,27 +74,23 @@ public actor AccountRepository: AccountRepositoryProtocol {
 
         async let ratedTask = albums(forIds: entries.map(\.albumId))
         async let recentTask = recentlyListened(for: player, ratings: ratingsMap)
-        return await (rated: ratedTask, recentlyListened: recentTask)
+        return await (rated: ratedTask, recentlyListened: (try? await recentTask) ?? [])
     }
 
-    /// Fetches recently-listened albums from MusicKit and badges each with the
-    /// caller-supplied ratings. Error-tolerant: a MusicKit failure yields `[]`
-    /// rather than failing the whole load. A `nil` player (none selected) is empty.
-    private func recentlyListened(for player: MusicPlayer?, ratings: [String: Double]) async -> [AlbumModel] {
+    /// Fetches recently-listened albums and badges each with the caller-supplied
+    /// ratings. Rethrows so the caller can tell "this failed" from "this is
+    /// empty" — collapsing the two made rate-limited fetches look like an empty
+    /// listening history. A `nil` player (none selected) is genuinely empty.
+    private func recentlyListened(for player: MusicPlayer?, ratings: [String: Double]) async throws -> [AlbumModel] {
         guard let player else { return [] }
-        do {
-            let musicData = try await musicRepository.fetchRecentlyListenedAlbums(for: player)
-            var seenIds = Set<String>()
-            let albums = musicData.compactMap { data -> AlbumModel? in
-                guard seenIds.insert(data.id).inserted else { return nil }
-                return AlbumModel(id: data.id, appleMusicAlbumData: data, firebaseAlbumData: nil, userRating: ratings[data.id])
-            }
-            Logger.accountRepository.info("Loaded \(albums.count) recently listened albums for \(player.rawValue)")
-            return albums
-        } catch {
-            Logger.accountRepository.error("Failed to load recently listened albums: \(error)")
-            return []
+        let musicData = try await musicRepository.fetchRecentlyListenedAlbums(for: player)
+        var seenIds = Set<String>()
+        let albums = musicData.compactMap { data -> AlbumModel? in
+            guard seenIds.insert(data.id).inserted else { return nil }
+            return AlbumModel(id: data.id, appleMusicAlbumData: data, firebaseAlbumData: nil, userRating: ratings[data.id])
         }
+        Logger.accountRepository.info("Loaded \(albums.count) recently listened albums for \(player.rawValue)")
+        return albums
     }
 
     /// The user's `albumId -> rating` map, for badging albums that arrive from a

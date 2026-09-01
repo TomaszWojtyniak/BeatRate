@@ -12,7 +12,6 @@ import OSLog
 import Models
 import CoreUI
 import CoreApp
-import UIKit
 
 @MainActor
 @Observable
@@ -76,21 +75,10 @@ final class AlbumDetailsDataModel {
 
         switch playPlayer {
         case .spotify:
-            let id = await getAlbumDetailsUseCase.searchSpotifyAlbumId(
-                name: album.appleMusicAlbumData.title,
+            playUrl = SpotifyLink.search(
+                title: album.appleMusicAlbumData.title,
                 artist: album.appleMusicAlbumData.artist
             )
-            guard let id else {
-                playUrl = nil
-                return
-            }
-            let appUrl = URL(string: "spotify:album:\(id)")
-            let webUrl = URL(string: "https://open.spotify.com/album/\(id)")
-            if let appUrl, UIApplication.shared.canOpenURL(appUrl) {
-                playUrl = appUrl
-            } else {
-                playUrl = webUrl
-            }
 
         case .appleMusic, .none:
             playUrl = album.appleMusicAlbumData.appleMusicUrl

@@ -21,173 +21,123 @@ public actor KeychainManager {
     private init() {}
 
     private let service = "com.beatrate.app"
-    private let appleUserIDKey = "appleUserID"
 
-    // MARK: - Save Apple User ID
+    private enum Key {
+        static let appleUserID = "appleUserID"
+        /// The whole Spotify token set as one JSON item.
+        static let spotifyTokens = "spotifyTokens"
+        /// Pre-refactor keys, read once for migration then removed.
+        static let legacySpotifyAccessToken = "spotifyAccessToken"
+        static let legacySpotifyRefreshToken = "spotifyRefreshToken"
+    }
+
+    // MARK: - Generic Access
+
+    /// `SecItemUpdate` first so an existing item keeps its creation metadata;
+    /// delete-then-add leaves a window where the item simply doesn't exist.
+    private func save(_ data: Data, for key: String) throws {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key
+        ]
+        let attributes: [String: Any] = [
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+        ]
+
+        let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+        if status == errSecItemNotFound {
+            let insert = query.merging(attributes) { current, _ in current }
+            guard SecItemAdd(insert as CFDictionary, nil) == errSecSuccess else {
+                throw KeychainError.saveFailed
+            }
+            return
+        }
+        guard status == errSecSuccess else { throw KeychainError.saveFailed }
+    }
+
+    private func load(_ key: String) throws -> Data? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess else {
+            if status == errSecItemNotFound { return nil }
+            throw KeychainError.loadFailed
+        }
+        guard let data = result as? Data else { throw KeychainError.unexpectedData }
+        return data
+    }
+
+    private func delete(_ key: String) throws {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key
+        ]
+        let status = SecItemDelete(query as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw KeychainError.deleteFailed
+        }
+    }
+
+    private func saveString(_ value: String, for key: String) throws {
+        try save(Data(value.utf8), for: key)
+    }
+
+    private func loadString(_ key: String) throws -> String? {
+        guard let data = try load(key) else { return nil }
+        guard let value = String(data: data, encoding: .utf8) else {
+            throw KeychainError.unexpectedData
+        }
+        return value
+    }
+
+    // MARK: - Apple User ID
 
     public func saveAppleUserID(_ userID: String) throws {
-        let data = Data(userID.utf8)
-
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: appleUserIDKey,
-            kSecValueData as String: data
-        ]
-
-        // Delete any existing item
-        SecItemDelete(query as CFDictionary)
-
-        // Add new item
-        let status = SecItemAdd(query as CFDictionary, nil)
-
-        guard status == errSecSuccess else {
-            throw KeychainError.saveFailed
-        }
+        try saveString(userID, for: Key.appleUserID)
     }
-
-    // MARK: - Load Apple User ID
 
     public func loadAppleUserID() throws -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: appleUserIDKey,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-
-        guard status == errSecSuccess else {
-            if status == errSecItemNotFound {
-                return nil
-            }
-            throw KeychainError.loadFailed
-        }
-
-        guard let data = result as? Data,
-              let userID = String(data: data, encoding: .utf8) else {
-            throw KeychainError.unexpectedData
-        }
-
-        return userID
+        try loadString(Key.appleUserID)
     }
-
-    // MARK: - Delete Apple User ID
 
     public func deleteAppleUserID() throws {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: appleUserIDKey
-        ]
-
-        let status = SecItemDelete(query as CFDictionary)
-
-        guard status == errSecSuccess || status == errSecItemNotFound else {
-            throw KeychainError.deleteFailed
-        }
+        try delete(Key.appleUserID)
     }
 
-    // MARK: - Spotify Access Token
+    // MARK: - Spotify Tokens
 
-    private let spotifyAccessTokenKey = "spotifyAccessToken"
-
-    public func saveSpotifyAccessToken(_ token: String) throws {
-        let data = Data(token.utf8)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: spotifyAccessTokenKey,
-            kSecValueData as String: data
-        ]
-        SecItemDelete(query as CFDictionary)
-        let status = SecItemAdd(query as CFDictionary, nil)
-        guard status == errSecSuccess else { throw KeychainError.saveFailed }
+    public func saveSpotifyTokens(_ data: Data) throws {
+        try save(data, for: Key.spotifyTokens)
     }
 
-    public func loadSpotifyAccessToken() throws -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: spotifyAccessTokenKey,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-        guard status == errSecSuccess else {
-            if status == errSecItemNotFound { return nil }
-            throw KeychainError.loadFailed
-        }
-        guard let data = result as? Data,
-              let token = String(data: data, encoding: .utf8) else {
-            throw KeychainError.unexpectedData
-        }
-        return token
+    public func loadSpotifyTokens() throws -> Data? {
+        try load(Key.spotifyTokens)
     }
 
-    public func deleteSpotifyAccessToken() throws {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: spotifyAccessTokenKey
-        ]
-        let status = SecItemDelete(query as CFDictionary)
-        guard status == errSecSuccess || status == errSecItemNotFound else {
-            throw KeychainError.deleteFailed
-        }
+    public func deleteSpotifyTokens() throws {
+        try delete(Key.spotifyTokens)
+        try delete(Key.legacySpotifyAccessToken)
+        try delete(Key.legacySpotifyRefreshToken)
     }
 
-    // MARK: - Spotify Refresh Token
-
-    private let spotifyRefreshTokenKey = "spotifyRefreshToken"
-
-    public func saveSpotifyRefreshToken(_ token: String) throws {
-        let data = Data(token.utf8)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: spotifyRefreshTokenKey,
-            kSecValueData as String: data
-        ]
-        SecItemDelete(query as CFDictionary)
-        let status = SecItemAdd(query as CFDictionary, nil)
-        guard status == errSecSuccess else { throw KeychainError.saveFailed }
+    /// Reads the pre-refactor token pair so existing users aren't signed out by
+    /// the move to a single JSON item. Returns nil once migration has happened.
+    public func loadLegacySpotifyTokenPair() throws -> (accessToken: String, refreshToken: String?)? {
+        guard let accessToken = try loadString(Key.legacySpotifyAccessToken) else { return nil }
+        return (accessToken, try loadString(Key.legacySpotifyRefreshToken))
     }
 
-    public func loadSpotifyRefreshToken() throws -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: spotifyRefreshTokenKey,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-        guard status == errSecSuccess else {
-            if status == errSecItemNotFound { return nil }
-            throw KeychainError.loadFailed
-        }
-        guard let data = result as? Data,
-              let token = String(data: data, encoding: .utf8) else {
-            throw KeychainError.unexpectedData
-        }
-        return token
-    }
-
-    public func deleteSpotifyRefreshToken() throws {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: spotifyRefreshTokenKey
-        ]
-        let status = SecItemDelete(query as CFDictionary)
-        guard status == errSecSuccess || status == errSecItemNotFound else {
-            throw KeychainError.deleteFailed
-        }
+    public func deleteLegacySpotifyTokens() throws {
+        try delete(Key.legacySpotifyAccessToken)
+        try delete(Key.legacySpotifyRefreshToken)
     }
 }

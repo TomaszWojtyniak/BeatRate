@@ -42,11 +42,11 @@ public struct MusicAuthorizationInfo: Sendable {
 
 public struct SpotifyAuthorizationInfo: Sendable {
     public let isAuthorized: Bool
-    public let hasSpotifyPremium: Bool
+    public let premium: SpotifyPremiumStatus
 
-    public init(isAuthorized: Bool, hasSpotifyPremium: Bool) {
+    public init(isAuthorized: Bool, premium: SpotifyPremiumStatus) {
         self.isAuthorized = isAuthorized
-        self.hasSpotifyPremium = hasSpotifyPremium
+        self.premium = premium
     }
 }
 
@@ -55,9 +55,8 @@ public struct SpotifyAuthorizationInfo: Sendable {
 public protocol MusicRepositoryProtocol: Sendable {
     func requestMusicAuthorization() async -> MusicAuthorizationInfo
     func requestSpotifyAuthorization() async throws -> SpotifyAuthorizationInfo
-    func fetchSpotifyRecentlyPlayed() async throws
     func fetchRecentlyListenedAlbums(for player: MusicPlayer) async throws -> [AppleMusicAlbumData]
-    func isSpotifyTokenAvailable() async -> Bool
+    func hasStoredSpotifySession() async -> Bool
     func verifySpotifyConnection() async -> SpotifyConnectionState
     func isAppleMusicAuthorized() async -> Bool
     func isMusicKitAuthorizationDetermined() async -> Bool
@@ -65,7 +64,6 @@ public protocol MusicRepositoryProtocol: Sendable {
     func getArtistData(byId artistId: String) async throws -> AppleMusicArtistData
     func getArtistData(forAlbumId albumId: String) async throws -> AppleMusicArtistData
     func search(searchTerm: String) async throws -> MusicSearchResults
-    func searchSpotifyAlbumId(name: String, artist: String) async -> String?
 }
 
 // MARK: - MusicRepository
@@ -164,12 +162,8 @@ public actor MusicRepository: MusicRepositoryProtocol {
 
         return await SpotifyAuthorizationInfo(
             isAuthorized: result.isAuthorized,
-            hasSpotifyPremium: result.hasSpotifyPremium
+            premium: result.premium
         )
-    }
-
-    public func fetchSpotifyRecentlyPlayed() async throws {
-        try await spotifyService.fetchRecentlyPlayed()
     }
 
     // MARK: - Recently Listened
@@ -204,8 +198,8 @@ public actor MusicRepository: MusicRepositoryProtocol {
         }
     }
 
-    public func isSpotifyTokenAvailable() async -> Bool {
-        await spotifyService.hasAccessToken()
+    public func hasStoredSpotifySession() async -> Bool {
+        await spotifyService.hasStoredSession()
     }
 
     public func verifySpotifyConnection() async -> SpotifyConnectionState {
@@ -218,9 +212,5 @@ public actor MusicRepository: MusicRepositoryProtocol {
 
     public func isMusicKitAuthorizationDetermined() async -> Bool {
         await musicKitService.isAuthorizationDetermined()
-    }
-
-    public func searchSpotifyAlbumId(name: String, artist: String) async -> String? {
-        await spotifyService.searchAlbumId(name: name, artist: artist)
     }
 }

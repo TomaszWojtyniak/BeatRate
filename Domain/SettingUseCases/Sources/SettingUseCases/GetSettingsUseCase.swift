@@ -14,7 +14,6 @@ import Models
 public protocol GetSettingsUseCaseProtocol: Sendable {
     func loadAppleMusicStatus() async throws -> Bool
     func loadSpotifyStatus() async throws -> Bool
-    func fetchRecentlyPlayed() async throws
     func getMainMusicPlayer() async throws -> MusicPlayer?
 }
 
@@ -47,18 +46,17 @@ public actor GetSettingsUseCase: GetSettingsUseCaseProtocol {
         return firebaseFlag && localAuth
     }
 
+    /// Local only — no network. Settings must not fire a Spotify request every
+    /// time it opens. The Firebase flag says the user connected; the Keychain
+    /// says we still hold credentials for them.
     public func loadSpotifyStatus() async throws -> Bool {
         guard let userId = try await swiftDataManager.getCurrentUserId() else {
             return false
         }
         let profile = try await getLoginUseCase.getUserProfile(userId: userId)
         let firebaseFlag = profile?.hasSpotifyConnection == true
-        let hasToken = await musicRepository.isSpotifyTokenAvailable()
-        return firebaseFlag && hasToken
-    }
-    
-    public func fetchRecentlyPlayed() async throws {
-        try await musicRepository.fetchSpotifyRecentlyPlayed()
+        let hasSession = await musicRepository.hasStoredSpotifySession()
+        return firebaseFlag && hasSession
     }
 
     /// Returns the user's main music player.
