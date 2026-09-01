@@ -68,10 +68,9 @@ public struct MusicPlayerPickerView: View {
         Task {
             let didComplete = await dataModel.select(player)
             guard didComplete else { return }
+            onComplete?()
             if dataModel.mode == .change {
                 dismiss()
-            } else {
-                onComplete?()
             }
         }
     }

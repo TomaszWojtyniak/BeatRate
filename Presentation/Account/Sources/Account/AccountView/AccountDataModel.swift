@@ -33,7 +33,6 @@ final class AccountDataModel {
     var errorMessage: String?
     var isShowingAlbumRatingsSection: Bool = false
     var isShowingRecentlyListenedSection: Bool = false
-    var recentlyListenedFailed = false
 
     /// The Favorites card is shown for any logged-in user once loaded, even when
     /// empty — the empty state is what offers "add albums".
@@ -102,15 +101,17 @@ final class AccountDataModel {
                 return
             }
 
-            // Fetch profile, album sections (rated + recently listened share one
-            // user_ratings read), and favorites in parallel.
-            async let profileTask = getLoginUseCase.getUserProfile(userId: userId)
-            async let sectionsTask = getAccountUseCase.getAlbumSections(recentlyListenedFor: musicPlayerManager.current)
+            // The profile is awaited before the sections because `recentsPlayer`
+            // reads the Spotify premium flag off it. Favorites stays parallel, and
+            // rated + recently listened still share one user_ratings read inside
+            // `getAlbumSections`.
             async let favoritesTask = getAccountUseCase.getFavoriteAlbums()
 
-            let (profile, sections, favorites) = try await (profileTask, sectionsTask, favoritesTask)
+            self.userProfile = try await getLoginUseCase.getUserProfile(userId: userId)
 
-            self.userProfile = profile
+            let sections = try await getAccountUseCase.getAlbumSections(recentlyListenedFor: recentsPlayer)
+            let favorites = try await favoritesTask
+
             self.ratedAlbums = sections.rated
             self.recentlyListenedAlbums = sections.recentlyListened
             self.favoriteAlbums = favorites
@@ -128,25 +129,31 @@ final class AccountDataModel {
     func reloadRecentlyListenedAlbums() async {
         let recents = await fetchRecentlyListenedAlbums()
         self.recentlyListenedAlbums = recents
-        self.isShowingRecentlyListenedSection = !recents.isEmpty || recentlyListenedFailed
+        self.isShowingRecentlyListenedSection = !recents.isEmpty
+    }
+
+    /// The player recently-listened may be read from, which is not always the main
+    /// player: Spotify history is limited to Premium accounts for now. Apple Music
+    /// is unaffected, and a `nil` premium flag counts as not-Premium so the section
+    /// stays hidden until a `/me` check has actually confirmed it.
+    private var recentsPlayer: MusicPlayer? {
+        guard let player = musicPlayerManager.current else { return nil }
+        guard player != .spotify || userProfile?.hasSpotifyPremium == true else { return nil }
+        return player
     }
 
     private func fetchRecentlyListenedAlbums() async -> [AlbumModel] {
-        guard let player = musicPlayerManager.current else {
-            Logger.account.info("No main music player selected; skipping recently listened")
-            recentlyListenedFailed = false
+        guard let player = recentsPlayer else {
+            Logger.account.info("No player eligible for recently listened; skipping")
             return []
         }
 
         do {
-            let albums = try await getAccountUseCase.getRecentlyListenedAlbums(for: player)
-            recentlyListenedFailed = false
-            return albums
+            return try await getAccountUseCase.getRecentlyListenedAlbums(for: player)
         } catch {
-            // Distinct from "no history" — the section can say so rather than
-            // silently vanishing.
+            // Indistinguishable from "no history" to the user — the section just
+            // stays hidden.
             Logger.account.error("Failed to load recently listened albums: \(error)")
-            recentlyListenedFailed = true
             return []
         }
     }

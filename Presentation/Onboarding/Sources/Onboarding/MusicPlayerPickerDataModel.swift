@@ -39,10 +39,13 @@ final class MusicPlayerPickerDataModel {
         musicPlayerManager.current
     }
 
+    /// Picking a player also connects it — there is no separate "connect" step
+    /// anywhere in the app.
+    ///
     /// Returns true when the screen should dismiss (selection complete).
-    /// For Spotify, the choice is **only** persisted after a successful OAuth — cancelling
-    /// or failing the connect leaves `MusicPlayerManager.current` untouched so we don't
-    /// strand the user with a player selection that has no valid token.
+    /// The choice is **only** persisted after a successful connect — cancelling or
+    /// being denied leaves `MusicPlayerManager.current` untouched so we don't strand
+    /// the user on a player they have no access to.
     func select(_ player: MusicPlayer) async -> Bool {
         isProcessing = true
         pendingChoice = player
@@ -52,24 +55,18 @@ final class MusicPlayerPickerDataModel {
             pendingChoice = nil
         }
 
-        switch player {
-        case .appleMusic:
-            return await persist(player)
-
-        case .spotify:
-            do {
-                let connected = try await ensureSpotifyConnected()
-                guard connected else {
-                    errorMessage = "Spotify connection was cancelled."
-                    return false
-                }
-            } catch {
-                Logger.onboarding.error("Spotify connect failed: \(error)")
-                errorMessage = "Couldn't connect Spotify. Please try again."
+        do {
+            guard try await ensureConnected(player) else {
+                errorMessage = "\(player.displayName) access wasn't granted."
                 return false
             }
-            return await persist(player)
+        } catch {
+            Logger.onboarding.error("\(player.displayName) connect failed: \(error)")
+            errorMessage = "Couldn't connect \(player.displayName). Please try again."
+            return false
         }
+
+        return await persist(player)
     }
 
     private func persist(_ player: MusicPlayer) async -> Bool {
@@ -83,9 +80,20 @@ final class MusicPlayerPickerDataModel {
         }
     }
 
-    private func ensureSpotifyConnected() async throws -> Bool {
-        let alreadyConnected = (try? await getSettingsUseCase.loadSpotifyStatus()) ?? false
-        if alreadyConnected { return true }
-        return try await setSettingsUseCase.connectSpotify()
+    private func ensureConnected(_ player: MusicPlayer) async throws -> Bool {
+        switch player {
+        case .appleMusic:
+            // Unconditional: when authorization is already granted this returns
+            // straight away with no prompt, and it refreshes the stored
+            // subscription flag while it's there.
+            return try await setSettingsUseCase.connectAppleMusic()
+
+        case .spotify:
+            // Short-circuited, unlike Apple Music — `connectSpotify()` launches the
+            // full OAuth web flow every time it's called.
+            let alreadyConnected = (try? await getSettingsUseCase.loadSpotifyStatus()) ?? false
+            if alreadyConnected { return true }
+            return try await setSettingsUseCase.connectSpotify()
+        }
     }
 }

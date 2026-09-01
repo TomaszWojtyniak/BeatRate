@@ -22,9 +22,14 @@ public struct SettingsView: View {
     public var body: some View {
         NavigationStack {
             List {
+                // Picking a player connects it, so there is nothing left for a
+                // separate "Accounts" section to do — a provider is only ever
+                // used while it is the main player.
                 Section {
                     NavigationLink {
-                        MusicPlayerPickerView(mode: .change)
+                        MusicPlayerPickerView(mode: .change) {
+                            Task { await dataModel.loadUserProfile() }
+                        }
                     } label: {
                         HStack(spacing: Spacing.sm) {
                             Text("Player")
@@ -38,33 +43,19 @@ public struct SettingsView: View {
                     }
                 } header: {
                     Text("Main music player")
+                } footer: {
+                    if let notice = dataModel.spotifyNotice {
+                        Text(notice)
+                    }
                 }
 
                 Section {
-                    ConnectorRow(
-                        iconName: "apple_music_logo_icon",
-                        title: "Apple Music",
-                        isConnected: dataModel.isAppleMusicConnected,
-                        isConnecting: dataModel.isConnectingAppleMusic
-                    ) {
-                        Task { await dataModel.connectAppleMusic() }
+                    Button(role: .destructive) {
+                        dataModel.showLogoutConfirmation = true
+                    } label: {
+                        Text("Logout")
                     }
-
-                    ConnectorRow(
-                        iconName: "spotify_logo_icon",
-                        title: "Spotify",
-                        isConnected: dataModel.isSpotifyConnected,
-                        isConnecting: dataModel.isConnectingSpotify
-                    ) {
-                        Task { await dataModel.connectSpotify() }
-                    }
-
-                    if let notice = dataModel.spotifyNotice {
-                        Text(notice.message)
-                            .textStyle(.caption)
-                    }
-                } header: {
-                    Text("Accounts")
+                    .disabled(dataModel.isLoggingOut)
                 }
 
                 Section {
@@ -79,21 +70,6 @@ public struct SettingsView: View {
                 }
             }
             .listStyle(.insetGrouped)
-            .safeAreaInset(edge: .bottom) {
-                Button(role: .destructive) {
-                    dataModel.showLogoutConfirmation = true
-                } label: {
-                    Label("Logout", systemImage: "rectangle.portrait.and.arrow.right")
-                        .textStyle(.bodyEmphasis, color: .white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, Spacing.xs)
-                }
-                .buttonStyle(.glassProminent)
-                .tint(.red)
-                .disabled(dataModel.isLoggingOut)
-                .padding(.horizontal, Spacing.lg)
-                .padding(.bottom, Spacing.xs)
-            }
             .navigationTitle("Settings")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
@@ -165,14 +141,14 @@ private struct DeleteAccountSheet: View {
 
             if dataModel.isDeletingAccount || hashedNonce == nil {
                 ProgressView()
-                    .frame(maxWidth: .infinity, minHeight: Size.signInButton)
+                    .frame(maxWidth: .infinity, minHeight: Size.signInButton, maxHeight: Size.signInButton)
             } else {
                 SignInWithAppleButton(.continue, onRequest: { request in
                     request.requestedScopes = [.fullName, .email]
                     request.nonce = hashedNonce
                 }, onCompletion: handleAuthorization)
                 .signInWithAppleButtonStyle(.black)
-                .frame(maxWidth: .infinity, maxHeight: Size.signInButton)
+                .frame(maxWidth: .infinity, minHeight: Size.signInButton, maxHeight: Size.signInButton)
                 .clipShape(RoundedRectangle(cornerRadius: Radius.signInButton, style: .continuous))
             }
 
@@ -182,7 +158,7 @@ private struct DeleteAccountSheet: View {
         }
         .padding(.horizontal, Spacing.lg)
         .padding(.bottom, Spacing.lg)
-        .presentationDetents([.medium])
+        .presentationDetents([.large])
         .interactiveDismissDisabled(dataModel.isDeletingAccount)
         .task {
             hashedNonce = dataModel.sha256(await dataModel.getCurrentNonce())
@@ -211,37 +187,6 @@ private struct DeleteAccountSheet: View {
                     return
                 }
                 errorMessage = "Couldn't verify your Apple ID. Please try again."
-            }
-        }
-    }
-}
-
-private struct ConnectorRow: View {
-    let iconName: String
-    let title: String
-    let isConnected: Bool
-    let isConnecting: Bool
-    let onConnect: () -> Void
-
-    var body: some View {
-        HStack(spacing: Spacing.sm) {
-            Image(iconName, bundle: .module)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: Size.connectorIcon, height: Size.connectorIcon)
-                .clipShape(Circle())
-
-            Text(title)
-
-            Spacer(minLength: Spacing.xs)
-
-            if isConnected {
-                Text("Connected")
-                    .foregroundStyle(.secondary)
-            } else {
-                Button(isConnecting ? "Connecting…" : "Connect", action: onConnect)
-                    .tint(.accentSecondary)
-                    .disabled(isConnecting)
             }
         }
     }

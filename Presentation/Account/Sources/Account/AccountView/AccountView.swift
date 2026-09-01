@@ -62,15 +62,7 @@ public struct AccountView: View {
                             .padding(.horizontal, Spacing.md)
                         }
 
-                        if dataModel.recentlyListenedFailed {
-                            // Distinct from an empty history: say the fetch failed
-                            // rather than rendering a section with nothing under it.
-                            Text("Couldn't load your recent listening. Pull down to try again.")
-                                .textStyle(.caption)
-                                .padding(Spacing.lg)
-                                .roundedMaterialBackground()
-                                .padding(.horizontal, Spacing.md)
-                        } else if dataModel.isShowingRecentlyListenedSection {
+                        if dataModel.isShowingRecentlyListenedSection {
                             HomeSectionView(
                                 name: "Recently Listened",
                                 albums: dataModel.recentlyListenedAlbums,

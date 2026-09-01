@@ -77,7 +77,7 @@ public struct LoginPromptView: View {
                     Text("Signing in...", bundle: .module)
                         .textStyle(.body, color: .primaryTextOnDark)
                 }
-                .frame(maxWidth: .infinity, maxHeight: Size.signInButton)
+                .frame(maxWidth: .infinity, minHeight: Size.signInButton, maxHeight: Size.signInButton)
                 .padding(Spacing.md)
             } else {
                 signInButton
@@ -100,6 +100,7 @@ public struct LoginPromptView: View {
         .padding(.bottom, Spacing.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.backgroundGradient)
+        .presentationDetents([.large])
     }
 
     private var signInButton: some View {
@@ -132,11 +133,15 @@ public struct LoginPromptView: View {
             }
         })
         .signInWithAppleButtonStyle(.white)
-        .frame(maxWidth: .infinity, maxHeight: Size.signInButton)
+        .frame(maxWidth: .infinity, minHeight: Size.signInButton, maxHeight: Size.signInButton)
         .clipShape(RoundedRectangle(cornerRadius: Radius.signInButton, style: .continuous))
     }
 }
 
+// Presented in a sheet, matching how `AppView` raises it — the view's
+// presentation modifiers only take effect there.
 #Preview {
-    LoginPromptView(reason: .account)
+    Color.clear.sheet(isPresented: .constant(true)) {
+        LoginPromptView(reason: .account)
+    }
 }
