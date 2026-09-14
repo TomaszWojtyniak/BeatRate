@@ -21,6 +21,7 @@ public enum AuthFirebaseServiceError: Error {
 }
 
 public protocol AuthFirebaseServiceProtocol: Sendable {
+    func currentUserId() async -> String?
     func setLoginData(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws -> String
     func signOut() async throws
     func reauthenticate(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws
@@ -44,6 +45,13 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
         self.keychainManager = keychainManager
     }
     
+    /// The uid of Firebase's own persisted session. Unlike the SwiftData `User`
+    /// row this survives a cache-store reset, so it is the durable answer to
+    /// "who is signed in".
+    public func currentUserId() async -> String? {
+        Auth.auth().currentUser?.uid
+    }
+
     public func setLoginData(idTokenString: String, nonce: String, appleIDCredential: ASAuthorizationAppleIDCredential) async throws -> String {
         let authResult = try await signInWithFirebase(idTokenString: idTokenString, nonce: nonce, appleIDCredential: appleIDCredential)
         let userId = authResult.user.uid

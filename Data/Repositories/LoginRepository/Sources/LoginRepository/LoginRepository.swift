@@ -17,6 +17,7 @@ public enum LoginError: Error {
 }
 
 public protocol LoginRepositoryProtocol: Sendable {
+    func currentFirebaseUserId() async -> String?
     func setLoginData(authResult: ASAuthorization) async throws -> String
     func getCurrentNonce() async -> String
     func getUserProfile(userId: String) async throws -> FirebaseUserProfile?
@@ -69,6 +70,10 @@ public actor LoginRepository: LoginRepositoryProtocol {
       return String(nonce)
     }
     
+    public func currentFirebaseUserId() async -> String? {
+        await authFirebaseService.currentUserId()
+    }
+
     public func setLoginData(authResult: ASAuthorization) async throws -> String {
         if let appleIDCredential = authResult.credential as? ASAuthorizationAppleIDCredential {
             guard let nonce = currentNonce else {

@@ -64,11 +64,18 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         container = Self.makeContainer()
     }
 
-    /// The store holds nothing but derived cache, so a store that will not open —
-    /// corrupted, or written by a schema this build no longer understands — is
-    /// discarded and rebuilt rather than crashing on launch. Without this, the
-    /// first release that changes a `@Model` bricks the app for every existing
-    /// user, and there is no way to ship a fix they can reach.
+    /// A store that will not open — corrupted, or written by a schema this build
+    /// no longer understands — is discarded and rebuilt rather than crashing on
+    /// launch. Without this, the first release that changes a `@Model` bricks the
+    /// app for every existing user, and there is no way to ship a fix they can
+    /// reach.
+    ///
+    /// Everything here is rebuildable, but not all of it is *derived*: the `User`
+    /// row carries the login flag and Firebase uid. Wiping it would read as a
+    /// sign-out, so `GetSplashUseCase.isUserLoggedIn()` rebuilds that row from the
+    /// Keychain Apple ID plus Firebase's own session, both of which outlive this
+    /// store. Any future model holding state that is not recoverable from
+    /// elsewhere must not live in this container.
     private static func makeContainer() -> ModelContainer {
         let schema = Schema([CachedAlbum.self, CachedSection.self, User.self, RecentAlbum.self])
 
