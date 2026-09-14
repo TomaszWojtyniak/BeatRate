@@ -49,6 +49,23 @@ public struct HomeView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .meshBackground()
 
+            case .empty:
+                ContentUnavailableView {
+                    Label("No Albums Yet", systemImage: "music.note.list")
+                        .foregroundStyle(Color.primaryText)
+                } description: {
+                    Text("There's nothing to show here right now. Check back soon.")
+                        .textStyle(.body, color: .secondaryText)
+                } actions: {
+                    Button("Refresh") {
+                        Task { await dataModel.retry() }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color.accentPrimary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .meshBackground()
+
             case .failed:
                 ContentUnavailableView {
                     Label("Couldn't Load Your Feed", systemImage: "wifi.exclamationmark")

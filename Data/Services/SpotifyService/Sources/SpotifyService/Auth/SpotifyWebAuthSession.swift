@@ -15,6 +15,31 @@ import UIKit
 final class SpotifyWebAuthSession: NSObject, ASWebAuthenticationPresentationContextProviding {
     private var activeSession: ASWebAuthenticationSession?
 
+    /// Resolved once, at construction, so `presentationAnchor` is total without a
+    /// fallback: iOS 26 deprecated every scene-less `UIWindow` initializer, and
+    /// the alternatives there were a deprecation warning or trapping mid-OAuth.
+    /// Failing construction instead pushes the one real failure — no window scene
+    /// to present on — to the caller, which already throws `authorizationFailed`.
+    /// Callers build this immediately before authorizing, so the anchor cannot go
+    /// stale between here and presentation.
+    private let anchor: ASPresentationAnchor
+
+    /// Nil when there is no window scene to present on. A factory rather than a
+    /// failable `init?()`, which cannot override `NSObject.init()`.
+    static func make() -> SpotifyWebAuthSession? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        guard let scene = scenes.first(where: { $0.activationState == .foregroundActive }) ?? scenes.first else {
+            return nil
+        }
+        let window = scene.windows.first(where: \.isKeyWindow) ?? ASPresentationAnchor(windowScene: scene)
+        return SpotifyWebAuthSession(anchor: window)
+    }
+
+    private init(anchor: ASPresentationAnchor) {
+        self.anchor = anchor
+        super.init()
+    }
+
     /// Presents the authorization sheet and returns the `code` query item from
     /// the redirect callback.
     func authorize(url: URL, callbackScheme: String) async throws -> String {
@@ -57,13 +82,6 @@ final class SpotifyWebAuthSession: NSObject, ASWebAuthenticationPresentationCont
     }
 
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
-        guard let scene = scenes.first(where: { $0.activationState == .foregroundActive }) ?? scenes.first else {
-            // iOS 26 deprecated every scene-less UIWindow init, so there is no
-            // anchor left to hand back — and an app that got far enough to start
-            // this flow always has a window scene.
-            preconditionFailure("No UIWindowScene to present the Spotify auth sheet")
-        }
-        return scene.windows.first(where: \.isKeyWindow) ?? ASPresentationAnchor(windowScene: scene)
+        anchor
     }
 }
