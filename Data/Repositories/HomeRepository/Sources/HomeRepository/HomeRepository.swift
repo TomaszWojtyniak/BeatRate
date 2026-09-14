@@ -249,30 +249,28 @@ public actor HomeRepository: HomeRepositoryProtocol {
     /// hydrating a section's album list.
     private nonisolated static let maxConcurrentAlbumFetches = 5
 
-    /// Fetches album from MusicKit and Firebase, validates, and caches it
+    /// Fetches album from MusicKit and Firebase, validates, and caches it.
+    ///
+    /// The Firebase entry is optional by design. `albums/<id>` is world-readable
+    /// but writable only with `auth != null`, so seeding it from this read path
+    /// made every not-yet-seeded album throw for guests — and `fetchAlbumsForSection`
+    /// drops throwing albums, so they silently vanished from a guest's feed.
+    /// An album nobody has rated genuinely has no entry, and `saveUserRating`'s
+    /// `ensureAlbumExists` creates it the moment a signed-in user rates it.
     public func fetchAndCacheAlbum(albumId: String) async throws -> AlbumModel {
         // Fetch from MusicKit and Firebase in parallel
         async let appleMusicAlbumTask = self.musicRepository.getAlbumDataById(albumId)
         async let firebaseAlbumDataTask = self.readAndCacheAlbumData(albumId: albumId)
 
         let musicData = try await appleMusicAlbumTask
-        var firebaseData = try? await firebaseAlbumDataTask  // Use try? to handle missing albums
-
-        // If no Firebase data exists, create it with default values
-        if firebaseData == nil {
-            Logger.homeRepository.info("No Firebase data found for album: \(albumId), creating new entry")
-            firebaseData = try await createFirebaseAlbumData(for: albumId, musicData: musicData)
-        }
-
-        guard let validFirebaseData = firebaseData else {
-            throw HomeRepositoryError.albumDataMismatch
-        }
+        // Double optional: the read itself may fail, and the album may not be there.
+        let firebaseData = (try? await firebaseAlbumDataTask) ?? nil
 
         // Build album model
         let album = AlbumModel(
             id: albumId,
             appleMusicAlbumData: musicData,
-            firebaseAlbumData: validFirebaseData
+            firebaseAlbumData: firebaseData
         )
 
         // Validate album data matches (no await needed - synchronous validation)
@@ -284,29 +282,15 @@ public actor HomeRepository: HomeRepositoryProtocol {
         return album
     }
 
-    /// Creates new Firebase album data from MusicKit data
-    private func createFirebaseAlbumData(for albumId: String, musicData: AppleMusicAlbumData) async throws -> FirebaseAlbumData {
-        Logger.homeRepository.info("Creating new Firebase album entry for: \(albumId)")
-
-        let newFirebaseData = FirebaseAlbumData(
-            artist: musicData.artist,
-            avgRating: 0,  // Set to 0 for new albums with no ratings
-            createdAt: Int64(Date().timeIntervalSince1970 * 1000),
-            ratingCount: 0,
-            title: musicData.title
-        )
-
-        // Write to Firebase and update cache
-        try await self.writeAndCacheAlbumData(albumId: albumId, data: newFirebaseData)
-
-        return newFirebaseData
-    }
-
     /// Validates that Firebase and MusicKit data match for an album
     /// Performance: Made nonisolated and synchronous - no suspension point needed for simple validation
     private nonisolated func validateAlbumData(_ album: AlbumModel) throws {
-        let firebaseTitle = album.firebaseAlbumData?.title
-        let firebaseArtist = album.firebaseAlbumData?.artist
+        // No Firebase entry means there is nothing to contradict. An unrated
+        // album is a valid state, not a mismatch.
+        guard let firebaseData = album.firebaseAlbumData else { return }
+
+        let firebaseTitle = firebaseData.title
+        let firebaseArtist = firebaseData.artist
         let musicTitle = album.appleMusicAlbumData.title
         let musicArtist = album.appleMusicAlbumData.artist
 
@@ -324,13 +308,6 @@ public actor HomeRepository: HomeRepositoryProtocol {
         let data = try await databaseFirebaseService.fetchAlbumData(albumId: albumId)
         // Data is cached when full album is cached via cacheAlbum()
         return data
-    }
-
-    /// Writes album data to Firebase and updates cache
-    private func writeAndCacheAlbumData(albumId: String, data: FirebaseAlbumData) async throws {
-        try await databaseFirebaseService.saveAlbumData(albumId: albumId, albumData: data)
-        try await swiftDataManager.updateCachedAlbum(albumId: albumId, firebaseData: data)
-        Logger.homeRepository.info("Wrote and cached album data for: \(albumId)")
     }
 
     /// Reads user rating from Firebase and caches it

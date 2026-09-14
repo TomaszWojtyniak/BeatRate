@@ -72,7 +72,8 @@ public actor LoginRepository: LoginRepositoryProtocol {
     public func setLoginData(authResult: ASAuthorization) async throws -> String {
         if let appleIDCredential = authResult.credential as? ASAuthorizationAppleIDCredential {
             guard let nonce = currentNonce else {
-                fatalError("Invalid state: A login callback was received, but no login request was sent.")
+                Logger.loginRepository.error("Login callback received with no nonce in flight")
+                throw LoginError.wrongData
             }
             guard let appleIDToken = appleIDCredential.identityToken else {
                 Logger.loginRepository.error("Unable to fetch identity token")

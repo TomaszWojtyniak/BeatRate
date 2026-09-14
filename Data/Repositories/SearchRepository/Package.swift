@@ -14,7 +14,7 @@ let package = Package(
             targets: ["SearchRepository"]),
     ],
     dependencies: [
-        .package(path: "../../Core/Models"),
+        .package(path: "../../../Core/Models"),
         .package(path: "../../Services/SwiftDataManager")
     ],
     targets: [

@@ -15,8 +15,8 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../../Core/Analytics"),
-        .package(path: "../../Core/Models")
+        .package(path: "../../../Core/Analytics"),
+        .package(path: "../../../Core/Models")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.

@@ -21,11 +21,14 @@ public final class AnalyticsManager {
     
     public func setAnalyticsEnabled(_ enabled: Bool) {
         isEnabled = enabled
+        // BeatRate serves no ads and runs against an EU database, so the three
+        // ad consents stay denied — granting them would put ad-related data
+        // collection on the App Privacy label for data we never collect.
         Analytics.setConsent([
-          .analyticsStorage: .granted,
-          .adStorage: .granted,
-          .adUserData: .granted,
-          .adPersonalization: .granted,
+          .analyticsStorage: enabled ? .granted : .denied,
+          .adStorage: .denied,
+          .adUserData: .denied,
+          .adPersonalization: .denied,
         ])
         Analytics.setAnalyticsCollectionEnabled(enabled)
         Logger.analytics.info("Analytics collection \(enabled ? "enabled" : "disabled")")

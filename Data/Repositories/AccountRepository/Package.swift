@@ -15,10 +15,10 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../../Data/Repositories/HomeRepository"),
-        .package(path: "../../Data/Repositories/MusicRepository"),
-        .package(path: "../../Data/Services/FirebaseService"),
-        .package(path: "../../Data/Services/SwiftDataManager")
+        .package(path: "../HomeRepository"),
+        .package(path: "../MusicRepository"),
+        .package(path: "../../Services/FirebaseService"),
+        .package(path: "../../Services/SwiftDataManager")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.

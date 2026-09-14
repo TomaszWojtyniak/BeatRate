@@ -61,10 +61,41 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         }
         self.loginStateContinuation = continuation
 
+        container = Self.makeContainer()
+    }
+
+    /// The store holds nothing but derived cache, so a store that will not open —
+    /// corrupted, or written by a schema this build no longer understands — is
+    /// discarded and rebuilt rather than crashing on launch. Without this, the
+    /// first release that changes a `@Model` bricks the app for every existing
+    /// user, and there is no way to ship a fix they can reach.
+    private static func makeContainer() -> ModelContainer {
+        let schema = Schema([CachedAlbum.self, CachedSection.self, User.self, RecentAlbum.self])
+
         do {
-            container = try ModelContainer(for: CachedAlbum.self, CachedSection.self, User.self, RecentAlbum.self)
+            return try ModelContainer(for: schema)
         } catch {
-            fatalError("Failed to create ModelContainer: \(error)")
+            Logger.swiftDataManager.error("Cache store unusable (\(error)) — rebuilding it from scratch")
+        }
+
+        destroyStore()
+
+        do {
+            return try ModelContainer(for: schema)
+        } catch {
+            // Nothing left to fall back to but memory. The app launches and works;
+            // the cache simply does not survive relaunch.
+            Logger.swiftDataManager.fault("Rebuild failed (\(error)) — running with an in-memory cache")
+            // A memory-only container with a valid schema has no failure mode left.
+            return try! ModelContainer(for: schema, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        }
+    }
+
+    /// Removes the default store and its write-ahead log siblings.
+    private static func destroyStore() {
+        let store = URL.applicationSupportDirectory.appending(path: "default.store")
+        for path in [store.path, store.path + "-shm", store.path + "-wal"] {
+            try? FileManager.default.removeItem(atPath: path)
         }
     }
 
@@ -114,11 +145,11 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
 
                 let existingAlbum = try context.fetch(descriptor).first
 
-                let cachedAlbum = existingAlbum ?? CachedAlbum(
+                guard let cachedAlbum = existingAlbum ?? CachedAlbum(
                     id: albumId,
                     appleMusicAlbumData: album.appleMusicAlbumData,
                     firebaseAlbumData: album.firebaseAlbumData
-                )
+                ) else { continue }
 
                 if existingAlbum == nil {
                     context.insert(cachedAlbum)
@@ -161,11 +192,11 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
     // MARK: - Album
     
     public func cacheAlbum(id: String, album: AlbumModel) async throws {
-        let cachedAlbum = CachedAlbum(
+        guard let cachedAlbum = CachedAlbum(
             id: id,
             appleMusicAlbumData: album.appleMusicAlbumData,
             firebaseAlbumData: album.firebaseAlbumData
-        )
+        ) else { return }
         context.insert(cachedAlbum)
         try context.save()
     }
@@ -174,7 +205,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         let descriptor = FetchDescriptor<CachedAlbum>(
             predicate: #Predicate { $0.id == id }
         )
-        return try context.fetch(descriptor).first?.toAlbumModel()
+        return try context.fetch(descriptor).first.flatMap { $0.toAlbumModel() }
     }
 
     public func updateCachedAlbum(albumId: String, firebaseData: FirebaseAlbumData) async throws {
@@ -358,7 +389,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         let recentAlbums = try context.fetch(descriptor)
 
         // Return only the first 5
-        return Array(recentAlbums.prefix(5)).map { $0.toAppleMusicAlbumData() }
+        return Array(recentAlbums.prefix(5)).compactMap { $0.toAppleMusicAlbumData() }
     }
 
     public func saveRecentAlbum(_ album: AppleMusicAlbumData) async throws {
@@ -376,7 +407,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
             existingAlbum.addedAt = Date()
         } else {
             // Add new recent album
-            let recentAlbum = RecentAlbum(id: album.id, appleMusicAlbumData: album)
+            guard let recentAlbum = RecentAlbum(id: album.id, appleMusicAlbumData: album) else { return }
             context.insert(recentAlbum)
         }
 

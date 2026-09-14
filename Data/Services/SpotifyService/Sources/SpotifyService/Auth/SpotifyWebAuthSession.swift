@@ -57,11 +57,12 @@ final class SpotifyWebAuthSession: NSObject, ASWebAuthenticationPresentationCont
     }
 
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        let activeScene = UIApplication.shared.connectedScenes
-            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
-        guard let scene = activeScene ?? UIApplication.shared.connectedScenes.first as? UIWindowScene else {
-            // No window scenes available — should not happen in a running app
-            fatalError("No UIWindowScene available to present authentication")
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        guard let scene = scenes.first(where: { $0.activationState == .foregroundActive }) ?? scenes.first else {
+            // iOS 26 deprecated every scene-less UIWindow init, so there is no
+            // anchor left to hand back — and an app that got far enough to start
+            // this flow always has a window scene.
+            preconditionFailure("No UIWindowScene to present the Spotify auth sheet")
         }
         return scene.windows.first(where: \.isKeyWindow) ?? ASPresentationAnchor(windowScene: scene)
     }

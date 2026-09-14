@@ -16,9 +16,9 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "11.13.0"),
-        .package(path: "../../Core/Analytics"),
-        .package(path: "../../Core/Models"),
-        .package(path: "../../Core/CoreApp")
+        .package(path: "../../../Core/Analytics"),
+        .package(path: "../../../Core/Models"),
+        .package(path: "../../../Core/CoreApp")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.

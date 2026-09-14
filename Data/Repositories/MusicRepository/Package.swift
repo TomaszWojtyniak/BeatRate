@@ -15,8 +15,8 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../../Data/Services/MusicKitService"),
-        .package(path: "../../Data/Services/SpotifyService")
+        .package(path: "../../Services/MusicKitService"),
+        .package(path: "../../Services/SpotifyService")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.

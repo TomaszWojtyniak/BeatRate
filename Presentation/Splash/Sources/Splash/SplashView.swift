@@ -20,13 +20,6 @@ public struct SplashView: View {
         self.onComplete = onComplete
     }
 
-    private var isAlertPresented: Binding<Bool> {
-        Binding(
-            get: { dataModel.alertType != nil },
-            set: { if !$0 { dataModel.alertType = nil } }
-        )
-    }
-
     public var body: some View {
         ZStack {
             SplashContentView(
@@ -34,16 +27,6 @@ public struct SplashView: View {
                 errorMessage: dataModel.errorMessage
             )
             .task { await loadAndCompleteIfReady() }
-            .alert(alertTitle, isPresented: isAlertPresented) {
-                SplashAlertButtons(
-                    alertType: dataModel.alertType,
-                    onOpenSettings: handleOpenSettings,
-                    onRetry: handleRetry,
-                    onLogout: handleLogout
-                )
-            } message: {
-                Text(alertMessage)
-            }
 
             if dataModel.showsMusicKitExplainer {
                 MusicLibraryPermissionExplainerView(onContinue: handleExplainerContinue)
@@ -71,39 +54,6 @@ public struct SplashView: View {
         }
     }
 
-    private func handleRetry() {
-        Task {
-            await dataModel.retryAfterSettingsChange()
-            if dataModel.shouldComplete {
-                onComplete()
-            }
-        }
-    }
-
-    private func handleLogout() {
-        Task {
-            await dataModel.logout()
-            onComplete()
-        }
-    }
-
-    private func handleOpenSettings() {
-        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
-        UIApplication.shared.open(url)
-    }
-
-    // MARK: - Alert content
-
-    private var alertTitle: String {
-        switch dataModel.alertType {
-        case .musicKitDenied: "Apple Music Access Required"
-        case .connectionError, .none: "Connection Error"
-        }
-    }
-
-    private var alertMessage: String {
-        dataModel.errorMessage
-    }
 }
 
 #Preview {

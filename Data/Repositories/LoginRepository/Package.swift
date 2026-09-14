@@ -14,9 +14,9 @@ let package = Package(
             targets: ["LoginRepository"]),
     ],
     dependencies: [
-        .package(path: "../../Core/Analytics"),
-        .package(path: "../../Data/FirebaseService"),
-        .package(path: "../../Core/Models"),
+        .package(path: "../../../Core/Analytics"),
+        .package(path: "../../Services/FirebaseService"),
+        .package(path: "../../../Core/Models"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.

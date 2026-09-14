@@ -10,6 +10,7 @@ import Models
 import AlbumDetails
 import Account
 import CoreUI
+import UIKit
 
 @MainActor
 public struct HomeView: View {
@@ -22,7 +23,8 @@ public struct HomeView: View {
 
     public var body: some View {
         Group {
-            if dataModel.isLoadingFromCache && dataModel.homeSections.isEmpty {
+            switch dataModel.state {
+            case .loading:
                 VStack(spacing: Spacing.sm) {
                     ProgressView()
                         .tint(Color.accentPrimary)
@@ -31,7 +33,40 @@ public struct HomeView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .meshBackground()
-            } else {
+
+            case .needsAppleMusicAccess:
+                ContentUnavailableView {
+                    Label("Apple Music Access Needed", systemImage: "music.note")
+                        .foregroundStyle(Color.primaryText)
+                } description: {
+                    Text("BeatRate uses the Apple Music catalog for album artwork, tracklists and release details. Turn it on in Settings to fill your feed.")
+                        .textStyle(.body, color: .secondaryText)
+                } actions: {
+                    Button("Open Settings") { openAppSettings() }
+                        .buttonStyle(.borderedProminent)
+                        .tint(Color.accentPrimary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .meshBackground()
+
+            case .failed:
+                ContentUnavailableView {
+                    Label("Couldn't Load Your Feed", systemImage: "wifi.exclamationmark")
+                        .foregroundStyle(Color.primaryText)
+                } description: {
+                    Text("Check your connection and try again.")
+                        .textStyle(.body, color: .secondaryText)
+                } actions: {
+                    Button("Try Again") {
+                        Task { await dataModel.retry() }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color.accentPrimary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .meshBackground()
+
+            case .ready:
                 ScrollView {
                     GlassEffectContainer(spacing: Spacing.md) {
                         LazyVStack(spacing: Spacing.md) {
@@ -71,6 +106,11 @@ public struct HomeView: View {
             // High priority - user is waiting for initial home screen load
             await self.dataModel.loadInitialData()
         }
+    }
+
+    private func openAppSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
     }
 }
 

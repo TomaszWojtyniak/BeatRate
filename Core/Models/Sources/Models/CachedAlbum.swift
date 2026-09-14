@@ -6,6 +6,7 @@
 //
 
 import SwiftData
+import OSLog
 import Foundation
 
 @Model
@@ -18,22 +19,26 @@ public final class CachedAlbum {
     public var userRating: Double?
     public var userRatingUpdatedAt: Date?
 
+    /// Nil rather than a trap when the stored blob will not decode. The cache is
+    /// derived data, so a row written by an older schema has to read as a miss —
+    /// crashing here would brick the app on the first release that changes shape.
     @MainActor
-    public var appleMusicAlbumData: AppleMusicAlbumData {
+    public var appleMusicAlbumData: AppleMusicAlbumData? {
         get {
             do {
                 return try JSONDecoder().decode(AppleMusicAlbumData.self, from: appleMusicAlbumDataData)
             } catch {
-                fatalError("Failed to decode AppleMusicAlbumData: \(error)")
+                Self.log.error("Discarding undecodable AppleMusicAlbumData for \(self.id): \(error)")
+                return nil
             }
         }
         set {
-            do {
-                appleMusicAlbumDataData = try JSONEncoder().encode(newValue)
-                lastUpdated = Date()
-            } catch {
-                fatalError("Failed to encode AppleMusicAlbumData: \(error)")
+            guard let newValue, let encoded = try? JSONEncoder().encode(newValue) else {
+                Self.log.error("Failed to encode AppleMusicAlbumData for \(self.id)")
+                return
             }
+            appleMusicAlbumDataData = encoded
+            lastUpdated = Date()
         }
     }
 
@@ -44,16 +49,22 @@ public final class CachedAlbum {
             do {
                 return try JSONDecoder().decode(FirebaseAlbumData.self, from: data)
             } catch {
-                fatalError("Failed to decode FirebaseAlbumData: \(error)")
+                Self.log.error("Discarding undecodable FirebaseAlbumData for \(self.id): \(error)")
+                return nil
             }
         }
         set {
-            do {
-                firebaseAlbumDataData = newValue != nil ? try JSONEncoder().encode(newValue) : nil
+            guard let newValue else {
+                firebaseAlbumDataData = nil
                 lastUpdated = Date()
-            } catch {
-                fatalError("Failed to encode FirebaseAlbumData: \(error)")
+                return
             }
+            guard let encoded = try? JSONEncoder().encode(newValue) else {
+                Self.log.error("Failed to encode FirebaseAlbumData for \(self.id)")
+                return
+            }
+            firebaseAlbumDataData = encoded
+            lastUpdated = Date()
         }
     }
 
@@ -69,23 +80,29 @@ public final class CachedAlbum {
         self.lastUpdated = Date()
     }
 
+    /// Failable: an album that will not encode simply does not get cached.
     @MainActor
-    public convenience init(id: String, appleMusicAlbumData: AppleMusicAlbumData, firebaseAlbumData: FirebaseAlbumData? = nil) {
+    public convenience init?(id: String, appleMusicAlbumData: AppleMusicAlbumData, firebaseAlbumData: FirebaseAlbumData? = nil) {
         do {
             let musicData = try JSONEncoder().encode(appleMusicAlbumData)
             let firebaseData = firebaseAlbumData != nil ? try JSONEncoder().encode(firebaseAlbumData) : nil
             self.init(id: id, appleMusicAlbumDataData: musicData, firebaseAlbumDataData: firebaseData)
         } catch {
-            fatalError("Failed to encode album data for init: \(error)")
+            Self.log.error("Not caching album \(id), encode failed: \(error)")
+            return nil
         }
     }
 
-    @MainActor public func toAlbumModel() -> AlbumModel {
-        AlbumModel(
+    /// Nil when the Apple Music blob is unreadable — callers treat that as a miss.
+    @MainActor public func toAlbumModel() -> AlbumModel? {
+        guard let appleMusicAlbumData else { return nil }
+        return AlbumModel(
             id: id,
             appleMusicAlbumData: appleMusicAlbumData,
             firebaseAlbumData: firebaseAlbumData,
             userRating: userRating
         )
     }
+
+    fileprivate static let log = Logger(subsystem: "BeatRate", category: "modelCache")
 }
