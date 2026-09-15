@@ -44,7 +44,10 @@ actor SpotifySession {
         }
 
         let pkce = PKCE()
-        let webAuth = await SpotifyWebAuthSession()
+        // Nil means there is no window scene to present the sheet on.
+        guard let webAuth = await SpotifyWebAuthSession.make() else {
+            throw SpotifyFailure.authorizationFailed
+        }
         let code = try await webAuth.authorize(
             url: authorizationURL(codeChallenge: pkce.challenge, redirectUri: redirectUri),
             callbackScheme: callbackScheme

@@ -36,12 +36,15 @@ After finishing any code change, **always run the Xcode MCP `BuildProject` tool*
 to verify the project builds. Do not stop work or hand back to the user until
 this has succeeded. The flow is:
 
-1. `mcp__xcode__XcodeListWindows` → get the `tabIdentifier` for `BeatRate.xcodeproj`
-2. `mcp__xcode__BuildProject` with that `tabIdentifier`
+1. `mcp__xcode__XcodeListWorkspaces` → get the `workspaceIdentifier` for
+   `BeatRate.xcodeproj` (e.g. `windowtab-9C7St5KE60`)
+2. `mcp__xcode__BuildProject` with that `workspaceIdentifier`; pass
+   `buildForTesting: true` when you also want the test targets compiled
 
 Prefer the MCP over CLI `xcodebuild` — it's faster (uses the already-open Xcode
-window) and avoids the `xcode-select` developer-dir issue. Only fall back to CLI
-`xcodebuild` if the MCP is unavailable in the session.
+window) and avoids the `xcode-select` developer-dir issue. The MCP does
+sometimes fail to connect at session start (`CONNECTION_CLOSED`); fall back to
+the CLI below when it does.
 
 ### Building the App
 
@@ -51,36 +54,68 @@ Two schemes available:
 
 ```bash
 # Build production
-xcodebuild -scheme "BeatRate" -project BeatRate.xcodeproj build
+DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer \
+  xcodebuild -scheme "BeatRate" -project BeatRate.xcodeproj \
+  -destination 'generic/platform=iOS Simulator' -quiet build
 
 # Build development
-xcodebuild -scheme "BeatRate Development" -project BeatRate.xcodeproj build
+DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer \
+  xcodebuild -scheme "BeatRate Development" -project BeatRate.xcodeproj \
+  -destination 'generic/platform=iOS Simulator' -quiet build
 
 # Run in Xcode (recommended)
 open BeatRate.xcodeproj
 ```
 
-> **Note:** `xcodebuild` requires full Xcode, not just Command Line Tools. If
-> you see *"tool 'xcodebuild' requires Xcode, but active developer directory is
-> a command line tools instance"*, run
-> `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer` once.
-> Without this, build verification from the CLI will fail; opening the project
-> in Xcode still works.
+> **Note:** `xcodebuild` requires full Xcode, not just Command Line Tools. This
+> machine has **Xcode-beta only** — there is no `/Applications/Xcode.app` — so
+> pass `DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer` as above
+> rather than running `sudo xcode-select`.
+>
+> Check the **exit code**, not the output: under `-quiet` a target whose only
+> diagnostic is a warning still prints `error: the following command failed with
+> exit code 0 but produced no further output`. Exit code 0 means the build
+> succeeded.
 
 ### Running Tests
 
+Tests run against an **iOS Simulator** only. Prefer the Xcode MCP
+(`mcp__xcode__RunAllTests` / `mcp__xcode__RunSomeTests`, with
+`mcp__xcode__GetTestList` to see what exists) for the same reasons as
+`BuildProject`.
+
+From the CLI, a simulator destination is **required** — without `-destination`,
+xcodebuild picks "My Mac" and fails provisioning:
+
 ```bash
-# Run all tests
-xcodebuild -scheme "BeatRate" -project BeatRate.xcodeproj test
-
-# Run specific test
-xcodebuild -scheme "BeatRate" -project BeatRate.xcodeproj \
-  -only-testing:BeatRateTests/TestClassName/testMethodName test
-
-# Tests are also available in Swift packages
-swift test --package-path Core/CoreApp
-swift test --package-path Data/Repositories/HomeRepository
+DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer \
+  xcodebuild -scheme "BeatRate" -project BeatRate.xcodeproj \
+  -destination 'platform=iOS Simulator,name=iPhone 17' test
 ```
+
+That needs a simulator *device* to exist, not just a runtime. If
+`xcrun simctl list devices available` is empty, create one:
+
+```bash
+xcrun simctl create "iPhone 17" \
+  com.apple.CoreSimulator.SimDeviceType.iPhone-17 \
+  com.apple.CoreSimulator.SimRuntime.iOS-27-0
+```
+
+> **`swift test` does not work in this repo** — don't reach for it. Two
+> independent reasons:
+>
+> 1. `Core/Models` declares `platforms: [.iOS(.v26)]` and no macOS, so SwiftPM
+>    builds it for the host at `macos12.0`, where SwiftData's `PersistentModel`
+>    conformance fails to compile. This hits every package that depends on
+>    Models — which is nearly all of them.
+> 2. Local `.package(path:)` references under `Data/` are off by one directory
+>    (`../../Core/Models` from `Data/Services/X` resolves to `Data/Core/Models`).
+>    Xcode resolves these by package name and builds fine; SwiftPM resolves
+>    strictly by path and fails.
+>
+> To run a single package's tests, use its own scheme with an iOS Simulator
+> destination rather than `swift test`.
 
 ## Architecture
 

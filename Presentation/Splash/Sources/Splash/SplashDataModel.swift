@@ -18,7 +18,6 @@ final class SplashDataModel {
     private let getSplashUseCase: GetSplashUseCaseProtocol
     private let musicPlayerManager: MusicPlayerManager
 
-    var alertType: AlertType? = nil
     var errorMessage: String = "Unable to load data. Retrying..."
     var shouldComplete: Bool = true  // Controls whether onComplete() should be called
     /// True when MusicKit auth is `.notDetermined` and the explainer should be shown
@@ -39,28 +38,6 @@ final class SplashDataModel {
     }
 
     // MARK: - Public Interface
-
-    func logout() async {
-        do {
-            try await getSplashUseCase.logout()
-            Logger.splash.info("User logged out successfully")
-        } catch {
-            Logger.splash.error("Logout failed: \(error.localizedDescription)")
-            // Even if logout fails, we still want to proceed to login screen
-            // The login screen will handle re-authentication
-        }
-    }
-
-    func retryAfterSettingsChange() async {
-        // Reset state for retry
-        shouldComplete = true
-        alertType = nil
-        retryCount = 0
-        showsMusicKitExplainer = false
-
-        // Retry the full initialization
-        await loadInitialData()
-    }
 
     func loadInitialData() async {
         // Step 1: Validate user credentials — signed-in users only. A guest has no
@@ -95,14 +72,14 @@ final class SplashDataModel {
     }
 
     private func continueAfterMusicKitGate() async {
-        // Step 2b: Request MusicKit authorization (MANDATORY - app cannot function without it)
-        guard await requestMusicKitAuthorization() else {
-            // MusicKit denied - show error and STAY on splash screen
-            Logger.splash.error("MusicKit authorization denied - app cannot function")
-            errorMessage = "BeatRate requires access to Apple Music to discover and rate albums."
-            alertType = .musicKitDenied
-            shouldComplete = false
-            return
+        // Step 2b: Request MusicKit authorization. A refusal is not fatal. Album
+        // metadata comes from MusicKit, so Home will be thin without it — but that
+        // is Home's story to tell, and Home offers the way to grant it. Holding the
+        // user here leaves them no route into the app at all: an App Review
+        // rejection under 5.1.1, and a dead end for guests who never needed an
+        // account in the first place.
+        if await requestMusicKitAuthorization() == false {
+            Logger.splash.notice("MusicKit not authorized — continuing in reduced mode")
         }
 
         // Step 3: Hydrate the main-music-player flag (UserDefaults → Firebase fallback).
@@ -277,13 +254,12 @@ final class SplashDataModel {
     }
 
     private func handleMaxRetriesReached(errorType: String, userMessage: String) async {
-        Logger.splash.error("Max retries reached, \(errorType). Showing error to user.")
+        // Enter the app anyway. Home renders the failure with its own retry, and a
+        // splash screen the user cannot leave is worse than an empty one they can:
+        // a reviewer on bad hotel wifi would otherwise never see the app at all.
+        Logger.splash.error("Max retries reached, \(errorType). Entering the app so Home can recover.")
         errorMessage = userMessage
-        alertType = .connectionError
-        shouldComplete = false  // Stay on splash screen to allow user to retry
-
-        // Don't automatically logout - let the user decide what to do
-        // The user can manually retry or choose to logout from settings
+        shouldComplete = true
     }
 
     // MARK: - Delay Helpers

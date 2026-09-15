@@ -1,4 +1,4 @@
-// swift-tools-version: 6.2
+// swift-tools-version: 6.4
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "MusicRepository",
     defaultLocalization: "en",
-    platforms: [.iOS(.v26)],
+    platforms: [.iOS(.v27)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
@@ -15,8 +15,8 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../../Data/Services/MusicKitService"),
-        .package(path: "../../Data/Services/SpotifyService")
+        .package(path: "../../Services/MusicKitService"),
+        .package(path: "../../Services/SpotifyService")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.

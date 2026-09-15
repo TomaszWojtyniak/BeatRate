@@ -18,7 +18,6 @@ import CoreApp
 public protocol DatabaseFirebaseServiceProtocol: Sendable {
     func fetchSections() async throws -> [FirebaseAlbumSection]
     func fetchAlbumData(albumId: String) async throws -> FirebaseAlbumData?
-    func saveAlbumData(albumId: String, albumData: FirebaseAlbumData) async throws
     func getUserRating(userId: String, albumId: String) async throws -> Double?
     func getUserRatedAlbumIds(userId: String) async throws -> [String]
     func getAllUserRatings(userId: String) async throws -> [String: Double]
@@ -106,17 +105,6 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
 
         Logger.firebaseService.info("Fetched Firebase data for album: \(albumId)")
         return decoded
-    }
-
-    public func saveAlbumData(albumId: String, albumData: FirebaseAlbumData) async throws {
-        let ref = database.reference().child("albums").child(albumId)
-
-        let encoder = JSONEncoder()
-        let jsonData = try encoder.encode(albumData)
-        let json = try JSONSerialization.jsonObject(with: jsonData)
-
-        try await ref.setValue(json)
-        Logger.firebaseService.info("Saved album data to Firebase for album: \(albumId)")
     }
 
     public func getUserRating(userId: String, albumId: String) async throws -> Double? {

@@ -37,7 +37,7 @@ public final class CachedSection {
 
         // Sort albums according to orderedAlbumIds
         let sortedAlbums = orderedAlbumIds.compactMap { albumId in
-            albumDict[albumId]?.toAlbumModel()
+            albumDict[albumId].flatMap { $0.toAlbumModel() }
         }
 
         return HomeSection(sectionName: name, albums: sortedAlbums)

@@ -164,7 +164,34 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
     /// because splash's own `.task` races `AppDataModel.checkInitialLoginStatus()`
     /// on cold launch and would otherwise see a stale `false` for a signed-in user.
     public func isUserLoggedIn() async -> Bool {
-        return await swiftDataManager.isUserLoggedIn()
+        if await swiftDataManager.isUserLoggedIn() { return true }
+        return await restoreLoginFromDurableState()
+    }
+
+    /// The `isLoggedIn` flag lives in the SwiftData cache store, which
+    /// `SwiftDataManager` deletes and rebuilds when it will not open. The
+    /// Keychain Apple ID and Firebase's own session both survive that, so a
+    /// missing row means "cache was reset", not "signed out" — rebuild it
+    /// rather than silently demoting a signed-in user to guest, which would
+    /// strand their ratings behind a nil user id.
+    private func restoreLoginFromDurableState() async -> Bool {
+        let storedAppleID = (try? await keychainManager.loadAppleUserID()) ?? nil
+        guard storedAppleID != nil else {
+            return false
+        }
+        guard let userId = await loginRepository.currentFirebaseUserId() else {
+            Logger.splash.info("No Firebase session to restore — staying in guest mode")
+            return false
+        }
+
+        do {
+            try await swiftDataManager.setUserLoggedIn(userId: userId)
+            Logger.splash.notice("Rebuilt the local login row after a cache-store reset")
+            return true
+        } catch {
+            Logger.splash.error("Could not rebuild the login row: \(error.localizedDescription)")
+            return false
+        }
     }
 
     public func areCredentialsValid() async -> Bool {
