@@ -21,7 +21,7 @@ public struct TabBarView: View {
     public var body: some View {
         TabView(selection: $selection) {
             ForEach(tabs) { tab in
-                Tab(value: tab, role: tab == TabBarScreen.search ? .search : .none) {
+                Tab(value: tab, role: tab == TabBarScreen.search ? .prominent : .none) {
                     tab.destination
                 } label: {
                     tab.label
