@@ -37,13 +37,13 @@ final class HomeDataModel {
         await fetchSectionsData(isMusicAuthorized: isAuthorized)
     }
 
-    /// Re-runs the whole load, including the authorization check — this is what
-    /// the empty-state buttons call, so someone returning from Settings having
-    /// just granted access gets a populated feed without relaunching.
     func track(_ event: AnalyticsEvent) {
         analyticsManager.log(event)
     }
 
+    /// Re-runs the whole load, including the authorization check — this is what
+    /// the empty-state buttons call, so someone returning from Settings having
+    /// just granted access gets a populated feed without relaunching.
     func retry() async {
         analyticsManager.log(.retryTap(screen: .home))
         state = .loading

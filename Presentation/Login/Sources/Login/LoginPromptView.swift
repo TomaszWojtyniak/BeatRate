@@ -122,7 +122,6 @@ public struct LoginPromptView: View {
                         Logger.login.debug("Complete login successful from prompt (Firebase + local storage)")
                     } catch let error {
                         Logger.login.error("Login from prompt failed: \(error.localizedDescription)")
-                        dataModel.track(.loginFailed(errorType: "firebase_error"))
                         await self.dataModel.handleLoginFailure(error: error)
                     }
                 case .failure(let error):
@@ -132,7 +131,6 @@ public struct LoginPromptView: View {
                         dataModel.track(.loginFailed(errorType: "canceled"))
                         Logger.login.debug("User cancelled sign in from prompt - no error shown")
                     } else {
-                        dataModel.track(.loginFailed(errorType: "apple_error"))
                         await self.dataModel.handleLoginFailure(error: error)
                     }
                 }

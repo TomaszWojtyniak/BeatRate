@@ -66,7 +66,6 @@ public struct ArtistDetailsView: View {
                             albums: section.albums,
                             selectedAlbum: $selectedAlbum
                         ) {
-                            dataModel.track(.seeAllTap(screen: .artistDetails, section: section.sectionName))
                             selectedSection = section
                         }
                         .padding(Spacing.lg)

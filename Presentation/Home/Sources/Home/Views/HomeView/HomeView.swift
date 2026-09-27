@@ -23,7 +23,9 @@ public struct HomeView: View {
     public init() {}
 
     public var body: some View {
-        Group {
+        // ZStack, not Group: Group hands its modifiers to each branch, so
+        // onAppear/.task would re-fire on every loading → ready switch.
+        ZStack {
             switch dataModel.state {
             case .loading:
                 VStack(spacing: Spacing.sm) {
@@ -96,10 +98,7 @@ public struct HomeView: View {
                                     name: section.sectionName,
                                     albums: section.albums,
                                     selectedAlbum: $selectedAlbum,
-                                    onSeeAll: {
-                                        dataModel.track(.seeAllTap(screen: .home, section: section.sectionName))
-                                        selectedSection = section
-                                    }
+                                    onSeeAll: { selectedSection = section }
                                 )
                                 .padding(Spacing.lg)
                                 .roundedMaterialBackground()

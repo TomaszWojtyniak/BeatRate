@@ -50,6 +50,7 @@ final class LoginDataModel {
 
         // Provide user-friendly error messages based on error type
         if let loginError = error as? LoginUseCaseError {
+            analyticsManager.log(.loginFailed(errorType: loginError == .localStorageFailed ? "local_storage_failed" : "authentication_failed"))
             switch loginError {
             case .localStorageFailed:
                 errorTitle = "Storage Error"
@@ -59,6 +60,7 @@ final class LoginDataModel {
                 errorMessage = "Unable to sign in with Apple. Please check your internet connection and try again."
             }
         } else if let authError = error as? ASAuthorizationError {
+            analyticsManager.log(.loginFailed(errorType: "apple_error"))
             switch authError.code {
             case .unknown:
                 errorTitle = "Sign In Error"
@@ -75,6 +77,7 @@ final class LoginDataModel {
             }
         } else {
             // Generic error
+            analyticsManager.log(.loginFailed(errorType: "unknown"))
             errorTitle = "Sign In Failed"
             errorMessage = "Unable to sign in. Please check your internet connection and try again."
         }

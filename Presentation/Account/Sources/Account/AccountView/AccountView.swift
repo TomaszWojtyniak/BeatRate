@@ -59,10 +59,7 @@ public struct AccountView: View {
                                     dataModel.track(.favoritesManageTap(source: "empty_slot"))
                                     isShowingFavoritesManager = true
                                 },
-                                onShare: {
-                                    dataModel.track(.favoritesShareTap)
-                                    isShowingShareCard = true
-                                }
+                                onShare: { isShowingShareCard = true }
                             )
                             .padding(Spacing.lg)
                             .roundedMaterialBackground()
@@ -75,7 +72,6 @@ public struct AccountView: View {
                                 albums: dataModel.recentlyListenedAlbums,
                                 selectedAlbum: trackedSelection(.accountSection, section: "Recently Listened"),
                                 onSeeAll: {
-                                    dataModel.track(.seeAllTap(screen: .account, section: "Recently Listened"))
                                     selectedSection = HomeSection(sectionName: "Recently Listened", albums: dataModel.recentlyListenedAlbums)
                                 }
                             )
@@ -90,7 +86,6 @@ public struct AccountView: View {
                                 albums: dataModel.ratedAlbums,
                                 selectedAlbum: trackedSelection(.accountSection, section: "Ratings"),
                                 onSeeAll: {
-                                    dataModel.track(.seeAllTap(screen: .account, section: "Ratings"))
                                     selectedSection = HomeSection(sectionName: "Ratings", albums: dataModel.ratedAlbums)
                                 }
                             )
@@ -137,7 +132,6 @@ public struct AccountView: View {
         .toolbar {
             ToolbarItem {
                 Button("Settings", systemImage: "gear") {
-                    dataModel.track(.settingsTap)
                     showingSettings = true
                 }
             }
@@ -242,7 +236,6 @@ public struct AccountView: View {
 
                 // Gradient "Edit profile" pill
                 Button {
-                    dataModel.track(.editProfileTap)
                     dataModel.isShowingEditSheet = true
                 } label: {
                     Text("Edit profile")

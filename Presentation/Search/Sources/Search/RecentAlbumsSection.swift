@@ -13,7 +13,6 @@ struct RecentAlbumsSection: View {
     let albums: [AppleMusicAlbumData]
     let onAlbumTap: (AppleMusicAlbumData) -> Void
     let onClear: (() -> Void)?
-    var onClearTap: () -> Void = {}
 
     @State private var showClearAlert = false
 
@@ -36,7 +35,6 @@ struct RecentAlbumsSection: View {
 
                     if onClear != nil {
                         Button {
-                            onClearTap()
                             showClearAlert = true
                         } label: {
                             Text("Clear")

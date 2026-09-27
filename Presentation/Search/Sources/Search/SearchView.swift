@@ -107,8 +107,7 @@ public struct SearchView: View {
             RecentAlbumsSection(
                 albums: dataModel.recentAlbums,
                 onAlbumTap: { handleAlbumTap($0, source: .searchRecent) },
-                onClear: { dataModel.clearRecentAlbums() },
-                onClearTap: { dataModel.track(.recentClearTap) }
+                onClear: { dataModel.clearRecentAlbums() }
             )
         } else {
             switch scope {

@@ -75,6 +75,11 @@ class AppDataModel {
                 self.isUserLoggedIn = isLoggedIn
                 sessionManager.update(isLoggedIn: isLoggedIn)
 
+                if !isLoggedIn {
+                    // Logout or account deletion: stop attributing events to that user.
+                    self.analyticsManager.setUserId(nil)
+                }
+
                 if isLoggedIn && wasLoggedOut {
                     self.showingSplash = true
                     Logger.app.debug("User logged in - showing splash screen")

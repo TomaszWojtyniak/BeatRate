@@ -62,7 +62,6 @@ public struct SettingsView: View {
 
                 Section {
                     Button(role: .destructive) {
-                        dataModel.track(.deleteAccountTap)
                         dataModel.showDeleteAccountSheet = true
                     } label: {
                         Text("Delete Account")
@@ -90,7 +89,6 @@ public struct SettingsView: View {
         .alert("Are you sure you want to logout?", isPresented: $dataModel.showLogoutConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Logout", role: .destructive) {
-                dataModel.track(.logoutConfirm)
                 Task {
                     do {
                         try await dataModel.logout()

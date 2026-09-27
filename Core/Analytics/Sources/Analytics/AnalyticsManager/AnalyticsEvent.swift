@@ -6,7 +6,7 @@
 import FirebaseAnalytics
 
 /// Screen names sent as `screen_name` on `screen_view`, and as the `screen`
-/// param on events shared between screens (retry, pull to refresh, see all).
+/// param on events shared between screens (retry, pull to refresh).
 nonisolated public enum AnalyticsScreen: String, Sendable {
     case splash
     case musicLibraryPermission = "music_library_permission"
@@ -44,7 +44,6 @@ nonisolated public enum AnalyticsEvent: Sendable {
     // Global
     case tabSelected(tab: String)
     case albumTap(source: AlbumTapSource, albumId: String, section: String? = nil)
-    case seeAllTap(screen: AnalyticsScreen, section: String)
     case retryTap(screen: AnalyticsScreen)
     case pullToRefresh(screen: AnalyticsScreen)
 
@@ -63,7 +62,6 @@ nonisolated public enum AnalyticsEvent: Sendable {
     case search(albumCount: Int, artistCount: Int)
     case searchScopeChanged(scope: String)
     case artistTap(artistId: String)
-    case recentClearTap
     case recentClearConfirm
 
     // Album details
@@ -73,11 +71,8 @@ nonisolated public enum AnalyticsEvent: Sendable {
     case openInPlayerTap(player: String, albumId: String)
 
     // Account & favorites
-    case settingsTap
-    case editProfileTap
     case editProfileSave
     case favoritesManageTap(source: String)
-    case favoritesShareTap
     case favoriteAdded(albumId: String)
     case favoriteRemoved
     case favoritesSaved(count: Int)
@@ -85,8 +80,6 @@ nonisolated public enum AnalyticsEvent: Sendable {
 
     // Settings
     case logoutTap
-    case logoutConfirm
-    case deleteAccountTap
     case deleteAccountConfirm
 
     // Auth outcomes
@@ -101,7 +94,6 @@ nonisolated public enum AnalyticsEvent: Sendable {
         case .screenView: AnalyticsEventScreenView
         case .tabSelected: "tab_selected"
         case .albumTap: "album_tap"
-        case .seeAllTap: "see_all_tap"
         case .retryTap: "retry_tap"
         case .pullToRefresh: "pull_to_refresh"
         case .permissionContinueTap: "permission_continue_tap"
@@ -114,24 +106,18 @@ nonisolated public enum AnalyticsEvent: Sendable {
         case .search: AnalyticsEventSearch
         case .searchScopeChanged: "search_scope_changed"
         case .artistTap: "artist_tap"
-        case .recentClearTap: "recent_clear_tap"
         case .recentClearConfirm: "recent_clear_confirm"
         case .rateAlbum: "rate_album"
         case .albumArtistTap: "album_artist_tap"
         case .tracklistToggle: "tracklist_toggle"
         case .openInPlayerTap: "open_in_player_tap"
-        case .settingsTap: "settings_tap"
-        case .editProfileTap: "edit_profile_tap"
         case .editProfileSave: "edit_profile_save"
         case .favoritesManageTap: "favorites_manage_tap"
-        case .favoritesShareTap: "favorites_share_tap"
         case .favoriteAdded: "favorite_added"
         case .favoriteRemoved: "favorite_removed"
         case .favoritesSaved: "favorites_saved"
         case .favoritesShareImageTap: "favorites_share_image_tap"
         case .logoutTap: "logout_tap"
-        case .logoutConfirm: "logout_confirm"
-        case .deleteAccountTap: "delete_account_tap"
         case .deleteAccountConfirm: "delete_account_confirm"
         case .signUp: AnalyticsEventSignUp
         case .login: AnalyticsEventLogin
@@ -151,8 +137,6 @@ nonisolated public enum AnalyticsEvent: Sendable {
             var params: [String: Any] = ["source": source.rawValue, "album_id": albumId]
             params["section"] = section
             return params
-        case let .seeAllTap(screen, section):
-            return ["screen": screen.rawValue, "section": section]
         case let .retryTap(screen), let .pullToRefresh(screen):
             return ["screen": screen.rawValue]
         case let .musicPlayerSelected(player, mode):
