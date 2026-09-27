@@ -8,6 +8,7 @@
 import SwiftUI
 import SearchUse
 import Models
+import Analytics
 
 @MainActor
 @Observable
@@ -16,6 +17,7 @@ public final class SearchDataModel {
     private let getRecentAlbumsUseCase: GetRecentAlbumsUseCaseProtocol
     private let saveRecentAlbumUseCase: SaveRecentAlbumUseCaseProtocol
     private let clearRecentAlbumsUseCase: ClearRecentAlbumsUseCaseProtocol
+    private let analyticsManager: AnalyticsManager
     private var searchTask: Task<Void, Never>?
 
     public var albums: [AppleMusicAlbumData] = []
@@ -31,12 +33,18 @@ public final class SearchDataModel {
         getSearchUseCase: GetSearchUseCaseProtocol = GetSearchUseCase(),
         getRecentAlbumsUseCase: GetRecentAlbumsUseCaseProtocol = GetRecentAlbumsUseCase(),
         saveRecentAlbumUseCase: SaveRecentAlbumUseCaseProtocol = SaveRecentAlbumUseCase(),
-        clearRecentAlbumsUseCase: ClearRecentAlbumsUseCaseProtocol = ClearRecentAlbumsUseCase()
+        clearRecentAlbumsUseCase: ClearRecentAlbumsUseCaseProtocol = ClearRecentAlbumsUseCase(),
+        analyticsManager: AnalyticsManager = .shared
     ) {
         self.getSearchUseCase = getSearchUseCase
         self.getRecentAlbumsUseCase = getRecentAlbumsUseCase
         self.saveRecentAlbumUseCase = saveRecentAlbumUseCase
         self.clearRecentAlbumsUseCase = clearRecentAlbumsUseCase
+        self.analyticsManager = analyticsManager
+    }
+
+    func track(_ event: AnalyticsEvent) {
+        analyticsManager.log(event)
     }
 
     public func loadRecentAlbums() async {
@@ -79,6 +87,7 @@ public final class SearchDataModel {
                 albums = results.albums
                 artists = results.artists
                 isLoading = false
+                analyticsManager.log(.search(albumCount: albums.count, artistCount: artists.count))
             } catch {
                 guard !Task.isCancelled else {
                     isLoading = false
@@ -99,6 +108,7 @@ public final class SearchDataModel {
     }
 
     public func clearRecentAlbums() {
+        analyticsManager.log(.recentClearConfirm)
         Task {
             await clearRecentAlbumsUseCase.clearAll()
             recentAlbums = []

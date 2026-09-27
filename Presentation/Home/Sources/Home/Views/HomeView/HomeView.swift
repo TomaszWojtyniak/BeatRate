@@ -11,6 +11,7 @@ import AlbumDetails
 import Account
 import CoreUI
 import UIKit
+import Analytics
 
 @MainActor
 public struct HomeView: View {
@@ -42,7 +43,10 @@ public struct HomeView: View {
                     Text("BeatRate uses the Apple Music catalog for album artwork, tracklists and release details. Turn it on in Settings to fill your feed.")
                         .textStyle(.body, color: .secondaryText)
                 } actions: {
-                    Button("Open Settings") { openAppSettings() }
+                    Button("Open Settings") {
+                        dataModel.track(.openSystemSettingsTap)
+                        openAppSettings()
+                    }
                         .buttonStyle(.borderedProminent)
                         .tint(Color.accentPrimary)
                 }
@@ -92,7 +96,10 @@ public struct HomeView: View {
                                     name: section.sectionName,
                                     albums: section.albums,
                                     selectedAlbum: $selectedAlbum,
-                                    onSeeAll: { selectedSection = section }
+                                    onSeeAll: {
+                                        dataModel.track(.seeAllTap(screen: .home, section: section.sectionName))
+                                        selectedSection = section
+                                    }
                                 )
                                 .padding(Spacing.lg)
                                 .roundedMaterialBackground()
@@ -113,10 +120,21 @@ public struct HomeView: View {
         }
         .navigationDestination(item: $selectedSection) { section in
             SectionAlbumsGridView(name: section.sectionName, albums: section.albums, selectedAlbum: $gridSelectedAlbum)
+                .onAppear { dataModel.track(.screenView(.sectionGrid, ["section": section.sectionName, "source": AnalyticsScreen.home.rawValue])) }
                 .navigationDestination(item: $gridSelectedAlbum) { album in
                     AlbumDetailsView(album: album)
                 }
         }
+        .onChange(of: selectedAlbum) { _, album in
+            guard let album else { return }
+            let section = dataModel.homeSections.first { $0.albums.contains { $0.id == album.id } }
+            dataModel.track(.albumTap(source: .homeSection, albumId: album.id, section: section?.sectionName))
+        }
+        .onChange(of: gridSelectedAlbum) { _, album in
+            guard let album else { return }
+            dataModel.track(.albumTap(source: .sectionGrid, albumId: album.id, section: selectedSection?.sectionName))
+        }
+        .onAppear { dataModel.track(.screenView(.home)) }
         .navigationTitle(String(localized: "home.navigation.title", bundle: .module))
         .toolbarTitleDisplayMode(.inlineLarge)
         .task(priority: .userInitiated) {

@@ -5,6 +5,7 @@
 
 import SwiftUI
 import CoreUI
+import Analytics
 
 struct AccountGuestView: View {
     let dataModel: AccountGuestDataModel
@@ -66,6 +67,7 @@ struct AccountGuestView: View {
         .onAppear {
             dataModel.autoPromptIfNeeded()
         }
+        .onAppear { dataModel.track(.screenView(.accountGuest)) }
     }
 
     private func benefitRow(_ benefit: (icon: String, title: String, detail: String)) -> some View {

@@ -23,6 +23,7 @@ final class ArtistDetailsDataModel {
 
     private let source: Source
     private let getArtistDetailsUseCase: GetArtistDetailsUseCaseProtocol
+    private let analyticsManager: AnalyticsManager
 
     var artist: AppleMusicArtistData?
     var sections: [HomeSection] = []
@@ -33,10 +34,16 @@ final class ArtistDetailsDataModel {
 
     init(
         source: Source,
-        getArtistDetailsUseCase: GetArtistDetailsUseCaseProtocol = GetArtistDetailsUseCase()
+        getArtistDetailsUseCase: GetArtistDetailsUseCaseProtocol = GetArtistDetailsUseCase(),
+        analyticsManager: AnalyticsManager = .shared
     ) {
         self.source = source
         self.getArtistDetailsUseCase = getArtistDetailsUseCase
+        self.analyticsManager = analyticsManager
+    }
+
+    func track(_ event: AnalyticsEvent) {
+        analyticsManager.log(event)
     }
 
     func loadIfNeeded() {

@@ -42,6 +42,15 @@ public final class AnalyticsManager {
         Logger.analytics.debug("Set user property: \(name) = \(value ?? "nil")")
     }
     
+    public func log(_ event: AnalyticsEvent) {
+        guard isEnabled else { return }
+
+        let parameters = event.parameters
+        Analytics.logEvent(event.name, parameters: parameters.isEmpty ? nil : parameters)
+
+        Logger.analytics.debug("Logged event: \(event.name) \(parameters)")
+    }
+
     public func setUserId(_ userId: String?) {
         guard isEnabled else { return }
         

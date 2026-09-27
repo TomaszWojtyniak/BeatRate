@@ -40,7 +40,12 @@ final class HomeDataModel {
     /// Re-runs the whole load, including the authorization check — this is what
     /// the empty-state buttons call, so someone returning from Settings having
     /// just granted access gets a populated feed without relaunching.
+    func track(_ event: AnalyticsEvent) {
+        analyticsManager.log(event)
+    }
+
     func retry() async {
+        analyticsManager.log(.retryTap(screen: .home))
         state = .loading
         await loadInitialData()
     }
@@ -53,6 +58,7 @@ final class HomeDataModel {
     }
     
     func refreshData() async {
+        analyticsManager.log(.pullToRefresh(screen: .home))
         do {
             try await setHomeUseCase.clearCache()
             Logger.home.debug("Cache cleared for refresh")

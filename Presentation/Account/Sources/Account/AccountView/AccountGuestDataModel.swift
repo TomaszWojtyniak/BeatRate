@@ -5,6 +5,7 @@
 
 import SwiftUI
 import CoreApp
+import Analytics
 
 
 @MainActor
@@ -12,9 +13,16 @@ import CoreApp
 final class AccountGuestDataModel {
     
     let sessionManager: SessionManager
+    private let analyticsManager: AnalyticsManager
     
-    init(sessionManager: SessionManager = .shared) {
+    init(sessionManager: SessionManager = .shared,
+         analyticsManager: AnalyticsManager = .shared) {
         self.sessionManager = sessionManager
+        self.analyticsManager = analyticsManager
+    }
+
+    func track(_ event: AnalyticsEvent) {
+        analyticsManager.log(event)
     }
 
     var isLoggedIn: Bool {
@@ -28,6 +36,7 @@ final class AccountGuestDataModel {
     }
 
     func requestLogin() {
+        analyticsManager.log(.guestSignInTap)
         sessionManager.requestLogin(reason: .account)
     }
 }

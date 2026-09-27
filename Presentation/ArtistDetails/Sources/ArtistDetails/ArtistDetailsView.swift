@@ -8,6 +8,7 @@
 import SwiftUI
 import Models
 import CoreUI
+import Analytics
 
 public struct ArtistDetailsView: View {
 
@@ -49,6 +50,7 @@ public struct ArtistDetailsView: View {
         .onAppear {
             dataModel.loadIfNeeded()
         }
+        .onAppear { dataModel.track(.screenView(.artistDetails)) }
     }
     
     private func content(artist: AppleMusicArtistData) -> some View {
@@ -64,6 +66,7 @@ public struct ArtistDetailsView: View {
                             albums: section.albums,
                             selectedAlbum: $selectedAlbum
                         ) {
+                            dataModel.track(.seeAllTap(screen: .artistDetails, section: section.sectionName))
                             selectedSection = section
                         }
                         .padding(Spacing.lg)
@@ -77,12 +80,22 @@ public struct ArtistDetailsView: View {
         .meshBackground()
         .navigationDestination(item: $selectedSection) { section in
             SectionAlbumsGridView(name: section.sectionName, albums: section.albums, selectedAlbum: $gridSelectedAlbum)
+                .onAppear { dataModel.track(.screenView(.sectionGrid, ["section": section.sectionName, "source": AnalyticsScreen.artistDetails.rawValue])) }
         }
         .navigationDestination(item: $selectedAlbum) { album in
             albumDestination(album)
         }
         .navigationDestination(item: $gridSelectedAlbum) { album in
             albumDestination(album)
+        }
+        .onChange(of: selectedAlbum) { _, album in
+            guard let album else { return }
+            let section = dataModel.sections.first { $0.albums.contains { $0.id == album.id } }
+            dataModel.track(.albumTap(source: .artist, albumId: album.id, section: section?.sectionName))
+        }
+        .onChange(of: gridSelectedAlbum) { _, album in
+            guard let album else { return }
+            dataModel.track(.albumTap(source: .sectionGrid, albumId: album.id, section: selectedSection?.sectionName))
         }
     }
 
@@ -93,6 +106,7 @@ public struct ArtistDetailsView: View {
             Text("Failed to load artist.")
         } actions: {
             Button("Try Again") {
+                dataModel.track(.retryTap(screen: .artistDetails))
                 dataModel.loadIfNeeded()
             }
             .buttonStyle(.borderedProminent)

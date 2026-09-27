@@ -15,6 +15,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(path: "../../Core/Analytics"),
         .package(path: "../../Core/Models"),
         .package(path: "../../Core/CoreUI"),
         .package(path: "../../Core/CoreApp"),
@@ -28,6 +29,7 @@ let package = Package(
         .target(
             name: "AlbumDetails",
             dependencies: [
+                "Analytics",
                 "Models",
                 "CoreUI",
                 "CoreApp",

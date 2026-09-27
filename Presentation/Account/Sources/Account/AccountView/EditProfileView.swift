@@ -24,12 +24,14 @@ struct EditProfileView: View {
     let currentLastName: String?
     let onSave: (String, String) async -> Void
     let onSaveFavorites: ([AlbumModel]) async -> Void
+    let onEditFavorites: () -> Void
 
     init(firstName: String?,
          lastName: String?,
          favorites: [AlbumModel],
          onSave: @escaping (String, String) async -> Void,
-         onSaveFavorites: @escaping ([AlbumModel]) async -> Void) {
+         onSaveFavorites: @escaping ([AlbumModel]) async -> Void,
+         onEditFavorites: @escaping () -> Void) {
         self.currentFirstName = firstName
         self.currentLastName = lastName
         self._firstName = State(initialValue: firstName ?? "")
@@ -37,6 +39,7 @@ struct EditProfileView: View {
         self._favorites = State(initialValue: favorites)
         self.onSave = onSave
         self.onSaveFavorites = onSaveFavorites
+        self.onEditFavorites = onEditFavorites
     }
 
     private var canSave: Bool {
@@ -64,6 +67,7 @@ struct EditProfileView: View {
 
                 Section("Favorites") {
                     Button {
+                        onEditFavorites()
                         showingFavoritesManager = true
                     } label: {
                         HStack {

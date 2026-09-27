@@ -8,6 +8,7 @@
 import SwiftUI
 import CoreUI
 import Onboarding
+import Analytics
 
 @MainActor
 public struct SplashView: View {
@@ -31,9 +32,11 @@ public struct SplashView: View {
             if dataModel.showsMusicKitExplainer {
                 MusicLibraryPermissionExplainerView(onContinue: handleExplainerContinue)
                     .transition(.opacity)
+                    .onAppear { dataModel.track(.screenView(.musicLibraryPermission)) }
             }
         }
         .animation(AppAnimation.smooth, value: dataModel.showsMusicKitExplainer)
+        .onAppear { dataModel.track(.screenView(.splash)) }
     }
 
     // MARK: - Actions
@@ -46,6 +49,7 @@ public struct SplashView: View {
     }
 
     private func handleExplainerContinue() {
+        dataModel.track(.permissionContinueTap)
         Task {
             await dataModel.continueAfterExplainer()
             if dataModel.shouldComplete {

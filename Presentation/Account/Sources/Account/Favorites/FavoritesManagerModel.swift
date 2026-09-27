@@ -8,6 +8,7 @@
 import SwiftUI
 import Models
 import SearchUse
+import Analytics
 
 /// Backs the favorites manager sheet. Holds a *working copy* of the favorites so
 /// edits can be committed on Done or discarded on Cancel, plus debounced album
@@ -16,6 +17,7 @@ import SearchUse
 @Observable
 final class FavoritesManagerModel {
     private let getSearchUseCase: GetSearchUseCaseProtocol
+    private let analyticsManager: AnalyticsManager
     private var searchTask: Task<Void, Never>?
 
     var working: [AlbumModel]
@@ -26,9 +28,15 @@ final class FavoritesManagerModel {
     var canAddMore: Bool { working.count < AccountDataModel.maxFavorites }
 
     init(initial: [AlbumModel],
-         getSearchUseCase: GetSearchUseCaseProtocol = GetSearchUseCase()) {
+         getSearchUseCase: GetSearchUseCaseProtocol = GetSearchUseCase(),
+         analyticsManager: AnalyticsManager = .shared) {
         self.working = initial
         self.getSearchUseCase = getSearchUseCase
+        self.analyticsManager = analyticsManager
+    }
+
+    func track(_ event: AnalyticsEvent) {
+        analyticsManager.log(event)
     }
 
     func contains(_ id: String) -> Bool {
@@ -37,10 +45,12 @@ final class FavoritesManagerModel {
 
     func add(_ data: AppleMusicAlbumData) {
         guard canAddMore, !contains(data.id) else { return }
+        analyticsManager.log(.favoriteAdded(albumId: data.id))
         working.append(AlbumModel(id: data.id, appleMusicAlbumData: data, firebaseAlbumData: nil))
     }
 
     func remove(atOffsets offsets: IndexSet) {
+        analyticsManager.log(.favoriteRemoved)
         working.remove(atOffsets: offsets)
     }
 

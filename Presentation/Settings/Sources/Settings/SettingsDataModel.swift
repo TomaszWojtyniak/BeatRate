@@ -21,6 +21,7 @@ final class SettingsDataModel {
     private let getSplashUseCase: GetSplashUseCaseProtocol
     private let getSettingsUseCase: GetSettingsUseCaseProtocol
     private let musicPlayerManager: MusicPlayerManager
+    private let analyticsManager: AnalyticsManager
 
     /// The user's main player, surfaced for the view so it doesn't reach for the
     /// manager itself.
@@ -38,10 +39,16 @@ final class SettingsDataModel {
 
     init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase(),
          getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase(),
-         musicPlayerManager: MusicPlayerManager = .shared) {
+         musicPlayerManager: MusicPlayerManager = .shared,
+         analyticsManager: AnalyticsManager = .shared) {
         self.getSplashUseCase = getSplashUseCase
         self.getSettingsUseCase = getSettingsUseCase
         self.musicPlayerManager = musicPlayerManager
+        self.analyticsManager = analyticsManager
+    }
+
+    func track(_ event: AnalyticsEvent) {
+        analyticsManager.log(event)
     }
 
     func loadUserProfile() async {
@@ -75,6 +82,7 @@ final class SettingsDataModel {
 
         do {
             try await getSplashUseCase.logout()
+            analyticsManager.log(.logout)
             Logger.settings.info("Logout successful")
         } catch {
             Logger.settings.error("Logout failed: \(error)")
@@ -97,6 +105,7 @@ final class SettingsDataModel {
 
         do {
             try await getSplashUseCase.deleteAccount(authResult: authResult)
+            analyticsManager.log(.accountDeleted)
             Logger.settings.info("Account deletion successful")
         } catch {
             Logger.settings.error("Account deletion failed: \(error)")

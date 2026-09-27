@@ -8,6 +8,7 @@
 import SwiftUI
 import Models
 import CoreUI
+import Analytics
 
 /// Sheet for curating favorites: search albums to add, reorder and remove up to
 /// four. Edits happen on a working copy; Done commits via `onSave`, Cancel
@@ -44,12 +45,14 @@ struct FavoritesManagerView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         let final = model.working
+                        model.track(.favoritesSaved(count: final.count))
                         Task { await onSave(final) }
                         dismiss()
                     }
                 }
             }
         }
+        .onAppear { model.track(.screenView(.favoritesManager)) }
     }
 
     // MARK: - Favorites editor (reorder + delete)

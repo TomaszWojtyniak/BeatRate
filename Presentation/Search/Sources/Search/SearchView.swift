@@ -10,6 +10,7 @@ import Models
 import AlbumDetails
 import ArtistDetails
 import CoreUI
+import Analytics
 
 @MainActor
 public struct SearchView: View {
@@ -87,9 +88,13 @@ public struct SearchView: View {
             .onChange(of: searchText) {
                 dataModel.searchAlbum(searchTerm: searchText)
             }
+            .onChange(of: scope) { _, scope in
+                dataModel.track(.searchScopeChanged(scope: scope.rawValue))
+            }
             .task {
                 await dataModel.loadRecentAlbums()
             }
+            .onAppear { dataModel.track(.screenView(.search)) }
         }
     }
 
@@ -101,8 +106,9 @@ public struct SearchView: View {
             // Recents are always albums — we don't track recent artists.
             RecentAlbumsSection(
                 albums: dataModel.recentAlbums,
-                onAlbumTap: handleAlbumTap,
-                onClear: { dataModel.clearRecentAlbums() }
+                onAlbumTap: { handleAlbumTap($0, source: .searchRecent) },
+                onClear: { dataModel.clearRecentAlbums() },
+                onClearTap: { dataModel.track(.recentClearTap) }
             )
         } else {
             switch scope {
@@ -121,7 +127,7 @@ public struct SearchView: View {
         } else {
             List(dataModel.albums) { album in
                 Button {
-                    handleAlbumTap(album)
+                    handleAlbumTap(album, source: .searchResult)
                 } label: {
                     SearchAlbumRow(album: album)
                 }
@@ -166,12 +172,14 @@ public struct SearchView: View {
 
     // MARK: - Actions
 
-    private func handleAlbumTap(_ album: AppleMusicAlbumData) {
+    private func handleAlbumTap(_ album: AppleMusicAlbumData, source: AlbumTapSource) {
+        dataModel.track(.albumTap(source: source, albumId: album.id))
         dataModel.saveRecentAlbum(album)
         selectedAlbum = album
     }
 
     private func handleArtistTap(_ artist: AppleMusicArtistData) {
+        dataModel.track(.artistTap(artistId: artist.id))
         selectedArtist = artist
     }
 }

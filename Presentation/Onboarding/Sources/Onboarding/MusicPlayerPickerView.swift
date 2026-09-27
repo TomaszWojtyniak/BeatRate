@@ -7,6 +7,7 @@ import SwiftUI
 import Models
 import CoreUI
 import CoreApp
+import Analytics
 
 public struct MusicPlayerPickerView: View {
     @State private var dataModel: MusicPlayerPickerDataModel
@@ -62,9 +63,11 @@ public struct MusicPlayerPickerView: View {
         .toolbar(dataModel.mode == .change ? .visible : .hidden, for: .navigationBar)
         .navigationTitle(dataModel.mode == .change ? "Main music player" : "")
         .toolbarTitleDisplayMode(.inline)
+        .onAppear { dataModel.track(.screenView(.musicPlayerPicker, ["mode": String(describing: dataModel.mode)])) }
     }
 
     private func handleSelection(of player: MusicPlayer) {
+        dataModel.track(.musicPlayerSelected(player: player.rawValue, mode: String(describing: dataModel.mode)))
         Task {
             let didComplete = await dataModel.select(player)
             guard didComplete else { return }

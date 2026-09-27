@@ -86,6 +86,10 @@ final class LoginDataModel {
         await self.getLoginUseCase.getCurrentNonce()
     }
     
+    func track(_ event: AnalyticsEvent) {
+        analyticsManager.log(event)
+    }
+
     func sha256(_ input: String) -> String {
       let inputData = Data(input.utf8)
       let hashedData = SHA256.hash(data: inputData)

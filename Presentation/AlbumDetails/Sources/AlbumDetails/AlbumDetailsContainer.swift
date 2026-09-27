@@ -8,6 +8,7 @@
 import SwiftUI
 import Models
 import HomeUseCases
+import Analytics
 
 /// Container view that fetches album data by ID before showing details
 /// Checks cache first (home albums only), then fetches from MusicKit
@@ -23,13 +24,16 @@ public struct AlbumDetailsContainer: View {
     @State private var state: LoadState = .loading
 
     private let getAlbumByIdUseCase: GetAlbumByIdUseCaseProtocol
+    private let analyticsManager: AnalyticsManager
 
     public init(
         albumId: String,
-        getAlbumByIdUseCase: GetAlbumByIdUseCaseProtocol = GetAlbumByIdUseCase()
+        getAlbumByIdUseCase: GetAlbumByIdUseCaseProtocol = GetAlbumByIdUseCase(),
+        analyticsManager: AnalyticsManager = .shared
     ) {
         self.albumId = albumId
         self.getAlbumByIdUseCase = getAlbumByIdUseCase
+        self.analyticsManager = analyticsManager
     }
 
     public var body: some View {
@@ -44,6 +48,7 @@ public struct AlbumDetailsContainer: View {
                     Text(message)
                 } actions: {
                     Button("Try Again") {
+                        analyticsManager.log(.retryTap(screen: .albumDetails))
                         Task { await fetchAlbum() }
                     }
                     .buttonStyle(.borderedProminent)
