@@ -39,6 +39,7 @@ struct AppView: View {
                 }
             } else {
                 TabBarView(selection: $selection)
+                    .onChange(of: selection) { _, tab in dataModel.trackTabSelected(tab) }
             }
         }
         .sheet(isPresented: $dataModel.isPresentingLoginPrompt) {

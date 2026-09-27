@@ -80,6 +80,10 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
 
         await createUserProfileIfNeeded(userId: userId, appleIDCredential: appleIDCredential, firebaseUser: authResult.user)
 
+        let isNewUser = authResult.additionalUserInfo?.isNewUser ?? false
+        await analyticsManager.setUserId(userId)
+        await analyticsManager.log(isNewUser ? .signUp : .login)
+
         return userId
     }
 

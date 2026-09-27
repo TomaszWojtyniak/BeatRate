@@ -17,6 +17,7 @@ import CoreApp
 final class SplashDataModel {
     private let getSplashUseCase: GetSplashUseCaseProtocol
     private let musicPlayerManager: MusicPlayerManager
+    private let analyticsManager: AnalyticsManager
 
     var errorMessage: String = "Unable to load data. Retrying..."
     var shouldComplete: Bool = true  // Controls whether onComplete() should be called
@@ -32,9 +33,15 @@ final class SplashDataModel {
     }
 
     init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase(),
-         musicPlayerManager: MusicPlayerManager = .shared) {
+         musicPlayerManager: MusicPlayerManager = .shared,
+         analyticsManager: AnalyticsManager = .shared) {
         self.getSplashUseCase = getSplashUseCase
         self.musicPlayerManager = musicPlayerManager
+        self.analyticsManager = analyticsManager
+    }
+
+    func track(_ event: AnalyticsEvent) {
+        analyticsManager.log(event)
     }
 
     // MARK: - Public Interface

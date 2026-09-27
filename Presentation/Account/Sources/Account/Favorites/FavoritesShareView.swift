@@ -16,6 +16,7 @@ struct FavoritesShareView: View {
 
     let name: String
     let albums: [AlbumModel]
+    var onShareImage: () -> Void = {}
 
     @Environment(\.dismiss) private var dismiss
     @State private var resolved: [ResolvedFavorite] = []
@@ -85,6 +86,8 @@ struct FavoritesShareView: View {
                 .background(Capsule().fill(Color.accentPrimaryGradient))
                 .appShadow(.accentGlow)
             }
+            // ShareLink has no action closure; observe the tap without stealing it.
+            .simultaneousGesture(TapGesture().onEnded { onShareImage() })
         } else {
             ProgressView()
                 .progressViewStyle(CircularProgressViewStyle(tint: .primaryTextOnDark))

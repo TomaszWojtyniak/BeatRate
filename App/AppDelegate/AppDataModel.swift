@@ -11,6 +11,7 @@ import OSLog
 import AppUseCases
 import Models
 import CoreApp
+import TabBar
 
 @Observable
 @MainActor
@@ -43,6 +44,11 @@ class AppDataModel {
         self.sessionManager = sessionManager
     }
     
+    func trackTabSelected(_ tab: TabBarScreen?) {
+        guard let tab else { return }
+        analyticsManager.log(.tabSelected(tab: String(describing: tab)))
+    }
+
     func setUserId() {
         guard let user, user.isLoggedIn, !user.userId.isEmpty else {
             Logger.app.debug("No user id to set - browsing as guest")
@@ -68,6 +74,11 @@ class AppDataModel {
                 let wasLoggedOut = !self.isUserLoggedIn
                 self.isUserLoggedIn = isLoggedIn
                 sessionManager.update(isLoggedIn: isLoggedIn)
+
+                if !isLoggedIn {
+                    // Logout or account deletion: stop attributing events to that user.
+                    self.analyticsManager.setUserId(nil)
+                }
 
                 if isLoggedIn && wasLoggedOut {
                     self.showingSplash = true

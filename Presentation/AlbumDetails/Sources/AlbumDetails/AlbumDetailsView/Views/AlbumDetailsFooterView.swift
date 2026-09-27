@@ -13,6 +13,7 @@ struct AlbumDetailsFooterView: View {
     let playUrl: URL?
     let playLabel: String
     let playPlayer: MusicPlayer?
+    var onPlayTap: () -> Void = {}
 
     var body: some View {
         VStack(spacing: Spacing.md) {
@@ -31,6 +32,8 @@ struct AlbumDetailsFooterView: View {
                     .background(Capsule().fill(playerBackground))
                 }
                 .appShadow(.medium)
+                // Link has no action closure; observe the tap without stealing it.
+                .simultaneousGesture(TapGesture().onEnded { onPlayTap() })
             }
 
             if album.recordLabel != nil || album.copyright != nil {

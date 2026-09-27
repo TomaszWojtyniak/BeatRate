@@ -11,6 +11,7 @@ import Models
 import AlbumDetails
 import CoreUI
 import CoreApp
+import Analytics
 
 public struct AccountView: View {
 
@@ -53,8 +54,11 @@ public struct AccountView: View {
                             FavoritesSectionView(
                                 albums: dataModel.favoriteAlbums,
                                 canShare: dataModel.canShareFavorites,
-                                selectedAlbum: $selectedAlbum,
-                                onManage: { isShowingFavoritesManager = true },
+                                selectedAlbum: trackedSelection(.favorites),
+                                onManage: {
+                                    dataModel.track(.favoritesManageTap(source: "empty_slot"))
+                                    isShowingFavoritesManager = true
+                                },
                                 onShare: { isShowingShareCard = true }
                             )
                             .padding(Spacing.lg)
@@ -66,7 +70,7 @@ public struct AccountView: View {
                             HomeSectionView(
                                 name: "Recently Listened",
                                 albums: dataModel.recentlyListenedAlbums,
-                                selectedAlbum: $selectedAlbum,
+                                selectedAlbum: trackedSelection(.accountSection, section: "Recently Listened"),
                                 onSeeAll: {
                                     selectedSection = HomeSection(sectionName: "Recently Listened", albums: dataModel.recentlyListenedAlbums)
                                 }
@@ -80,7 +84,7 @@ public struct AccountView: View {
                             HomeSectionView(
                                 name: "Ratings",
                                 albums: dataModel.ratedAlbums,
-                                selectedAlbum: $selectedAlbum,
+                                selectedAlbum: trackedSelection(.accountSection, section: "Ratings"),
                                 onSeeAll: {
                                     selectedSection = HomeSection(sectionName: "Ratings", albums: dataModel.ratedAlbums)
                                 }
@@ -113,10 +117,16 @@ public struct AccountView: View {
         }
         .navigationDestination(item: $selectedSection) { section in
             SectionAlbumsGridView(name: section.sectionName, albums: section.albums, selectedAlbum: $gridSelectedAlbum)
+                .onAppear { dataModel.track(.screenView(.sectionGrid, ["section": section.sectionName, "source": AnalyticsScreen.account.rawValue])) }
                 .navigationDestination(item: $gridSelectedAlbum) { album in
                     AlbumDetailsView(album: album)
                 }
         }
+        .onChange(of: gridSelectedAlbum) { _, album in
+            guard let album else { return }
+            dataModel.track(.albumTap(source: .sectionGrid, albumId: album.id, section: selectedSection?.sectionName))
+        }
+        .onAppear { dataModel.track(.screenView(.account)) }
         .navigationTitle("Account")
         .toolbarTitleDisplayMode(.inlineLarge)
         .toolbar {
@@ -135,7 +145,10 @@ public struct AccountView: View {
             }
         }
         .fullScreenCover(isPresented: $isShowingShareCard) {
-            FavoritesShareView(name: dataModel.fullName ?? "", albums: dataModel.favoriteAlbums)
+            FavoritesShareView(name: dataModel.fullName ?? "", albums: dataModel.favoriteAlbums) {
+                dataModel.track(.favoritesShareImageTap)
+            }
+            .onAppear { dataModel.track(.screenView(.favoritesShare)) }
         }
         .sheet(isPresented: $dataModel.isShowingEditSheet) {
             EditProfileView(
@@ -147,8 +160,10 @@ public struct AccountView: View {
                 },
                 onSaveFavorites: { updated in
                     await dataModel.saveFavorites(updated)
-                }
+                },
+                onEditFavorites: { dataModel.track(.favoritesManageTap(source: "edit_profile")) }
             )
+            .onAppear { dataModel.track(.screenView(.editProfile)) }
         }
         .task {
             if dataModel.hasLoaded {
@@ -164,6 +179,19 @@ public struct AccountView: View {
             // reflect the newly selected service.
             Task { await dataModel.reloadRecentlyListenedAlbums() }
         }
+    }
+
+    /// `selectedAlbum` binding that logs which section the tap came from.
+    private func trackedSelection(_ source: AlbumTapSource, section: String? = nil) -> Binding<AlbumModel?> {
+        Binding(
+            get: { selectedAlbum },
+            set: { album in
+                if let album {
+                    dataModel.track(.albumTap(source: source, albumId: album.id, section: section))
+                }
+                selectedAlbum = album
+            }
+        )
     }
 
     // MARK: - Profile Card

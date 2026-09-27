@@ -9,6 +9,7 @@ import SwiftUI
 import LoginUseCases
 import AccountUseCases
 import CoreApp
+import Analytics
 import Models
 import OSLog
 
@@ -20,6 +21,7 @@ final class AccountDataModel {
     private let getAccountUseCase: GetAccountUseCaseProtocol
     private let setAccountUseCase: SetAccountUseCaseProtocol
     private let musicPlayerManager: MusicPlayerManager
+    private let analyticsManager: AnalyticsManager
 
     /// A user can curate at most this many favorite albums.
     static let maxFavorites = 4
@@ -53,12 +55,18 @@ final class AccountDataModel {
          setLoginUseCase: SetLoginUseCaseProtocol = SetLoginUseCase(),
          getAccountUseCase: GetAccountUseCaseProtocol = GetAccountUseCase(),
          setAccountUseCase: SetAccountUseCaseProtocol = SetAccountUseCase(),
-         musicPlayerManager: MusicPlayerManager = .shared) {
+         musicPlayerManager: MusicPlayerManager = .shared,
+         analyticsManager: AnalyticsManager = .shared) {
         self.getLoginUseCase = getLoginUseCase
         self.setLoginUseCase = setLoginUseCase
         self.getAccountUseCase = getAccountUseCase
         self.setAccountUseCase = setAccountUseCase
         self.musicPlayerManager = musicPlayerManager
+        self.analyticsManager = analyticsManager
+    }
+
+    func track(_ event: AnalyticsEvent) {
+        analyticsManager.log(event)
     }
 
     /// The user's main player, surfaced for the view so it doesn't reach for the
@@ -76,6 +84,7 @@ final class AccountDataModel {
     /// Full reload without the blocking spinner — used by pull-to-refresh,
     /// where the system already shows its own indicator.
     func refresh() async {
+        analyticsManager.log(.pullToRefresh(screen: .account))
         await fetchAllData()
     }
 
@@ -176,6 +185,7 @@ final class AccountDataModel {
     }
 
     func saveUserProfile(firstName: String, lastName: String) async {
+        analyticsManager.log(.editProfileSave)
         do {
             guard let userId = try await getAccountUseCase.getCurrentUserId() else {
                 Logger.account.error("No user ID found")

@@ -9,6 +9,7 @@ import CoreUI
 
 struct AlbumTracklistView: View {
     let tracks: [Track]
+    var onToggle: (Bool) -> Void = { _ in }
 
     /// Number of tracks shown when collapsed.
     private static let collapsedLimit = 5
@@ -82,6 +83,7 @@ struct AlbumTracklistView: View {
             withAnimation(AppAnimation.smooth) {
                 isExpanded.toggle()
             }
+            onToggle(isExpanded)
         } label: {
             HStack(spacing: Spacing.sm) {
                 Text(isExpanded ? "Show less" : "Show all")

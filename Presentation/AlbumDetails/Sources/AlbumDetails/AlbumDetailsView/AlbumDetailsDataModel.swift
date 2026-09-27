@@ -12,6 +12,7 @@ import OSLog
 import Models
 import CoreUI
 import CoreApp
+import Analytics
 
 @MainActor
 @Observable
@@ -19,6 +20,7 @@ final class AlbumDetailsDataModel {
     private let getAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol
     private let sessionManager: SessionManager
     private let musicPlayerManager: MusicPlayerManager
+    private let analyticsManager: AnalyticsManager
 
     var album: AlbumModel
     var myRating: Double = 0
@@ -33,12 +35,18 @@ final class AlbumDetailsDataModel {
         album: AlbumModel,
         sessionManager: SessionManager = .shared,
         musicPlayerManager: MusicPlayerManager = .shared,
-        getAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol = GetAlbumDetailsUseCase()
+        getAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol = GetAlbumDetailsUseCase(),
+        analyticsManager: AnalyticsManager = .shared
     ) {
         self.album = album
         self.getAlbumDetailsUseCase = getAlbumDetailsUseCase
         self.sessionManager = sessionManager
         self.musicPlayerManager = musicPlayerManager
+        self.analyticsManager = analyticsManager
+    }
+
+    func track(_ event: AnalyticsEvent) {
+        analyticsManager.log(event)
     }
 
     var playPlayer: MusicPlayer? {
@@ -103,6 +111,7 @@ final class AlbumDetailsDataModel {
         // Tapping the star you already have, or the left dead zone on an unrated
         // album, would otherwise cost a write plus an aggregate recompute.
         guard rating != previousRating else { return }
+        analyticsManager.log(.rateAlbum(albumId: album.id, rating: rating))
 
         do {
             // Pass album metadata (artist, title) for new albums

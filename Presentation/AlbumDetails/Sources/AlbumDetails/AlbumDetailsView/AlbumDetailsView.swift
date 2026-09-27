@@ -10,6 +10,7 @@ import Models
 import CoreApp
 import CoreUI
 import ArtistDetails
+import Analytics
 
 public struct AlbumDetailsView: View {
 
@@ -36,6 +37,7 @@ public struct AlbumDetailsView: View {
                         .padding(.top, Spacing.xxs)
 
                     AlbumDetailsMainSectionView(album: dataModel.album) {
+                        dataModel.track(.albumArtistTap(albumId: dataModel.album.id))
                         selectedAlbumId = dataModel.album.appleMusicAlbumData.id
                     }
 
@@ -60,12 +62,17 @@ public struct AlbumDetailsView: View {
                         if !dataModel.isLoggedIn {
                             Color.clear
                                 .contentShape(Rectangle())
-                                .onTapGesture { dataModel.requestLoginForRating() }
+                                .onTapGesture {
+                                    dataModel.track(.rateLoginRequiredTap(albumId: dataModel.album.id))
+                                    dataModel.requestLoginForRating()
+                                }
                         }
                     }
 
                     if let tracks = dataModel.album.appleMusicAlbumData.tracks, !tracks.isEmpty {
-                        AlbumTracklistView(tracks: tracks)
+                        AlbumTracklistView(tracks: tracks) { expanded in
+                            dataModel.track(.tracklistToggle(expanded: expanded))
+                        }
                     }
 
                     AlbumDetailsFooterView(
@@ -73,7 +80,12 @@ public struct AlbumDetailsView: View {
                         playUrl: dataModel.playUrl,
                         playLabel: dataModel.playLabel,
                         playPlayer: dataModel.playPlayer
-                    )
+                    ) {
+                        dataModel.track(.openInPlayerTap(
+                            player: dataModel.playPlayer?.rawValue ?? "unknown",
+                            albumId: dataModel.album.id
+                        ))
+                    }
                 }
                 .padding(.horizontal, Spacing.lg)
                 .padding(.bottom, Spacing.xl)
@@ -82,6 +94,7 @@ public struct AlbumDetailsView: View {
         .loading(
             dataModel.isLoading
         )
+        .onAppear { dataModel.track(.screenView(.albumDetails, ["album_id": album.id])) }
         .navigationDestination(item: $selectedAlbumId) { albumId in
             // Bare view in the existing stack. Inject the album destination so
             // ArtistDetails can push album details back without importing AlbumDetails.

@@ -22,15 +22,22 @@ final class MusicPlayerPickerDataModel {
     private let setSettingsUseCase: SetSettingsUseCaseProtocol
     private let getSettingsUseCase: GetSettingsUseCaseProtocol
     private let musicPlayerManager: MusicPlayerManager
+    private let analyticsManager: AnalyticsManager
 
     init(mode: MusicPlayerPickerMode,
          setSettingsUseCase: SetSettingsUseCaseProtocol = SetSettingsUseCase(),
          getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase(),
-         musicPlayerManager: MusicPlayerManager = .shared) {
+         musicPlayerManager: MusicPlayerManager = .shared,
+         analyticsManager: AnalyticsManager = .shared) {
         self.mode = mode
         self.setSettingsUseCase = setSettingsUseCase
         self.getSettingsUseCase = getSettingsUseCase
         self.musicPlayerManager = musicPlayerManager
+        self.analyticsManager = analyticsManager
+    }
+
+    func track(_ event: AnalyticsEvent) {
+        analyticsManager.log(event)
     }
 
     /// The currently selected player, surfaced for the view so it doesn't reach for

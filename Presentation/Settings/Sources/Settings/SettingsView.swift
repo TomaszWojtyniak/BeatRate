@@ -11,6 +11,7 @@ import Models
 import CoreApp
 import Onboarding
 import AuthenticationServices
+import Analytics
 
 @MainActor
 public struct SettingsView: View {
@@ -51,6 +52,7 @@ public struct SettingsView: View {
 
                 Section {
                     Button(role: .destructive) {
+                        dataModel.track(.logoutTap)
                         dataModel.showLogoutConfirmation = true
                     } label: {
                         Text("Logout")
@@ -81,6 +83,7 @@ public struct SettingsView: View {
                 await dataModel.loadUserProfile()
             }
         }
+        .onAppear { dataModel.track(.screenView(.settings)) }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .alert("Are you sure you want to logout?", isPresented: $dataModel.showLogoutConfirmation) {
@@ -144,6 +147,7 @@ private struct DeleteAccountSheet: View {
                     .frame(maxWidth: .infinity, minHeight: Size.signInButton, maxHeight: Size.signInButton)
             } else {
                 SignInWithAppleButton(.continue, onRequest: { request in
+                    dataModel.track(.deleteAccountConfirm)
                     request.requestedScopes = [.fullName, .email]
                     request.nonce = hashedNonce
                 }, onCompletion: handleAuthorization)
@@ -160,6 +164,7 @@ private struct DeleteAccountSheet: View {
         .padding(.bottom, Spacing.lg)
         .presentationDetents([.large])
         .interactiveDismissDisabled(dataModel.isDeletingAccount)
+        .onAppear { dataModel.track(.screenView(.deleteAccount)) }
         .task {
             hashedNonce = dataModel.sha256(await dataModel.getCurrentNonce())
         }

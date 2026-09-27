@@ -84,6 +84,7 @@ public struct LoginPromptView: View {
             }
 
             Button {
+                dataModel.track(.loginMaybeLaterTap)
                 dismiss()
             } label: {
                 Text("Maybe later", bundle: .module)
@@ -101,10 +102,12 @@ public struct LoginPromptView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.backgroundGradient)
         .presentationDetents([.large])
+        .onAppear { dataModel.track(.screenView(.loginPrompt)) }
     }
 
     private var signInButton: some View {
         SignInWithAppleButton(onRequest: { request in
+            dataModel.track(.signInAppleTap)
             Task {
                 let nonce = await self.dataModel.getCurrentNonce()
                 request.requestedScopes = [.fullName, .email]
@@ -125,6 +128,7 @@ public struct LoginPromptView: View {
                     // Cancellation is a normal outcome here — the guest can keep browsing.
                     if let authError = error as? ASAuthorizationError,
                        authError.code == .canceled {
+                        dataModel.track(.loginFailed(errorType: "canceled"))
                         Logger.login.debug("User cancelled sign in from prompt - no error shown")
                     } else {
                         await self.dataModel.handleLoginFailure(error: error)
