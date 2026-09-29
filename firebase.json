@@ -1,0 +1,13 @@
+{
+  "hosting": {
+    "public": "website",
+    "cleanUrls": true,
+    "i18n": { "root": "/localized" },
+    "headers": [
+      {
+        "source": "**",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      }
+    ]
+  }
+}

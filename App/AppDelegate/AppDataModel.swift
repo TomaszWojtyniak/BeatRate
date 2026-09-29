@@ -24,6 +24,7 @@ class AppDataModel {
     var user: User?
     var isUserLoggedIn: Bool = false
     var showingSplash = true
+    var isAskingAnalyticsConsent = AnalyticsManager.shared.consent == nil
 
     var isPresentingLoginPrompt: Bool {
         get { sessionManager.isPresentingLoginPrompt }
@@ -47,6 +48,12 @@ class AppDataModel {
     func trackTabSelected(_ tab: TabBarScreen?) {
         guard let tab else { return }
         analyticsManager.log(.tabSelected(tab: String(describing: tab)))
+    }
+
+    func setAnalyticsConsent(_ granted: Bool) {
+        analyticsManager.setConsent(granted)
+        // setUserId() at launch was a no-op while analytics was off.
+        if granted { setUserId() }
     }
 
     func setUserId() {

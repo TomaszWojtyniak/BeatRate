@@ -6,9 +6,11 @@
 import SwiftUI
 import CoreUI
 import Analytics
+import Settings
 
 struct AccountGuestView: View {
     let dataModel: AccountGuestDataModel
+    @State private var showingSettings = false
 
     private let benefits: [(icon: String, title: String, detail: String)] = [
         ("star.fill", "Your ratings", "Score albums on a ten-point scale and keep the record."),
@@ -64,6 +66,16 @@ struct AccountGuestView: View {
         .meshBackground()
         .navigationTitle("Account")
         .toolbarTitleDisplayMode(.inlineLarge)
+        .toolbar {
+            ToolbarItem {
+                Button("Settings", systemImage: "gear") {
+                    showingSettings = true
+                }
+            }
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
         .onAppear {
             dataModel.autoPromptIfNeeded()
         }

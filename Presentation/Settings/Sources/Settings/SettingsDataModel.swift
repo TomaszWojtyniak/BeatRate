@@ -22,11 +22,20 @@ final class SettingsDataModel {
     private let getSettingsUseCase: GetSettingsUseCaseProtocol
     private let musicPlayerManager: MusicPlayerManager
     private let analyticsManager: AnalyticsManager
+    private let sessionManager: SessionManager
 
     /// The user's main player, surfaced for the view so it doesn't reach for the
     /// manager itself.
     var mainMusicPlayer: MusicPlayer? {
         musicPlayerManager.current
+    }
+
+    var isLoggedIn: Bool {
+        sessionManager.isLoggedIn
+    }
+
+    var isAnalyticsEnabled: Bool {
+        didSet { analyticsManager.setConsent(isAnalyticsEnabled) }
     }
 
     var isLoggingOut = false
@@ -40,11 +49,14 @@ final class SettingsDataModel {
     init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase(),
          getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase(),
          musicPlayerManager: MusicPlayerManager = .shared,
-         analyticsManager: AnalyticsManager = .shared) {
+         analyticsManager: AnalyticsManager = .shared,
+         sessionManager: SessionManager = .shared) {
         self.getSplashUseCase = getSplashUseCase
         self.getSettingsUseCase = getSettingsUseCase
         self.musicPlayerManager = musicPlayerManager
         self.analyticsManager = analyticsManager
+        self.sessionManager = sessionManager
+        self.isAnalyticsEnabled = analyticsManager.consent == true
     }
 
     func track(_ event: AnalyticsEvent) {

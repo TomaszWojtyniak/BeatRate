@@ -13,12 +13,34 @@ import OSLog
 public final class AnalyticsManager {
     public static let shared = AnalyticsManager()
     
-    private var isEnabled: Bool = true
-    
-    private init() {
+    // Off until the user opts in: GDPR needs consent before any analytics
+    // identifier is stored. Info.plist's FIREBASE_ANALYTICS_COLLECTION_ENABLED
+    // keeps the SDK itself quiet until then.
+    private var isEnabled: Bool = false
+
+    private static let consentKey = "analyticsConsent"
+    private let defaults: UserDefaults
+
+    private init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
         Logger.analytics.info("Analytics Manager initialized")
     }
-    
+
+    /// The user's answer to the consent prompt; nil until they've been asked.
+    public var consent: Bool? {
+        defaults.object(forKey: Self.consentKey) as? Bool
+    }
+
+    /// Records the user's choice and applies it. Revoking also wipes the
+    /// analytics instance ID so nothing collected so far stays linked to them.
+    public func setConsent(_ granted: Bool) {
+        defaults.set(granted, forKey: Self.consentKey)
+        setAnalyticsEnabled(granted)
+        if !granted {
+            Analytics.resetAnalyticsData()
+        }
+    }
+
     public func setAnalyticsEnabled(_ enabled: Bool) {
         isEnabled = enabled
         // BeatRate serves no ads and runs against an EU database, so the three

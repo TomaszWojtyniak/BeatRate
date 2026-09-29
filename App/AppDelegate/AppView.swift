@@ -40,6 +40,12 @@ struct AppView: View {
             } else {
                 TabBarView(selection: $selection)
                     .onChange(of: selection) { _, tab in dataModel.trackTabSelected(tab) }
+                    .alert("Help improve BeatRate?", isPresented: $dataModel.isAskingAnalyticsConsent) {
+                        Button("Don't Allow") { dataModel.setAnalyticsConsent(false) }
+                        Button("Allow") { dataModel.setAnalyticsConsent(true) }
+                    } message: {
+                        Text("Share usage analytics, like which screens you open, so we can make the app better. No ads and no tracking across other apps. You can change this anytime in Settings.")
+                    }
             }
         }
         .sheet(isPresented: $dataModel.isPresentingLoginPrompt) {
