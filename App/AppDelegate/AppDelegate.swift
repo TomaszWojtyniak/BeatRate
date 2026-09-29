@@ -23,7 +23,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         database.persistenceCacheSizeBytes = 10 * 1024 * 1024
         
         Task {
-            AnalyticsManager.shared.setAnalyticsEnabled(true)
+            AnalyticsManager.shared.setAnalyticsEnabled(AnalyticsManager.shared.consent == true)
             CrashLogger.shared.configure()
         }
         

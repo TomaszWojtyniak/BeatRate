@@ -18,57 +18,36 @@ public struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var dataModel = SettingsDataModel()
 
+    // The site picks Polish or English from the device language.
+    private static let privacyPolicyUrl = URL(string: "https://www.beatrateapp.com/privacy")!
+    private static let termsUrl = URL(string: "https://www.beatrateapp.com/terms")!
+
     public init() {}
 
     public var body: some View {
         NavigationStack {
             List {
-                // Picking a player connects it, so there is nothing left for a
-                // separate "Accounts" section to do — a provider is only ever
-                // used while it is the main player.
+                if dataModel.isLoggedIn {
+                    accountSections
+                }
+
                 Section {
-                    NavigationLink {
-                        MusicPlayerPickerView(mode: .change) {
-                            Task { await dataModel.loadUserProfile() }
-                        }
-                    } label: {
-                        HStack(spacing: Spacing.sm) {
-                            Text("Player")
-                                .textStyle(.bodyEmphasis)
-
-                            Spacer(minLength: Spacing.xs)
-
-                            Text(dataModel.mainMusicPlayer?.displayName ?? "Not set")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                    Toggle("Share usage analytics", isOn: $dataModel.isAnalyticsEnabled)
                 } header: {
-                    Text("Main music player")
+                    Text("Privacy")
                 } footer: {
-                    if let notice = dataModel.spotifyNotice {
-                        Text(notice)
-                    }
+                    Text("Helps improve BeatRate by showing which features get used. Crash reports are always sent so bugs can be fixed.")
                 }
 
                 Section {
-                    Button(role: .destructive) {
-                        dataModel.track(.logoutTap)
-                        dataModel.showLogoutConfirmation = true
-                    } label: {
-                        Text("Logout")
-                    }
-                    .disabled(dataModel.isLoggingOut)
+                    Link("Privacy Policy", destination: Self.privacyPolicyUrl)
+                    Link("Terms of Use", destination: Self.termsUrl)
+                } header: {
+                    Text("Legal")
                 }
-
-                Section {
-                    Button(role: .destructive) {
-                        dataModel.showDeleteAccountSheet = true
-                    } label: {
-                        Text("Delete Account")
-                    }
-                    .disabled(dataModel.isDeletingAccount)
-                } footer: {
-                    Text("Permanently deletes your account and all your ratings and favorites. This can't be undone.")
+                
+                if dataModel.isLoggedIn {
+                    accountButtons
                 }
             }
             .listStyle(.insetGrouped)
@@ -80,6 +59,7 @@ public struct SettingsView: View {
                 }
             }
             .task {
+                guard dataModel.isLoggedIn else { return }
                 await dataModel.loadUserProfile()
             }
         }
@@ -102,6 +82,62 @@ public struct SettingsView: View {
         }
         .sheet(isPresented: $dataModel.showDeleteAccountSheet) {
             DeleteAccountSheet(dataModel: dataModel) { dismiss() }
+        }
+    }
+
+    /// Player, logout and deletion only make sense with an account; guests
+    /// reach Settings just for the privacy toggle.
+    @ViewBuilder
+    private var accountSections: some View {
+        // Picking a player connects it, so there is nothing left for a
+        // separate "Accounts" section to do — a provider is only ever
+        // used while it is the main player.
+        Section {
+            NavigationLink {
+                MusicPlayerPickerView(mode: .change) {
+                    Task { await dataModel.loadUserProfile() }
+                }
+            } label: {
+                HStack(spacing: Spacing.sm) {
+                    Text("Player")
+                        .textStyle(.bodyEmphasis)
+
+                    Spacer(minLength: Spacing.xs)
+
+                    Text(dataModel.mainMusicPlayer?.displayName ?? "Not set")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } header: {
+            Text("Main music player")
+        } footer: {
+            if let notice = dataModel.spotifyNotice {
+                Text(notice)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var accountButtons: some View {
+        Section {
+            Button(role: .destructive) {
+                dataModel.track(.logoutTap)
+                dataModel.showLogoutConfirmation = true
+            } label: {
+                Text("Logout")
+            }
+            .disabled(dataModel.isLoggingOut)
+        }
+
+        Section {
+            Button(role: .destructive) {
+                dataModel.showDeleteAccountSheet = true
+            } label: {
+                Text("Delete Account")
+            }
+            .disabled(dataModel.isDeletingAccount)
+        } footer: {
+            Text("Permanently deletes your account and all your ratings and favorites. This can't be undone.")
         }
     }
 }

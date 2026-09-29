@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1c3a78">
+<title>BeatRate – Every album deserves a score</title>
+<meta name="description" content="Discover new albums, rate what you listen to on a ten-point scale, and keep track of your favorites.">
+<link rel="icon" href="/icon.png">
+<link rel="apple-touch-icon" href="/icon.png">
+<link rel="stylesheet" href="/style.css">
+<script>document.documentElement.classList.add("js")</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l3 6.9 7.5.7-5.7 5 1.7 7.4L12 18.3 5.5 22l1.7-7.4-5.7-5 7.5-.7z"/></symbol>
+  <symbol id="heart" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></symbol>
+</svg>
+<div class="page">
+  <div class="orb gold"></div>
+  <div class="orb sky"></div>
+
+  <header class="nav wrap">
+    <a class="brand" href="/"><img src="/icon.png" alt=""> BeatRate</a>
+    <nav class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="/privacy">Privacy</a>
+      <a class="btn ghost small" href="#get">Get the app</a>
+    </nav>
+  </header>
+
+  <section class="hero wrap">
+    <div class="hero-copy">
+      <span class="badge rise"><span class="dot"></span>Coming soon to iPhone</span>
+      <h1 class="rise d1">Every album deserves a <em>score.</em></h1>
+      <p class="lead rise d2">Discover new releases, rate what you listen to on a ten-point scale, and keep every favorite in one place. Then open it straight in Apple Music or Spotify.</p>
+      <div class="actions rise d2">
+        <a class="btn primary" href="#get">Coming soon to the App Store</a>
+        <button class="btn ghost android">Want it on Android?</button>
+      </div>
+      <div class="proof">
+        <span class="stars" aria-hidden="true">
+          <svg class="twinkle"><use href="#star"/></svg><svg><use href="#star"/></svg><svg class="twinkle" style="animation-delay:.8s"><use href="#star"/></svg><svg><use href="#star"/></svg><svg class="twinkle" style="animation-delay:1.6s"><use href="#star"/></svg>
+        </span>
+        Free · No ads · Guest mode, no account needed
+      </div>
+    </div>
+
+    <div class="stage" aria-hidden="true">
+      <div class="ring inner"></div>
+      <div class="ring outer"></div>
+      <div class="phone float">
+        <div class="screen">
+          <div class="cover art7"></div>
+          <div>
+            <div class="title">Album of the week</div>
+            <div class="artist">New release</div>
+          </div>
+          <div class="rating">
+            <div class="rating-row">Your rating <span class="score">8.5<small> / 10</small></span></div>
+            <div class="bar"><span></span></div>
+          </div>
+          <div class="play">
+            <div class="pill">Play</div>
+            <div class="heart"><svg width="20" height="20"><use href="#heart"/></svg></div>
+          </div>
+        </div>
+      </div>
+      <div class="chip one"><svg style="color:var(--gold)"><use href="#star"/></svg>Rated 9.0</div>
+      <div class="chip two"><svg style="color:#ff7a8a"><use href="#heart"/></svg>Added to favorites</div>
+      <div class="chip three"><svg viewBox="0 0 24 24" fill="none" stroke="#5aaeff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l5 3.5-5 3.5z"/></svg>Open in Spotify</div>
+    </div>
+  </section>
+
+  <section class="strip" aria-hidden="true">
+    <div class="wrap eyebrow">Fresh releases, every week</div>
+    <div class="marquee">
+      <div class="track">
+        <div class="art1"></div><div class="art2"></div><div class="art3"></div><div class="art4"></div>
+        <div class="art5"></div><div class="art6"></div><div class="art7"></div><div class="art8"></div>
+        <div class="art1"></div><div class="art2"></div><div class="art3"></div><div class="art4"></div>
+        <div class="art5"></div><div class="art6"></div><div class="art7"></div><div class="art8"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="section wrap">
+    <div class="section-head reveal">
+      <h2>Everything you need to keep score.</h2>
+      <p>Built for people who listen to whole albums, not just playlists.</p>
+    </div>
+    <div class="bento">
+      <div class="tile big reveal">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="icon"><svg><use href="#star"/></svg></div>
+          <h3>Rate on a ten-point scale</h3>
+          <p>Give every album the score it deserves and see how the community rates it.</p>
+        </div>
+        <div class="scale" aria-hidden="true">
+          <span style="height:18%;opacity:.25"></span><span style="height:26%;opacity:.3"></span><span style="height:34%;opacity:.35"></span><span style="height:42%;opacity:.4"></span><span style="height:50%;opacity:.5"></span><span style="height:58%;opacity:.6"></span><span style="height:66%;opacity:.7"></span><span style="height:76%;opacity:.85"></span><span class="twinkle" style="height:88%;box-shadow:0 0 24px rgba(230,182,85,.6)"></span><span style="height:100%"></span>
+        </div>
+      </div>
+      <div class="tile reveal">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></div>
+        <h3>Discover</h3>
+        <p>Fresh releases, curated sections, the full Apple Music catalog, and artist pages.</p>
+      </div>
+      <div class="tile reveal">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+        <h3>Listen your way</h3>
+        <p>Open any album straight in Apple Music or Spotify, whichever you use.</p>
+      </div>
+      <div class="tile reveal">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></div>
+        <h3>Your library</h3>
+        <p>Everything you've rated and your favorites, synced across your devices.</p>
+      </div>
+      <div class="tile reveal">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></div>
+        <h3>Share your taste</h3>
+        <p>Turn your favorite albums into a card you can post anywhere.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" class="section center wrap">
+    <h2 class="reveal">Three steps to your record.</h2>
+    <div class="steps">
+      <div class="step reveal"><b>01</b><h3>Pick your player</h3><p>Choose Apple Music or Spotify. You can switch anytime in Settings.</p></div>
+      <div class="step reveal"><b>02</b><h3>Rate what you hear</h3><p>Finish an album, give it a score, and see where it lands with everyone else.</p></div>
+      <div class="step reveal"><b>03</b><h3>Build your library</h3><p>Your ratings and favorites add up to a record of everything you've heard.</p></div>
+    </div>
+  </section>
+
+  <section id="get" class="wrap">
+    <div class="cta-card reveal">
+      <img class="float" src="/icon.png" alt="BeatRate app icon">
+      <h2>Your next favorite album is waiting.</h2>
+      <p>BeatRate is coming soon to iPhone. Android? Let us know you want it.</p>
+      <div class="actions">
+        <span class="btn primary">Coming soon to the App Store</span>
+        <button class="btn ghost android">Want it on Android?</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer wrap">
+    <span class="brand"><img src="/icon.png" alt=""> © 2026 BeatRate</span>
+    <nav>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms of Use</a>
+      <a href="mailto:wojtyniaktomek@gmail.com">Contact</a>
+    </nav>
+  </footer>
+</div>
+
+<script>
+  // Anonymous ping: ntfy.sh emails the owner that someone clicked. Nothing about the visitor is sent.
+  const androidButtons = document.querySelectorAll(".android");
+  androidButtons.forEach((button) => button.addEventListener("click", () => {
+    fetch("https://ntfy.sh/beatrate-android-6faf7e74908a", {
+      method: "POST",
+      headers: { Title: "BeatRate: Android interest", Email: "wojtyniaktomek@gmail.com" },
+      body: "Someone clicked \"Want it on Android?\" on beatrateapp.com",
+    });
+    androidButtons.forEach((b) => { b.textContent = "Thanks, noted!"; b.disabled = true; });
+  }));
+
+  // Fade sections in as they scroll into view.
+  const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
+    if (entry.isIntersecting) { entry.target.classList.add("seen"); observer.unobserve(entry.target); }
+  }), { threshold: 0.15 });
+  document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+</script>
+</body>
+</html>
