@@ -25,6 +25,8 @@ final class AccountDataModel {
 
     /// A user can curate at most this many favorite albums.
     static let maxFavorites = 4
+    /// Below this many ratings the average says too little, so it shows "—".
+    static let minRatingsForAverage = 5
 
     var userProfile: FirebaseUserProfile?
     var ratedAlbums: [AlbumModel] = []
@@ -44,6 +46,15 @@ final class AccountDataModel {
     /// Whether the initial full load has succeeded; re-appears only refresh
     /// the cheap slices after that instead of refetching everything.
     private(set) var hasLoaded = false
+
+    /// The user's mean rating, `nil` until there are `minRatingsForAverage` ratings.
+    var averageRating: Double? { Self.average(of: ratedAlbums.compactMap(\.userRating)) }
+
+    static func average(of ratings: [Double]) -> Double? {
+        let ratings = ratings.filter { $0 > 0 }  // 0 means "not rated", as in the album average
+        guard ratings.count >= minRatingsForAverage else { return nil }
+        return ratings.reduce(0, +) / Double(ratings.count)
+    }
 
     var fullName: String? {
         guard let firstName = userProfile?.firstName,

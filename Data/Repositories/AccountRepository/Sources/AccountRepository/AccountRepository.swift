@@ -48,10 +48,9 @@ public actor AccountRepository: AccountRepositoryProtocol {
             return []
         }
 
-        // Fetch rated album IDs from Firebase (already sorted by timestamp, newest first)
-        let albumIds = try await databaseFirebaseService.getUserRatedAlbumIds(userId: currentUserId)
-
-        return await albums(forIds: albumIds)
+        // Newest first, and the same read carries each album's rating
+        let entries = try await databaseFirebaseService.getUserRatingsSorted(userId: currentUserId)
+        return await ratedAlbums(entries)
     }
 
     public func getRecentlyListenedAlbums(for player: MusicPlayer) async throws -> [AlbumModel] {
@@ -74,9 +73,19 @@ public actor AccountRepository: AccountRepositoryProtocol {
         let entries = (try? await databaseFirebaseService.getUserRatingsSorted(userId: userId)) ?? []
         let ratingsMap = Dictionary(entries.map { ($0.albumId, $0.rating) }, uniquingKeysWith: { first, _ in first })
 
-        async let ratedTask = albums(forIds: entries.map(\.albumId))
+        async let ratedTask = ratedAlbums(entries)
         async let recentTask = recentlyListened(for: player, ratings: ratingsMap)
         return await (rated: ratedTask, recentlyListened: try? await recentTask)
+    }
+
+    /// Albums for `entries`, in order, each carrying the user's own rating — the
+    /// cached copy can lack it for an album fetched just now, and the Account
+    /// average is computed from these.
+    private func ratedAlbums(_ entries: [(albumId: String, rating: Double)]) async -> [AlbumModel] {
+        let ratings = Dictionary(entries.map { ($0.albumId, $0.rating) }, uniquingKeysWith: { first, _ in first })
+        return await albums(forIds: entries.map(\.albumId)).map {
+            AlbumModel(id: $0.id, appleMusicAlbumData: $0.appleMusicAlbumData, firebaseAlbumData: $0.firebaseAlbumData, userRating: ratings[$0.id])
+        }
     }
 
     /// Fetches recently-listened albums and badges each with the caller-supplied

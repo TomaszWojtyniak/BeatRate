@@ -266,7 +266,7 @@ public struct AccountView: View {
                     Spacer()
                     miniStat(value: "\(dataModel.ratedAlbums.count)", label: String(localized: .accountStatRated), color: Color.accentSecondary)
                     Spacer()
-                    miniStat(value: "—", label: String(localized: .accountStatAverage), color: Color.accentPrimary)
+                    miniStat(value: dataModel.averageRating?.formatted(.number.precision(.fractionLength(1))) ?? "—", label: String(localized: .accountStatAverage), color: Color.accentPrimary)
                     Spacer()
                 }
                 .padding(.top, Spacing.lg)
