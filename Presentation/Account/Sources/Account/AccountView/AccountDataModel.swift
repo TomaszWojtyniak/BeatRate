@@ -105,6 +105,8 @@ final class AccountDataModel {
     func refreshRatedAlbums() async {
         do {
             let albums = try await getAccountUseCase.getUserRatedAlbums()
+            // Leaving the screen cancels this, and cancelled fetches drop albums.
+            guard !Task.isCancelled else { return }
             self.ratedAlbums = albums
             self.isShowingAlbumRatingsSection = !albums.isEmpty
         } catch {
@@ -139,17 +141,19 @@ final class AccountDataModel {
             guard !Task.isCancelled else { return }
 
             self.userProfile = profile
-            self.ratedAlbums = sections.rated
             self.favoriteAlbums = favorites
-            self.isShowingAlbumRatingsSection = !sections.rated.isEmpty
-            // `nil` means the fetch failed, not an empty history — keep what's shown.
+            // `nil` means that fetch failed, not an empty list — keep what's shown.
+            if let rated = sections.rated {
+                self.ratedAlbums = rated
+                self.isShowingAlbumRatingsSection = !rated.isEmpty
+            }
             if let recents = sections.recentlyListened {
                 self.recentlyListenedAlbums = recents
                 self.isShowingRecentlyListenedSection = !recents.isEmpty
             }
             self.hasLoaded = true
 
-            Logger.account.info("Loaded user profile, \(sections.rated.count) rated albums, \(sections.recentlyListened?.count ?? 0) recently listened, \(favorites.count) favorites")
+            Logger.account.info("Loaded user profile, \(sections.rated?.count ?? 0) rated albums, \(sections.recentlyListened?.count ?? 0) recently listened, \(favorites.count) favorites")
         } catch {
             Logger.account.error("Failed to load user data: \(error)")
             errorMessage = "Failed to load user data"

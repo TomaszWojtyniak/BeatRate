@@ -78,7 +78,7 @@ final class ArtistDetailsDataModel {
 
         if let latest = artist.latestRelease {
             sections.append(HomeSection(
-                sectionName: String(localized: .artistSectionLatestRelease),
+                name: String(localized: .artistSectionLatestRelease),
                 analyticsName: "Latest Release",
                 albums: [albumModel(from: latest)]
             ))
@@ -86,7 +86,7 @@ final class ArtistDetailsDataModel {
 
         if let albums = artist.albums, !albums.isEmpty {
             sections.append(HomeSection(
-                sectionName: String(localized: .artistSectionAlbums),
+                name: String(localized: .artistSectionAlbums),
                 analyticsName: "Albums",
                 albums: albums.map(albumModel)
             ))
@@ -94,7 +94,7 @@ final class ArtistDetailsDataModel {
 
         if let singles = artist.singles, !singles.isEmpty {
             sections.append(HomeSection(
-                sectionName: String(localized: .artistSectionSingles),
+                name: String(localized: .artistSectionSingles),
                 analyticsName: "Singles & EPs",
                 albums: singles.map(albumModel)
             ))

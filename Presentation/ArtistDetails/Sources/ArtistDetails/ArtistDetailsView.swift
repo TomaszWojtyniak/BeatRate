@@ -96,10 +96,7 @@ public struct ArtistDetailsView: View {
             guard let album else { return }
             dataModel.track(.albumTap(source: .sectionGrid, albumId: album.id, section: selectedSection?.analyticsName))
         }
-        .scrollEdgeEffectStyle(
-            .soft,
-            for: .all
-        )
+        .softScrollEdges()
     }
 
     private var failedView: some View {

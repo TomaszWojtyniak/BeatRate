@@ -20,6 +20,18 @@ public struct FirebaseAlbumSection: Codable, Identifiable, Sendable {
         case namePL = "name_pl"
     }
 
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        albums = try container.decode([String].self, forKey: .albums)
+        isActive = try container.decode(Bool.self, forKey: .isActive)
+        // Typed by hand in the Firebase console, which stores a title like "2024"
+        // as a number. A bad value costs only this field — failing here would fail
+        // the whole sections decode and blank Home for everyone.
+        namePL = try? container.decodeIfPresent(String.self, forKey: .namePL)
+    }
+
     public init(id: String, name: String, namePL: String? = nil, albums: [String], isActive: Bool) {
         self.id = id
         self.name = name

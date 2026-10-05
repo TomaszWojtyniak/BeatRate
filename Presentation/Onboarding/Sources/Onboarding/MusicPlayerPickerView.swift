@@ -57,10 +57,7 @@ public struct MusicPlayerPickerView: View {
                 .padding(.horizontal, Spacing.lg)
                 .padding(.top, Spacing.xl)
             }
-            .scrollEdgeEffectStyle(
-                .soft,
-                for: .all
-            )
+            .softScrollEdges()
         }
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbarColorScheme(isOnboarding ? .dark : nil, for: .navigationBar)

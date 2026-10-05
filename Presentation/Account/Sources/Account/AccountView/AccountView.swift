@@ -68,7 +68,7 @@ public struct AccountView: View {
 
                         if dataModel.isShowingRecentlyListenedSection {
                             let section = HomeSection(
-                                sectionName: String(localized: .accountSectionRecentlyListened),
+                                name: String(localized: .accountSectionRecentlyListened),
                                 analyticsName: "Recently Listened",
                                 albums: dataModel.recentlyListenedAlbums
                             )
@@ -85,7 +85,7 @@ public struct AccountView: View {
 
                         if dataModel.isShowingAlbumRatingsSection {
                             let section = HomeSection(
-                                sectionName: String(localized: .accountSectionRatings),
+                                name: String(localized: .accountSectionRatings),
                                 analyticsName: "Ratings",
                                 albums: dataModel.ratedAlbums
                             )
@@ -107,10 +107,7 @@ public struct AccountView: View {
                     .animation(nil, value: dataModel.isLoading)
                 }
             }
-            .scrollEdgeEffectStyle(
-                .soft,
-                for: .all
-            )
+            .softScrollEdges()
 
             if dataModel.isLoading {
                 ProgressView()
@@ -119,7 +116,9 @@ public struct AccountView: View {
             }
         }
         .refreshable {
-            await dataModel.refresh()
+            // Its own task: SwiftUI cancels the refreshable's task when the view
+            // redraws mid-refresh, which would cancel the fetches with it.
+            await Task { await dataModel.refresh() }.value
         }
         .meshBackground()
         .navigationDestination(item: $selectedAlbum) { album in

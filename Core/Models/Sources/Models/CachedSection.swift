@@ -33,7 +33,7 @@ public final class CachedSection {
     
     @MainActor public func toHomeSection() -> HomeSection {
         guard let albums = albums, !albums.isEmpty else {
-            return HomeSection(sectionName: name, namePL: namePL, albums: [])
+            return HomeSection(name: name, namePL: namePL, albums: [])
         }
 
         // Create a dictionary for fast lookup
@@ -44,6 +44,6 @@ public final class CachedSection {
             albumDict[albumId].flatMap { $0.toAlbumModel() }
         }
 
-        return HomeSection(sectionName: name, namePL: namePL, albums: sortedAlbums)
+        return HomeSection(name: name, namePL: namePL, albums: sortedAlbums)
     }
 }

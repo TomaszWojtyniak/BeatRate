@@ -112,10 +112,7 @@ public struct HomeView: View {
                 .refreshable {
                     await dataModel.refreshData()
                 }
-                .scrollEdgeEffectStyle(
-                    .soft,
-                    for: .all
-                )
+                .softScrollEdges()
             }
         }
         .navigationDestination(item: $selectedAlbum) { album in

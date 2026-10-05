@@ -31,6 +31,13 @@ playground.xcworkspace
 
 .build/
 
+# Local packages build against the app's root Package.resolved
+# (BeatRate.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/); per-package copies only drift.
+Core/**/Package.resolved
+Data/**/Package.resolved
+Domain/**/Package.resolved
+Presentation/**/Package.resolved
+
 # CocoaPods
 #
 # We recommend against adding the Pods directory to your .gitignore. However

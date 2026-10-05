@@ -91,7 +91,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "BeatRate korzysta z katalogu Apple Music, aby pokazywać ci nowe wydania, pobierać informacje o albumach i listy utworów oraz pozwolić ci oceniać każdy album, którego słuchasz."
+            "value" : "BeatRate korzysta z katalogu Apple Music, aby pokazywać ci nowe wydania, pobierać informacje o albumach i listy utworów oraz pozwalać ci oceniać każdy album, którego słuchasz."
           }
         }
       }
@@ -205,7 +205,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tam otworzą się albumy, które stukniesz."
+            "value" : "Albumy, które stukniesz, otworzą się w tym odtwarzaczu."
           }
         }
       }
@@ -224,7 +224,7 @@
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tam otworzą się albumy, które stukniesz. Możesz to później zmienić w Ustawieniach."
+            "value" : "Albumy, które stukniesz, otworzą się w tym odtwarzaczu. Możesz to później zmienić w Ustawieniach."
           }
         }
       }

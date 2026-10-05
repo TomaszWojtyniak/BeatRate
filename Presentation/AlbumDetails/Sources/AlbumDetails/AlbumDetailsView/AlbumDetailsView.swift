@@ -90,10 +90,7 @@ public struct AlbumDetailsView: View {
                 .padding(.horizontal, Spacing.lg)
                 .padding(.bottom, Spacing.xl)
             }
-            .scrollEdgeEffectStyle(
-                .soft,
-                for: .all
-            )
+            .softScrollEdges()
         }
         .loading(
             dataModel.isLoading
