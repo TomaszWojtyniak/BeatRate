@@ -64,12 +64,12 @@ final class MusicPlayerPickerDataModel {
 
         do {
             guard try await ensureConnected(player) else {
-                errorMessage = "\(player.displayName) access wasn't granted."
+                errorMessage = String(localized: .pickerErrorAccessDenied(player: player.displayName))
                 return false
             }
         } catch {
             Logger.onboarding.error("\(player.displayName) connect failed: \(error)")
-            errorMessage = "Couldn't connect \(player.displayName). Please try again."
+            errorMessage = String(localized: .pickerErrorConnect(player: player.displayName))
             return false
         }
 
@@ -82,7 +82,7 @@ final class MusicPlayerPickerDataModel {
             return true
         } catch {
             Logger.onboarding.error("Failed to set main music player: \(error)")
-            errorMessage = "Couldn't save your choice. Please try again."
+            errorMessage = String(localized: .pickerErrorSave)
             return false
         }
     }

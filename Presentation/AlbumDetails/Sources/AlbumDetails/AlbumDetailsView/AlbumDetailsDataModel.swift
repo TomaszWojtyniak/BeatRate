@@ -65,8 +65,8 @@ final class AlbumDetailsDataModel {
 
     var playLabel: String {
         switch playPlayer {
-        case .spotify: "Play on Spotify"
-        default: "Play on Apple Music"
+        case .spotify: String(localized: .albumPlaySpotify)
+        default: String(localized: .albumPlayAppleMusic)
         }
     }
 

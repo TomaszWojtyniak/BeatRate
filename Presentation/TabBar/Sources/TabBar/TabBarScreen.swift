@@ -24,11 +24,11 @@ extension TabBarScreen {
     var label: some View {
         switch self {
         case .home:
-            Label("Home", systemImage: "house.fill")
+            Label(String(localized: .tabHome), systemImage: "house.fill")
         case .search:
-            Label("Search", systemImage: "magnifyingglass")
+            Label(String(localized: .tabSearch), systemImage: "magnifyingglass")
         case .account:
-            Label("Account", systemImage: "person.crop.circle")
+            Label(String(localized: .tabAccount), systemImage: "person.crop.circle")
         }
     }
     

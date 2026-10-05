@@ -48,7 +48,7 @@ struct FavoritesShareView: View {
                     .textStyle(.iconPlaceholder, foreground: Color.secondaryTextOnDark)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Close")
+            .accessibilityLabel(String(localized: .favoritesShareClose))
         }
     }
 
@@ -74,11 +74,11 @@ struct FavoritesShareView: View {
             let shareImage = Image(uiImage: renderedImage)
             ShareLink(
                 item: shareImage,
-                preview: SharePreview("My favorites", image: shareImage)
+                preview: SharePreview(String(localized: .favoritesCardTitle), image: shareImage)
             ) {
                 HStack(spacing: Spacing.xs) {
                     Image(systemName: "square.and.arrow.up")
-                    Text("Share image")
+                    Text(.favoritesShareImage)
                 }
                 .textStyle(.bodyEmphasis, color: .primaryTextOnDark)
                 .padding(.horizontal, Spacing.xl)

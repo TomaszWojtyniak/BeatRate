@@ -13,9 +13,15 @@ struct AccountGuestView: View {
     @State private var showingSettings = false
 
     private let benefits: [(icon: String, title: String, detail: String)] = [
-        ("star.fill", "Your ratings", "Score albums on a ten-point scale and keep the record."),
-        ("square.grid.2x2.fill", "Your library", "Everything you've rated, in one place."),
-        ("music.pages.fill", "Connect your music library", "See your recently listened albums and more.")
+        ("star.fill",
+         String(localized: .guestFeatureRatingsTitle),
+         String(localized: .guestFeatureRatingsMessage)),
+        ("square.grid.2x2.fill",
+         String(localized: .guestFeatureLibraryTitle),
+         String(localized: .guestFeatureLibraryMessage)),
+        ("music.pages.fill",
+         String(localized: .guestFeatureConnectTitle),
+         String(localized: .guestFeatureConnectMessage))
     ]
 
     var body: some View {
@@ -30,11 +36,11 @@ struct AccountGuestView: View {
                     .foregroundStyle(Color.accentPrimary)
                     .appShadow(.accentGlow)
 
-                Text("Keep your ratings")
+                Text(.guestTitle)
                     .textStyle(.titleSection)
                     .padding(.top, Spacing.xs)
 
-                Text("You're browsing as a guest. Create an account to start rating.")
+                Text(.guestMessage)
                     .textStyle(.body, color: .secondaryText)
                     .multilineTextAlignment(.center)
             }
@@ -50,7 +56,7 @@ struct AccountGuestView: View {
             Button {
                 dataModel.requestLogin()
             } label: {
-                Text("Sign in or create account")
+                Text(.guestSignIn)
                     .textStyle(.bodyEmphasis, color: .primaryTextOnDark)
                     .padding(.horizontal, Spacing.lg)
                     .padding(.vertical, Spacing.xs)
@@ -64,11 +70,11 @@ struct AccountGuestView: View {
         .padding(.horizontal, Spacing.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .meshBackground()
-        .navigationTitle("Account")
+        .navigationTitle(String(localized: .accountNavigationTitle))
         .toolbarTitleDisplayMode(.inlineLarge)
         .toolbar {
             ToolbarItem {
-                Button("Settings", systemImage: "gear") {
+                Button(String(localized: .accountSettings), systemImage: "gear") {
                     showingSettings = true
                 }
             }

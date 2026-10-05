@@ -135,7 +135,8 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
 
             let cachedSection = CachedSection(
                 sectionId: "section_\(index)",
-                name: section.sectionName,
+                name: section.name,
+                namePL: section.namePL,
                 order: index,
                 orderedAlbumIds: orderedAlbumIds
             )

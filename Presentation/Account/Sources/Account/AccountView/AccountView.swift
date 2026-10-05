@@ -67,13 +67,16 @@ public struct AccountView: View {
                         }
 
                         if dataModel.isShowingRecentlyListenedSection {
+                            let section = HomeSection(
+                                name: String(localized: .accountSectionRecentlyListened),
+                                analyticsName: "Recently Listened",
+                                albums: dataModel.recentlyListenedAlbums
+                            )
                             HomeSectionView(
-                                name: "Recently Listened",
-                                albums: dataModel.recentlyListenedAlbums,
-                                selectedAlbum: trackedSelection(.accountSection, section: "Recently Listened"),
-                                onSeeAll: {
-                                    selectedSection = HomeSection(sectionName: "Recently Listened", albums: dataModel.recentlyListenedAlbums)
-                                }
+                                name: section.sectionName,
+                                albums: section.albums,
+                                selectedAlbum: trackedSelection(.accountSection, section: section.analyticsName),
+                                onSeeAll: { selectedSection = section }
                             )
                             .padding(Spacing.lg)
                             .roundedMaterialBackground()
@@ -81,13 +84,16 @@ public struct AccountView: View {
                         }
 
                         if dataModel.isShowingAlbumRatingsSection {
+                            let section = HomeSection(
+                                name: String(localized: .accountSectionRatings),
+                                analyticsName: "Ratings",
+                                albums: dataModel.ratedAlbums
+                            )
                             HomeSectionView(
-                                name: "Ratings",
-                                albums: dataModel.ratedAlbums,
-                                selectedAlbum: trackedSelection(.accountSection, section: "Ratings"),
-                                onSeeAll: {
-                                    selectedSection = HomeSection(sectionName: "Ratings", albums: dataModel.ratedAlbums)
-                                }
+                                name: section.sectionName,
+                                albums: section.albums,
+                                selectedAlbum: trackedSelection(.accountSection, section: section.analyticsName),
+                                onSeeAll: { selectedSection = section }
                             )
                             .padding(Spacing.lg)
                             .roundedMaterialBackground()
@@ -101,6 +107,7 @@ public struct AccountView: View {
                     .animation(nil, value: dataModel.isLoading)
                 }
             }
+            .softScrollEdges()
 
             if dataModel.isLoading {
                 ProgressView()
@@ -109,7 +116,9 @@ public struct AccountView: View {
             }
         }
         .refreshable {
-            await dataModel.refresh()
+            // Its own task: SwiftUI cancels the refreshable's task when the view
+            // redraws mid-refresh, which would cancel the fetches with it.
+            await Task { await dataModel.refresh() }.value
         }
         .meshBackground()
         .navigationDestination(item: $selectedAlbum) { album in
@@ -117,21 +126,21 @@ public struct AccountView: View {
         }
         .navigationDestination(item: $selectedSection) { section in
             SectionAlbumsGridView(name: section.sectionName, albums: section.albums, selectedAlbum: $gridSelectedAlbum)
-                .onAppear { dataModel.track(.screenView(.sectionGrid, ["section": section.sectionName, "source": AnalyticsScreen.account.rawValue])) }
+                .onAppear { dataModel.track(.screenView(.sectionGrid, ["section": section.analyticsName, "source": AnalyticsScreen.account.rawValue])) }
                 .navigationDestination(item: $gridSelectedAlbum) { album in
                     AlbumDetailsView(album: album)
                 }
         }
         .onChange(of: gridSelectedAlbum) { _, album in
             guard let album else { return }
-            dataModel.track(.albumTap(source: .sectionGrid, albumId: album.id, section: selectedSection?.sectionName))
+            dataModel.track(.albumTap(source: .sectionGrid, albumId: album.id, section: selectedSection?.analyticsName))
         }
         .onAppear { dataModel.track(.screenView(.account)) }
-        .navigationTitle("Account")
+        .navigationTitle(String(localized: .accountNavigationTitle))
         .toolbarTitleDisplayMode(.inlineLarge)
         .toolbar {
             ToolbarItem {
-                Button("Settings", systemImage: "gear") {
+                Button(String(localized: .accountSettings), systemImage: "gear") {
                     showingSettings = true
                 }
             }
@@ -238,7 +247,7 @@ public struct AccountView: View {
                 Button {
                     dataModel.isShowingEditSheet = true
                 } label: {
-                    Text("Edit profile")
+                    Text(.accountEditProfile)
                         .textStyle(.bodyEmphasis, color: .primaryTextOnDark)
                         .padding(.horizontal, Spacing.lg)
                         .padding(.vertical, Spacing.xs)
@@ -254,9 +263,9 @@ public struct AccountView: View {
                 // Mini-stats
                 HStack {
                     Spacer()
-                    miniStat(value: "\(dataModel.ratedAlbums.count)", label: "Rated", color: Color.accentSecondary)
+                    miniStat(value: "\(dataModel.ratedAlbums.count)", label: String(localized: .accountStatRated), color: Color.accentSecondary)
                     Spacer()
-                    miniStat(value: "—", label: "Avg", color: Color.accentPrimary)
+                    miniStat(value: dataModel.averageRating?.formatted(.number.precision(.fractionLength(1))) ?? "—", label: String(localized: .accountStatAverage), color: Color.accentPrimary)
                     Spacer()
                 }
                 .padding(.top, Spacing.lg)

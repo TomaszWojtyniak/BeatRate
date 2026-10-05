@@ -28,7 +28,7 @@ All tokens live in `Core/CoreUI/Sources/CoreUI/DesignSystem/`. Importing
 | **Shadow** | `low`, `medium`, `high`, `accentGlow`, `accentLift`, `destructive` | `AppShadow.swift` |
 | **Animation** | `quick` 0.2s, `standard` 0.25s, `smooth` 0.4s | `AppAnimation.swift` |
 | **Colour** | adaptive + fixed accent set | `Color+Extension.swift` |
-| **Surface** | `.roundedMaterialBackground(hi:)`, `.meshBackground()` | `RoundedMaterialBackground.swift`, `MeshBackground.swift` |
+| **Surface** | `.roundedMaterialBackground(hi:)`, `.meshBackground()`, `.softScrollEdges()` | `RoundedMaterialBackground.swift`, `MeshBackground.swift`, `SoftScrollEdges.swift` |
 
 ---
 
@@ -312,6 +312,17 @@ ScrollView { … }
 The mesh is `.drawingGroup()`'d for performance — blurs are computed once and
 reused. Avoid putting it on screens that don't host glass tiles (it's not free).
 
+### `.softScrollEdges()` — scroll edges of a full-page scroll view
+
+Soft Liquid Glass scroll edge effect on all edges, so the navigation/tab bars
+and the scrolling content fade into each other. Put it on every full-page
+`ScrollView`/`List` instead of spelling out `.scrollEdgeEffectStyle(…)`.
+
+```swift
+ScrollView { … }
+    .softScrollEdges()
+```
+
 ### `GlassEffectContainer` — group adjacent glass tiles
 
 When stacking multiple `.roundedMaterialBackground()` cards, wrap them in a
@@ -356,6 +367,7 @@ ScrollView {
         .padding(.bottom, Spacing.lg)
     }
 }
+.softScrollEdges()
 .meshBackground()
 ```
 

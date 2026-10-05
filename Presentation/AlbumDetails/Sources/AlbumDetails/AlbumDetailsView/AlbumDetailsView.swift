@@ -90,6 +90,7 @@ public struct AlbumDetailsView: View {
                 .padding(.horizontal, Spacing.lg)
                 .padding(.bottom, Spacing.xl)
             }
+            .softScrollEdges()
         }
         .loading(
             dataModel.isLoading

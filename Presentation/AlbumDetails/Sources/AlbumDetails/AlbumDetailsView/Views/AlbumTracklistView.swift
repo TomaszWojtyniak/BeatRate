@@ -52,10 +52,10 @@ struct AlbumTracklistView: View {
 
     private var header: some View {
         HStack(spacing: Spacing.xs) {
-            Text("Tracks")
+            Text(.tracklistTitle)
                 .textStyle(.titleSection)
             Spacer()
-            Text("\(tracks.count)")
+            Text(verbatim: "\(tracks.count)")
                 .textStyle(.caption, color: .secondaryText)
                 .monospacedDigit()
         }
@@ -86,7 +86,7 @@ struct AlbumTracklistView: View {
             onToggle(isExpanded)
         } label: {
             HStack(spacing: Spacing.sm) {
-                Text(isExpanded ? "Show less" : "Show all")
+                Text(isExpanded ? LocalizedStringResource.tracklistShowLess : .tracklistShowAll)
                     .textStyle(.bodyEmphasis, color: .accentPrimary)
                     .fixedSize()
                     .frame(width: Size.trackNumberColumn, alignment: .leading)
@@ -118,7 +118,7 @@ private struct TracklistContent: View {
                 HStack(spacing: Spacing.xs) {
                     Image(systemName: "opticaldisc")
                         .textStyle(.iconChip, color: .secondaryText)
-                    Text("Disc \(group.disc)")
+                    Text(.tracklistDisc(number: group.disc))
                         .textStyle(.label, foreground: .tertiary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -153,7 +153,7 @@ private struct TrackRow: View {
             if track.isExplicit {
                 Image(systemName: "e.square.fill")
                     .textStyle(.iconChip, color: .secondaryText)
-                    .accessibilityLabel("Explicit")
+                    .accessibilityLabel(String(localized: .tracklistExplicit))
             }
 
             Spacer(minLength: Spacing.xs)

@@ -24,15 +24,22 @@ public struct SearchView: View {
 
         var title: String {
             switch self {
-            case .albums: "Albums"
-            case .artists: "Artists"
+            case .albums: String(localized: .searchScopeAlbums)
+            case .artists: String(localized: .searchScopeArtists)
             }
         }
 
         var prompt: String {
             switch self {
-            case .albums: "Search albums"
-            case .artists: "Search artists"
+            case .albums: String(localized: .searchPromptAlbums)
+            case .artists: String(localized: .searchPromptArtists)
+            }
+        }
+
+        func noResultsMessage(for searchText: String) -> String {
+            switch self {
+            case .albums: String(localized: .searchNoResultsAlbums(query: searchText))
+            case .artists: String(localized: .searchNoResultsArtists(query: searchText))
             }
         }
     }
@@ -51,7 +58,7 @@ public struct SearchView: View {
                 // Only offer the album/artist toggle once a search returns
                 // something — it's meaningless over recents or an empty state.
                 if dataModel.hasResults {
-                    Picker("Search scope", selection: $scope) {
+                    Picker(String(localized: .searchScopeTitle), selection: $scope) {
                         ForEach(SearchScope.allCases) { option in
                             Text(option.title).tag(option)
                         }
@@ -64,10 +71,10 @@ public struct SearchView: View {
 
                 content
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .loading(dataModel.isLoading, message: "Searching...")
+                    .loading(dataModel.isLoading, message: String(localized: .searchSearching))
             }
             .meshBackground()
-            .navigationTitle("Search")
+            .navigationTitle(String(localized: .searchNavigationTitle))
             .toolbarTitleDisplayMode(.inlineLarge)
             .navigationDestination(item: $selectedAlbum) { album in
                 AlbumDetailsContainer(albumId: album.id)
@@ -121,7 +128,7 @@ public struct SearchView: View {
     private var albumResults: some View {
         if dataModel.albums.isEmpty {
             if !dataModel.isLoading {
-                noResults(for: "albums", icon: "music.note.list")
+                noResults(for: .albums, icon: "music.note.list")
             }
         } else {
             List(dataModel.albums) { album in
@@ -143,7 +150,7 @@ public struct SearchView: View {
     private var artistResults: some View {
         if dataModel.artists.isEmpty {
             if !dataModel.isLoading {
-                noResults(for: "artists", icon: "person.2")
+                noResults(for: .artists, icon: "person.2")
             }
         } else {
             List(dataModel.artists) { artist in
@@ -161,11 +168,11 @@ public struct SearchView: View {
         }
     }
 
-    private func noResults(for what: String, icon: String) -> some View {
+    private func noResults(for what: SearchScope, icon: String) -> some View {
         ContentUnavailableView {
-            Label("No Results", systemImage: icon)
+            Label(String(localized: .searchNoResultsTitle), systemImage: icon)
         } description: {
-            Text("No \(what) found for '\(searchText)'")
+            Text(what.noResultsMessage(for: searchText))
         }
     }
 

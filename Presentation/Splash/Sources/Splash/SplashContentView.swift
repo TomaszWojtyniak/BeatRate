@@ -23,7 +23,7 @@ struct SplashContentView: View {
             WordmarkView()
                 .padding(.top, Spacing.xl)
 
-            Text("Rate every album.")
+            Text(.splashTagline)
                 .textStyle(.body, color: .secondaryTextOnDark)
                 .padding(.top, Spacing.xxs)
 

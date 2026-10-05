@@ -38,7 +38,7 @@ public struct HomeSectionView: View {
 
                 if albums.count > Self.seeAllThreshold, let onSeeAll {
                     Button(action: onSeeAll) {
-                        Text("See all", bundle: .module)
+                        Text(.homeSectionSeeAll)
                             .textStyle(.captionEmphasis, color: .accentPrimary)
                     }
                     .buttonStyle(.plain)

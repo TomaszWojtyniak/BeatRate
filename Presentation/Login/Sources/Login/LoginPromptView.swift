@@ -32,22 +32,20 @@ public struct LoginPromptView: View {
         self.reason = reason
     }
 
-    // `LocalizedStringKey`, not `String` — `Text(someString)` binds the verbatim
+    // `LocalizedStringResource`, not `String` — `Text(someString)` binds the verbatim
     // initializer and would ship these permanently in English no matter what the
     // string catalog contains.
-    private var title: LocalizedStringKey {
+    private var title: LocalizedStringResource {
         switch reason {
-        case .account: "Your account, your taste"
-        case .rating: "Rate this album"
+        case .account: .promptAccountTitle
+        case .rating: .promptRatingTitle
         }
     }
 
-    private var subtitle: LocalizedStringKey {
+    private var subtitle: LocalizedStringResource {
         switch reason {
-        case .account:
-            "Sign in to keep your ratings, revisit your library and track how your taste changes."
-        case .rating:
-            "Sign in to score albums on a ten-point scale and build a record of everything you listen to."
+        case .account: .promptAccountSubtitle
+        case .rating: .promptRatingSubtitle
         }
     }
 
@@ -56,12 +54,12 @@ public struct LoginPromptView: View {
             WordmarkView()
                 .padding(.top, headerTopInset)
 
-            Text(title, bundle: .module)
+            Text(title)
                 .textStyle(.title, color: .primaryTextOnDark)
                 .multilineTextAlignment(.center)
                 .padding(.top, Spacing.lg)
 
-            Text(subtitle, bundle: .module)
+            Text(subtitle)
                 .textStyle(.body, color: .secondaryTextOnDark)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, Spacing.md)
@@ -74,7 +72,7 @@ public struct LoginPromptView: View {
                     ProgressView()
                         .scaleEffect(1.5)
                         .tint(.white)
-                    Text("Signing in...", bundle: .module)
+                    Text(.promptSigningIn)
                         .textStyle(.body, color: .primaryTextOnDark)
                 }
                 .frame(maxWidth: .infinity, minHeight: Size.signInButton, maxHeight: Size.signInButton)
@@ -87,7 +85,7 @@ public struct LoginPromptView: View {
                 dataModel.track(.loginMaybeLaterTap)
                 dismiss()
             } label: {
-                Text("Maybe later", bundle: .module)
+                Text(.promptLater)
                     .textStyle(.bodyEmphasis, color: .secondaryTextOnDark)
                     .padding(.vertical, Spacing.sm)
             }

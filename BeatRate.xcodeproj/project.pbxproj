@@ -77,6 +77,7 @@
 				BeatRateUITests/BeatRateUITestsLaunchTests.swift,
 				"Development/BeatRate-Development-Info.plist",
 				"Development/GoogleService-Info.plist",
+				Development/InfoPlist.xcstrings,
 			);
 			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
 		};
@@ -86,6 +87,7 @@
 				BeatRateUITests/BeatRateUITestsLaunchTests.swift,
 				"Development/BeatRate-Development-Info.plist",
 				"Production/GoogleService-Info.plist",
+				Production/InfoPlist.xcstrings,
 			);
 			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
 		};
@@ -463,6 +465,7 @@
 			knownRegions = (
 				en,
 				Base,
+				pl,
 			);
 			mainGroup = 8BED07E52DE0D68300838DD7;
 			minimizedProjectReferenceProxies = 1;
@@ -614,6 +617,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -697,6 +701,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -788,6 +793,7 @@
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "BeatRate uses Apple Music to help you rediscover your music.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "BeatRate saves your favorite albums card to your photo library.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -837,6 +843,7 @@
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "BeatRate uses Apple Music to help you rediscover your music.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "BeatRate saves your favorite albums card to your photo library.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -962,6 +969,7 @@
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "BeatRate Development uses Apple Music to help you rediscover your music.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "BeatRate Development saves your favorite albums card to your photo library.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -1010,6 +1018,7 @@
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "BeatRate Development uses Apple Music to help you rediscover your music.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "BeatRate Development saves your favorite albums card to your photo library.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

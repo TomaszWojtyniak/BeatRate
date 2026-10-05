@@ -82,7 +82,7 @@ final class SettingsDataModel {
         }
         switch await getSplashUseCase.verifySpotifyConnection() {
         case .needsReauth, .notConnected:
-            spotifyNotice = "Your Spotify session expired. Pick Spotify again to reconnect."
+            spotifyNotice = String(localized: .settingsPlayerSpotifyExpired)
         case .connected, .unavailable, .notAllowlisted:
             spotifyNotice = nil
         }

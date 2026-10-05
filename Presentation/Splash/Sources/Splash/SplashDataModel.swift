@@ -212,11 +212,11 @@ final class SplashDataModel {
         Logger.splash.warning("Fetched sections are empty")
 
         if shouldRetry() {
-            await performRetry(reason: "No data available")
+            await performRetry(reason: .noData)
         } else {
             await handleMaxRetriesReached(
                 errorType: "sections still empty",
-                userMessage: "Unable to load music data. Please try again later."
+                userMessage: String(localized: .splashErrorNoData)
             )
         }
     }
@@ -225,11 +225,11 @@ final class SplashDataModel {
         Logger.splash.error("Error fetching data: \(error.localizedDescription)")
 
         if shouldRetry() {
-            await performRetry(reason: "Connection error")
+            await performRetry(reason: .connectionError)
         } else {
             await handleMaxRetriesReached(
                 errorType: "network failure",
-                userMessage: "Unable to connect. Please check your connection and try again later."
+                userMessage: String(localized: .splashErrorConnection)
             )
         }
     }
@@ -247,14 +247,30 @@ final class SplashDataModel {
 
     // MARK: - Retry Logic
 
+    /// Raw value is the English text for logs; users get `message`, one full
+    /// sentence per case so it translates as a whole.
+    private enum RetryReason: String {
+        case noData = "No data available"
+        case connectionError = "Connection error"
+
+        func message(attempt: Int, of maxAttempts: Int) -> String {
+            switch self {
+            case .noData:
+                String(localized: .splashRetryingNoData(attempt: attempt, total: maxAttempts))
+            case .connectionError:
+                String(localized: .splashRetryingConnection(attempt: attempt, total: maxAttempts))
+            }
+        }
+    }
+
     private func shouldRetry() -> Bool {
         return retryCount < maxRetries
     }
 
-    private func performRetry(reason: String) async {
+    private func performRetry(reason: RetryReason) async {
         retryCount += 1
-        errorMessage = "\(reason). Retrying (\(retryCount)/\(maxRetries))..."
-        Logger.splash.info("Retry attempt \(self.retryCount) of \(self.maxRetries): \(reason)")
+        errorMessage = reason.message(attempt: retryCount, of: maxRetries)
+        Logger.splash.info("Retry attempt \(self.retryCount) of \(self.maxRetries): \(reason.rawValue)")
 
         await delayForRetry()
         await fetchFreshData()

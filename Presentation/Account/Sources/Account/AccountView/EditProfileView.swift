@@ -49,15 +49,15 @@ struct EditProfileView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Name") {
-                    TextField("First Name", text: $firstName)
+                Section(String(localized: .editProfileSectionName)) {
+                    TextField(String(localized: .editProfileFirstName), text: $firstName)
                         .textContentType(.givenName)
                         .autocorrectionDisabled()
                         .submitLabel(.next)
                         .focused($focusedField, equals: .first)
                         .onSubmit { focusedField = .last }
 
-                    TextField("Last Name", text: $lastName)
+                    TextField(String(localized: .editProfileLastName), text: $lastName)
                         .textContentType(.familyName)
                         .autocorrectionDisabled()
                         .submitLabel(.done)
@@ -65,18 +65,18 @@ struct EditProfileView: View {
                         .onSubmit { if canSave { save() } }
                 }
 
-                Section("Favorites") {
+                Section(String(localized: .favoritesTitle)) {
                     Button {
                         onEditFavorites()
                         showingFavoritesManager = true
                     } label: {
                         HStack {
-                            Text("Edit favorites")
+                            Text(.editProfileEditFavorites)
                                 .foregroundStyle(.primary)
                             
                             Spacer()
                             
-                            Text("\(favorites.count)/\(AccountDataModel.maxFavorites)")
+                            Text(verbatim: "\(favorites.count)/\(AccountDataModel.maxFavorites)")
                                 .foregroundStyle(.primary)
                             
                             Image(systemName: "chevron.right")
@@ -86,15 +86,15 @@ struct EditProfileView: View {
                     .disabled(isSaving)
                 }
             }
-            .navigationTitle("Edit Profile")
+            .navigationTitle(String(localized: .editProfileTitle))
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(String(localized: .accountCancel)) { dismiss() }
                         .disabled(isSaving)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { save() }
+                    Button(String(localized: .editProfileSave)) { save() }
                         .disabled(!canSave)
                 }
             }

@@ -83,8 +83,12 @@ struct StarRatingView: View {
                 }
         )
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Album rating")
-        .accessibilityValue(rating == 0 ? "Not rated" : String(format: "%.1f out of 10", rating))
+        .accessibilityLabel(String(localized: .ratingAccessibilityLabel))
+        .accessibilityValue(
+            rating == 0
+                ? String(localized: .ratingNotRated)
+                : String(localized: .ratingOutOfTen(rating: rating.formatted(.number.precision(.fractionLength(1)))))
+        )
         .accessibilityAdjustableAction { direction in
             switch direction {
             case .increment:

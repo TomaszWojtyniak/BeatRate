@@ -10,16 +10,32 @@ import SwiftUI
 public struct FirebaseAlbumSection: Codable, Identifiable, Sendable {
     public let id: String
     public let name: String
+    /// Optional Polish title, `name_pl` in Firebase.
+    public let namePL: String?
     public let albums: [String]
     public let isActive: Bool
-    
+
     enum CodingKeys: String, CodingKey {
         case id, name, albums, isActive
+        case namePL = "name_pl"
     }
-    
-    public init(id: String, name: String, albums: [String], isActive: Bool) {
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        albums = try container.decode([String].self, forKey: .albums)
+        isActive = try container.decode(Bool.self, forKey: .isActive)
+        // Typed by hand in the Firebase console, which stores a title like "2024"
+        // as a number. A bad value costs only this field — failing here would fail
+        // the whole sections decode and blank Home for everyone.
+        namePL = try? container.decodeIfPresent(String.self, forKey: .namePL)
+    }
+
+    public init(id: String, name: String, namePL: String? = nil, albums: [String], isActive: Bool) {
         self.id = id
         self.name = name
+        self.namePL = namePL
         self.albums = albums
         self.isActive = isActive
     }

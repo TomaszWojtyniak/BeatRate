@@ -59,11 +59,11 @@ struct FavoritesShareCard: View {
 
     private var titleBlock: some View {
         VStack(alignment: .leading, spacing: Spacing.xxs) {
-            Text("Favorite Albums")
+            Text(.favoritesCardLabel)
                 .textStyle(.label, color: .accentPrimary)
                 .textCase(.uppercase)
 
-            Text("My favorites")
+            Text(.favoritesCardTitle)
                 .textStyle(.title, color: .primaryTextOnDark)
 
             if !name.isEmpty {
@@ -127,7 +127,7 @@ struct FavoritesShareCard: View {
                 .frame(height: Stroke.hairline)
 
             HStack {
-                Text("Rate yours at beatrate.app")
+                Text(.favoritesCardFooter)
                     .textStyle(.caption, color: .secondaryTextOnDark)
 
                 Spacer()
@@ -135,7 +135,7 @@ struct FavoritesShareCard: View {
                 HStack(spacing: Spacing.xxs) {
                     Image(systemName: "heart.fill")
                         .textStyle(.iconChip, color: .accentPrimary)
-                    Text("\(albums.count) picks")
+                    Text(.favoritesCardCount(count: albums.count))
                         .textStyle(.captionEmphasis, color: .primaryTextOnDark)
                 }
             }

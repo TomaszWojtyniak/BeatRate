@@ -15,7 +15,7 @@ public struct ErrorAlertModifier: ViewModifier {
     public func body(content: Content) -> some View {
         content
             .alert(title, isPresented: $isPresented) {
-                Button(String(localized: "error.alert.confirm", bundle: .module), role: .cancel) { }
+                Button(String(localized: .errorAlertConfirm), role: .cancel) { }
             } message: {
                 Text(message)
             }

@@ -12,11 +12,11 @@ struct OnboardingPickerHeader: View {
     var body: some View {
         if isOnboarding {
             VStack(spacing: Spacing.sm) {
-                Text("Pick your player")
+                Text(.pickerHeaderTitle)
                     .textStyle(.title, color: .primaryTextOnDark)
                     .multilineTextAlignment(.center)
 
-                Text("Where albums you tap will open. You can change it later in Settings.")
+                Text(.pickerHeaderSubtitleOnboarding)
                     .textStyle(.body, color: .secondaryTextOnDark)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Spacing.lg)
@@ -24,7 +24,7 @@ struct OnboardingPickerHeader: View {
         } else {
             // In Settings (change mode) the navbar already shows "Main music player",
             // so we only need a single helper line.
-            Text("Where albums you tap will open.")
+            Text(.pickerHeaderSubtitle)
                 .textStyle(.body, color: .secondaryText)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, Spacing.lg)

@@ -31,7 +31,7 @@ public struct HomeView: View {
                 VStack(spacing: Spacing.sm) {
                     ProgressView()
                         .tint(Color.accentPrimary)
-                    Text("Loading your library...")
+                    Text(.homeLoading)
                         .textStyle(.body, color: .secondaryText)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -39,13 +39,13 @@ public struct HomeView: View {
 
             case .needsAppleMusicAccess:
                 ContentUnavailableView {
-                    Label("Apple Music Access Needed", systemImage: "music.note")
+                    Label(String(localized: .homeMusicAccessTitle), systemImage: "music.note")
                         .foregroundStyle(Color.primaryText)
                 } description: {
-                    Text("BeatRate uses the Apple Music catalog for album artwork, tracklists and release details. Turn it on in Settings to fill your feed.")
+                    Text(.homeMusicAccessMessage)
                         .textStyle(.body, color: .secondaryText)
                 } actions: {
-                    Button("Open Settings") {
+                    Button(String(localized: .homeMusicAccessOpenSettings)) {
                         dataModel.track(.openSystemSettingsTap)
                         openAppSettings()
                     }
@@ -57,13 +57,13 @@ public struct HomeView: View {
 
             case .empty:
                 ContentUnavailableView {
-                    Label("No Albums Yet", systemImage: "music.note.list")
+                    Label(String(localized: .homeEmptyTitle), systemImage: "music.note.list")
                         .foregroundStyle(Color.primaryText)
                 } description: {
-                    Text("There's nothing to show here right now. Check back soon.")
+                    Text(.homeEmptyMessage)
                         .textStyle(.body, color: .secondaryText)
                 } actions: {
-                    Button("Refresh") {
+                    Button(String(localized: .homeEmptyRefresh)) {
                         Task { await dataModel.retry() }
                     }
                     .buttonStyle(.borderedProminent)
@@ -74,13 +74,13 @@ public struct HomeView: View {
 
             case .failed:
                 ContentUnavailableView {
-                    Label("Couldn't Load Your Feed", systemImage: "wifi.exclamationmark")
+                    Label(String(localized: .homeLoadFailedTitle), systemImage: "wifi.exclamationmark")
                         .foregroundStyle(Color.primaryText)
                 } description: {
-                    Text("Check your connection and try again.")
+                    Text(.homeLoadFailedMessage)
                         .textStyle(.body, color: .secondaryText)
                 } actions: {
-                    Button("Try Again") {
+                    Button(String(localized: .homeLoadFailedRetry)) {
                         Task { await dataModel.retry() }
                     }
                     .buttonStyle(.borderedProminent)
@@ -112,6 +112,7 @@ public struct HomeView: View {
                 .refreshable {
                     await dataModel.refreshData()
                 }
+                .softScrollEdges()
             }
         }
         .navigationDestination(item: $selectedAlbum) { album in
@@ -119,7 +120,7 @@ public struct HomeView: View {
         }
         .navigationDestination(item: $selectedSection) { section in
             SectionAlbumsGridView(name: section.sectionName, albums: section.albums, selectedAlbum: $gridSelectedAlbum)
-                .onAppear { dataModel.track(.screenView(.sectionGrid, ["section": section.sectionName, "source": AnalyticsScreen.home.rawValue])) }
+                .onAppear { dataModel.track(.screenView(.sectionGrid, ["section": section.analyticsName, "source": AnalyticsScreen.home.rawValue])) }
                 .navigationDestination(item: $gridSelectedAlbum) { album in
                     AlbumDetailsView(album: album)
                 }
@@ -127,14 +128,14 @@ public struct HomeView: View {
         .onChange(of: selectedAlbum) { _, album in
             guard let album else { return }
             let section = dataModel.homeSections.first { $0.albums.contains { $0.id == album.id } }
-            dataModel.track(.albumTap(source: .homeSection, albumId: album.id, section: section?.sectionName))
+            dataModel.track(.albumTap(source: .homeSection, albumId: album.id, section: section?.analyticsName))
         }
         .onChange(of: gridSelectedAlbum) { _, album in
             guard let album else { return }
-            dataModel.track(.albumTap(source: .sectionGrid, albumId: album.id, section: selectedSection?.sectionName))
+            dataModel.track(.albumTap(source: .sectionGrid, albumId: album.id, section: selectedSection?.analyticsName))
         }
         .onAppear { dataModel.track(.screenView(.home)) }
-        .navigationTitle(String(localized: "home.navigation.title", bundle: .module))
+        .navigationTitle(String(localized: .homeNavigationTitle))
         .toolbarTitleDisplayMode(.inlineLarge)
         .task(priority: .userInitiated) {
             // High priority - user is waiting for initial home screen load

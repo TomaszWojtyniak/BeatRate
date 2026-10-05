@@ -11,7 +11,10 @@ import Foundation
 @Model
 public final class CachedSection {
     @Attribute(.unique) public var sectionId: String
+    /// The English name; the shown title is picked per language when read back.
     public var name: String
+    /// Firebase's `name_pl`; `nil` for rows cached before it existed.
+    public var namePL: String?
     public var order: Int
     public var orderedAlbumIds: [String]
     public var lastUpdated: Date
@@ -19,9 +22,10 @@ public final class CachedSection {
     @Relationship
     public var albums: [CachedAlbum]?
 
-    public init(sectionId: String, name: String, order: Int, orderedAlbumIds: [String] = []) {
+    public init(sectionId: String, name: String, namePL: String? = nil, order: Int, orderedAlbumIds: [String] = []) {
         self.sectionId = sectionId
         self.name = name
+        self.namePL = namePL
         self.order = order
         self.orderedAlbumIds = orderedAlbumIds
         self.lastUpdated = Date()
@@ -29,7 +33,7 @@ public final class CachedSection {
     
     @MainActor public func toHomeSection() -> HomeSection {
         guard let albums = albums, !albums.isEmpty else {
-            return HomeSection(sectionName: name, albums: [])
+            return HomeSection(name: name, namePL: namePL, albums: [])
         }
 
         // Create a dictionary for fast lookup
@@ -40,6 +44,6 @@ public final class CachedSection {
             albumDict[albumId].flatMap { $0.toAlbumModel() }
         }
 
-        return HomeSection(sectionName: name, albums: sortedAlbums)
+        return HomeSection(name: name, namePL: namePL, albums: sortedAlbums)
     }
 }
