@@ -180,6 +180,8 @@ public actor HomeRepository: HomeRepositoryProtocol {
         sections.map { section in
             HomeSection(
                 sectionName: section.sectionName,
+                analyticsName: section.analyticsName,
+                namePL: section.namePL,
                 albums: section.albums.map { album in
                     AlbumModel(
                         id: album.id,
@@ -200,7 +202,7 @@ public actor HomeRepository: HomeRepositoryProtocol {
                 group.addTask {
                     try Task.checkCancellation()
                     let albumModels = try await self.fetchAlbumsForSection(albumIds: section.albums)
-                    let homeSection = HomeSection(sectionName: section.name, albums: albumModels)
+                    let homeSection = HomeSection(sectionName: section.name, namePL: section.namePL, albums: albumModels)
                     return (order: index, section: homeSection)
                 }
             }

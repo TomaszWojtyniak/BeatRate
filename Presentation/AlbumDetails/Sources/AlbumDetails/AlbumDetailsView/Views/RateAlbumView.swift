@@ -24,11 +24,11 @@ struct RateAlbumView: View {
                     .appShadow(.accentGlow)
 
                 VStack(alignment: .leading, spacing: Spacing.xxs) {
-                    Text(myRating == 0 ? "Rate this album" : "Your rating")
+                    Text(myRating == 0 ? LocalizedStringResource.ratingTitle : .ratingYourRating)
                         .textStyle(.bodyEmphasis)
 
                     if myRating == 0 {
-                        Text("Tap or drag a star to rate")
+                        Text(.ratingHint)
                             .textStyle(.caption)
                     }
                 }
@@ -36,7 +36,7 @@ struct RateAlbumView: View {
                 Spacer(minLength: 0)
 
                 if myRating > 0 {
-                    Text(String(format: "%.1f", myRating))
+                    Text(myRating, format: .number.precision(.fractionLength(1)))
                         .textStyle(.statValueCompact, color: .accentPrimary)
                         .contentTransition(.numericText(value: myRating))
                 }
@@ -49,7 +49,7 @@ struct RateAlbumView: View {
                 HStack(spacing: Spacing.xs) {
                     Image(systemName: myRating == 0 ? "xmark.circle.fill" : "checkmark.circle.fill")
                         .foregroundStyle(Color.accentPrimary)
-                    Text(myRating == 0 ? "Rating removed" : "Saved to your library")
+                    Text(myRating == 0 ? LocalizedStringResource.ratingRemoved : .ratingSaved)
                         .textStyle(.captionEmphasis)
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))

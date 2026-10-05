@@ -18,7 +18,7 @@ import SwiftDataManager
 public protocol AccountRepositoryProtocol: Sendable {
     func getUserRatedAlbums() async throws -> [AlbumModel]
     func getRecentlyListenedAlbums(for player: MusicPlayer) async throws -> [AlbumModel]
-    func getAlbumSections(recentlyListenedFor player: MusicPlayer?) async throws -> (rated: [AlbumModel], recentlyListened: [AlbumModel])
+    func getAlbumSections(recentlyListenedFor player: MusicPlayer?) async throws -> (rated: [AlbumModel], recentlyListened: [AlbumModel]?)
     func getFavoriteAlbums() async throws -> [AlbumModel]
     func setFavoriteAlbums(albumIds: [String]) async throws
 }
@@ -62,11 +62,13 @@ public actor AccountRepository: AccountRepositoryProtocol {
     /// Loads the Account album sections (rated + recently listened) from a **single**
     /// `user_ratings` read: the rated section takes its newest-first ordering from
     /// it, and the recently-listened section takes its rating badges from it —
-    /// instead of each section reading the node independently.
-    public func getAlbumSections(recentlyListenedFor player: MusicPlayer?) async throws -> (rated: [AlbumModel], recentlyListened: [AlbumModel]) {
+    /// instead of each section reading the node independently. `recentlyListened`
+    /// is `nil` when that fetch failed (not an empty history), so the caller can
+    /// keep what it already shows.
+    public func getAlbumSections(recentlyListenedFor player: MusicPlayer?) async throws -> (rated: [AlbumModel], recentlyListened: [AlbumModel]?) {
         guard let userId = try await getCurrentUserId(), !userId.isEmpty else {
             // Not logged in: no rated albums; recently listened is MusicKit-only.
-            return (rated: [], recentlyListened: (try? await recentlyListened(for: player, ratings: [:])) ?? [])
+            return (rated: [], recentlyListened: try? await recentlyListened(for: player, ratings: [:]))
         }
 
         let entries = (try? await databaseFirebaseService.getUserRatingsSorted(userId: userId)) ?? []
@@ -74,7 +76,7 @@ public actor AccountRepository: AccountRepositoryProtocol {
 
         async let ratedTask = albums(forIds: entries.map(\.albumId))
         async let recentTask = recentlyListened(for: player, ratings: ratingsMap)
-        return await (rated: ratedTask, recentlyListened: (try? await recentTask) ?? [])
+        return await (rated: ratedTask, recentlyListened: try? await recentTask)
     }
 
     /// Fetches recently-listened albums and badges each with the caller-supplied

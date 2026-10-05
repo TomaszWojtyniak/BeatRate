@@ -35,18 +35,18 @@ struct FavoritesSectionView: View {
 
     private var header: some View {
         HStack(spacing: Spacing.sm) {
-            Text("Favorites")
+            Text(.favoritesTitle)
                 .textStyle(.titleSection)
 
             Spacer(minLength: Spacing.xs)
 
             if canShare {
                 Button(action: onShare) {
-                    Text("Share")
+                    Text(.favoritesShare)
                         .textStyle(.captionEmphasis, color: .accentPrimary)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Share favorites")
+                .accessibilityLabel(String(localized: .favoritesShareAccessibility))
             }
         }
     }
@@ -98,6 +98,6 @@ struct FavoritesSectionView: View {
                 }
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Add favorite album")
+        .accessibilityLabel(String(localized: .favoritesAdd))
     }
 }

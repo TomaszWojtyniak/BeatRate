@@ -135,7 +135,9 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
 
             let cachedSection = CachedSection(
                 sectionId: "section_\(index)",
-                name: section.sectionName,
+                // English, not `sectionName`, which may already be the Polish title
+                name: section.analyticsName,
+                namePL: section.namePL,
                 order: index,
                 orderedAlbumIds: orderedAlbumIds
             )

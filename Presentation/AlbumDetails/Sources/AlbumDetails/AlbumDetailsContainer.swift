@@ -9,6 +9,7 @@ import SwiftUI
 import Models
 import HomeUseCases
 import Analytics
+import OSLog
 
 /// Container view that fetches album data by ID before showing details
 /// Checks cache first (home albums only), then fetches from MusicKit
@@ -40,14 +41,14 @@ public struct AlbumDetailsContainer: View {
         Group {
             switch state {
             case .loading:
-                ProgressView("Loading album...")
+                ProgressView(String(localized: .albumLoading))
             case .failed(let message):
                 ContentUnavailableView {
-                    Label("Error", systemImage: "exclamationmark.triangle")
+                    Label(String(localized: .albumErrorTitle), systemImage: "exclamationmark.triangle")
                 } description: {
                     Text(message)
                 } actions: {
-                    Button("Try Again") {
+                    Button(String(localized: .albumErrorRetry)) {
                         analyticsManager.log(.retryTap(screen: .albumDetails))
                         Task { await fetchAlbum() }
                     }
@@ -68,7 +69,8 @@ public struct AlbumDetailsContainer: View {
             let album = try await getAlbumByIdUseCase.fetchAlbum(id: albumId)
             state = .loaded(album)
         } catch {
-            state = .failed("Failed to load album: \(error.localizedDescription)")
+            Logger.albumDetails.error("Failed to load album \(albumId): \(error)")
+            state = .failed(String(localized: .albumErrorMessage))
         }
     }
 }

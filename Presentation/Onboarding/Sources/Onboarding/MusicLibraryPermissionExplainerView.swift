@@ -23,12 +23,12 @@ public struct MusicLibraryPermissionExplainerView: View {
 
                 LogomarkView(style: .yellow)
 
-                Text("Music library access")
+                Text(.libraryAccessTitle)
                     .textStyle(.title, color: .primaryTextOnDark)
                     .multilineTextAlignment(.center)
                     .padding(.top, Spacing.xl)
 
-                Text("BeatRate uses Apple Music's catalog to show you new releases, fetch album metadata and tracklists, and let you rate every album you listen to.")
+                Text(.libraryAccessMessage)
                     .textStyle(.body, color: .secondaryTextOnDark)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Spacing.lg)
@@ -37,15 +37,15 @@ public struct MusicLibraryPermissionExplainerView: View {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
                     MusicLibraryPermissionBullet(
                         icon: "magnifyingglass",
-                        text: "Search the full Apple Music catalog."
+                        text: String(localized: .libraryAccessBulletSearch)
                     )
                     MusicLibraryPermissionBullet(
                         icon: "star.fill",
-                        text: "Rate albums and keep your taste in one place."
+                        text: String(localized: .libraryAccessBulletRate)
                     )
                     MusicLibraryPermissionBullet(
                         icon: "music.note",
-                        text: "Open albums in your music player of choice."
+                        text: String(localized: .libraryAccessBulletOpen)
                     )
                 }
                 .padding(.top, Spacing.xl)
@@ -54,7 +54,7 @@ public struct MusicLibraryPermissionExplainerView: View {
                 Spacer()
 
                 Button(action: onContinue) {
-                    Text("Continue")
+                    Text(.libraryAccessContinue)
                         .textStyle(.bodyEmphasis, color: .primaryTextOnDark)
                         .frame(maxWidth: .infinity)
                         .frame(height: Size.signInButton)

@@ -116,19 +116,29 @@ final class AccountDataModel {
             // `getAlbumSections`.
             async let favoritesTask = getAccountUseCase.getFavoriteAlbums()
 
-            self.userProfile = try await getLoginUseCase.getUserProfile(userId: userId)
-
-            let sections = try await getAccountUseCase.getAlbumSections(recentlyListenedFor: recentsPlayer)
+            // Nothing observable changes until every fetch is done: on pull-to-refresh
+            // a redraw mid-flight makes SwiftUI cancel the refresh task, which cancelled
+            // the MusicKit request (-999) and emptied the sections.
+            let profile = try await getLoginUseCase.getUserProfile(userId: userId)
+            let sections = try await getAccountUseCase.getAlbumSections(recentlyListenedFor: recentsPlayer(for: profile))
             let favorites = try await favoritesTask
 
+            // Cancelled anyway (e.g. the user left mid-refresh): the results may be
+            // partial, so keep what's on screen.
+            guard !Task.isCancelled else { return }
+
+            self.userProfile = profile
             self.ratedAlbums = sections.rated
-            self.recentlyListenedAlbums = sections.recentlyListened
             self.favoriteAlbums = favorites
-            self.isShowingRecentlyListenedSection = !sections.recentlyListened.isEmpty
             self.isShowingAlbumRatingsSection = !sections.rated.isEmpty
+            // `nil` means the fetch failed, not an empty history — keep what's shown.
+            if let recents = sections.recentlyListened {
+                self.recentlyListenedAlbums = recents
+                self.isShowingRecentlyListenedSection = !recents.isEmpty
+            }
             self.hasLoaded = true
 
-            Logger.account.info("Loaded user profile, \(sections.rated.count) rated albums, \(sections.recentlyListened.count) recently listened, \(favorites.count) favorites")
+            Logger.account.info("Loaded user profile, \(sections.rated.count) rated albums, \(sections.recentlyListened?.count ?? 0) recently listened, \(favorites.count) favorites")
         } catch {
             Logger.account.error("Failed to load user data: \(error)")
             errorMessage = "Failed to load user data"
@@ -145,14 +155,14 @@ final class AccountDataModel {
     /// player: Spotify history is limited to Premium accounts for now. Apple Music
     /// is unaffected, and a `nil` premium flag counts as not-Premium so the section
     /// stays hidden until a `/me` check has actually confirmed it.
-    private var recentsPlayer: MusicPlayer? {
+    private func recentsPlayer(for profile: FirebaseUserProfile?) -> MusicPlayer? {
         guard let player = musicPlayerManager.current else { return nil }
-        guard player != .spotify || userProfile?.hasSpotifyPremium == true else { return nil }
+        guard player != .spotify || profile?.hasSpotifyPremium == true else { return nil }
         return player
     }
 
     private func fetchRecentlyListenedAlbums() async -> [AlbumModel] {
-        guard let player = recentsPlayer else {
+        guard let player = recentsPlayer(for: userProfile) else {
             Logger.account.info("No player eligible for recently listened; skipping")
             return []
         }

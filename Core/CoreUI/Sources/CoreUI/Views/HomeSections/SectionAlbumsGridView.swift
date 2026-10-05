@@ -44,6 +44,10 @@ public struct SectionAlbumsGridView: View {
         }
         .meshBackground()
         .navigationTitle(name)
+        .scrollEdgeEffectStyle(
+            .soft,
+            for: .all
+        )
     }
 }
 

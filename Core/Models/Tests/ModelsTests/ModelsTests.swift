@@ -1,6 +1,16 @@
+import Foundation
 import Testing
 @testable import Models
 
-@Test func example() async throws {
-    // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+/// Firebase sections may or may not carry `name_pl`; both shapes must decode.
+@Test func firebaseSectionDecodesOptionalPolishName() throws {
+    let decode = { (json: String) throws -> FirebaseAlbumSection in
+        try JSONDecoder().decode(FirebaseAlbumSection.self, from: Data(json.utf8))
+    }
+
+    let withPolish = try decode(#"{"id":"a","name":"New","name_pl":"Nowe","albums":[],"isActive":true}"#)
+    let englishOnly = try decode(#"{"id":"b","name":"New","albums":[],"isActive":true}"#)
+
+    #expect(withPolish.namePL == "Nowe")
+    #expect(englishOnly.namePL == nil)
 }

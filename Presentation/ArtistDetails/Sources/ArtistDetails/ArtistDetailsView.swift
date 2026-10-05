@@ -45,7 +45,7 @@ public struct ArtistDetailsView: View {
         }
         .loading(
             dataModel.isLoading,
-            message: "Loading artist"
+            message: String(localized: .artistLoading)
         )
         .onAppear {
             dataModel.loadIfNeeded()
@@ -79,7 +79,7 @@ public struct ArtistDetailsView: View {
         .meshBackground()
         .navigationDestination(item: $selectedSection) { section in
             SectionAlbumsGridView(name: section.sectionName, albums: section.albums, selectedAlbum: $gridSelectedAlbum)
-                .onAppear { dataModel.track(.screenView(.sectionGrid, ["section": section.sectionName, "source": AnalyticsScreen.artistDetails.rawValue])) }
+                .onAppear { dataModel.track(.screenView(.sectionGrid, ["section": section.analyticsName, "source": AnalyticsScreen.artistDetails.rawValue])) }
         }
         .navigationDestination(item: $selectedAlbum) { album in
             albumDestination(album)
@@ -90,21 +90,25 @@ public struct ArtistDetailsView: View {
         .onChange(of: selectedAlbum) { _, album in
             guard let album else { return }
             let section = dataModel.sections.first { $0.albums.contains { $0.id == album.id } }
-            dataModel.track(.albumTap(source: .artist, albumId: album.id, section: section?.sectionName))
+            dataModel.track(.albumTap(source: .artist, albumId: album.id, section: section?.analyticsName))
         }
         .onChange(of: gridSelectedAlbum) { _, album in
             guard let album else { return }
-            dataModel.track(.albumTap(source: .sectionGrid, albumId: album.id, section: selectedSection?.sectionName))
+            dataModel.track(.albumTap(source: .sectionGrid, albumId: album.id, section: selectedSection?.analyticsName))
         }
+        .scrollEdgeEffectStyle(
+            .soft,
+            for: .all
+        )
     }
 
     private var failedView: some View {
         ContentUnavailableView {
-            Label("Error", systemImage: "exclamationmark.triangle")
+            Label(String(localized: .artistErrorTitle), systemImage: "exclamationmark.triangle")
         } description: {
-            Text("Failed to load artist.")
+            Text(.artistErrorMessage)
         } actions: {
-            Button("Try Again") {
+            Button(String(localized: .artistErrorRetry)) {
                 dataModel.track(.retryTap(screen: .artistDetails))
                 dataModel.loadIfNeeded()
             }

@@ -32,18 +32,18 @@ public struct SettingsView: View {
                 }
 
                 Section {
-                    Toggle("Share usage analytics", isOn: $dataModel.isAnalyticsEnabled)
+                    Toggle(String(localized: .settingsPrivacyAnalytics), isOn: $dataModel.isAnalyticsEnabled)
                 } header: {
-                    Text("Privacy")
+                    Text(.settingsPrivacyTitle)
                 } footer: {
-                    Text("Helps improve BeatRate by showing which features get used. Crash reports are always sent so bugs can be fixed.")
+                    Text(.settingsPrivacyFooter)
                 }
 
                 Section {
-                    Link("Privacy Policy", destination: Self.privacyPolicyUrl)
-                    Link("Terms of Use", destination: Self.termsUrl)
+                    Link(String(localized: .settingsLegalPrivacyPolicy), destination: Self.privacyPolicyUrl)
+                    Link(String(localized: .settingsLegalTerms), destination: Self.termsUrl)
                 } header: {
-                    Text("Legal")
+                    Text(.settingsLegalTitle)
                 }
                 
                 if dataModel.isLoggedIn {
@@ -51,11 +51,11 @@ public struct SettingsView: View {
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle("Settings")
+            .navigationTitle(String(localized: .settingsNavigationTitle))
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
+                    Button(String(localized: .settingsDone)) { dismiss() }
                 }
             }
             .task {
@@ -66,9 +66,9 @@ public struct SettingsView: View {
         .onAppear { dataModel.track(.screenView(.settings)) }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
-        .alert("Are you sure you want to logout?", isPresented: $dataModel.showLogoutConfirmation) {
-            Button("Cancel", role: .cancel) {}
-            Button("Logout", role: .destructive) {
+        .alert(String(localized: .settingsLogoutConfirmTitle), isPresented: $dataModel.showLogoutConfirmation) {
+            Button(String(localized: .settingsCancel), role: .cancel) {}
+            Button(String(localized: .settingsLogout), role: .destructive) {
                 Task {
                     do {
                         try await dataModel.logout()
@@ -99,17 +99,17 @@ public struct SettingsView: View {
                 }
             } label: {
                 HStack(spacing: Spacing.sm) {
-                    Text("Player")
+                    Text(.settingsPlayerLabel)
                         .textStyle(.bodyEmphasis)
 
                     Spacer(minLength: Spacing.xs)
 
-                    Text(dataModel.mainMusicPlayer?.displayName ?? "Not set")
+                    Text(dataModel.mainMusicPlayer?.displayName ?? String(localized: .settingsPlayerNotSet))
                         .foregroundStyle(.secondary)
                 }
             }
         } header: {
-            Text("Main music player")
+            Text(.settingsPlayerTitle)
         } footer: {
             if let notice = dataModel.spotifyNotice {
                 Text(notice)
@@ -124,7 +124,7 @@ public struct SettingsView: View {
                 dataModel.track(.logoutTap)
                 dataModel.showLogoutConfirmation = true
             } label: {
-                Text("Logout")
+                Text(.settingsLogout)
             }
             .disabled(dataModel.isLoggingOut)
         }
@@ -133,11 +133,11 @@ public struct SettingsView: View {
             Button(role: .destructive) {
                 dataModel.showDeleteAccountSheet = true
             } label: {
-                Text("Delete Account")
+                Text(.settingsDeleteAccount)
             }
             .disabled(dataModel.isDeletingAccount)
         } footer: {
-            Text("Permanently deletes your account and all your ratings and favorites. This can't be undone.")
+            Text(.settingsDeleteAccountFooter)
         }
     }
 }
@@ -163,10 +163,10 @@ private struct DeleteAccountSheet: View {
             Image(systemName: "exclamationmark.triangle.fill")
                 .textStyle(.iconPlaceholder, color: Color.errorRed)
 
-            Text("Delete Account")
+            Text(.settingsDeleteAccount)
                 .textStyle(.title)
 
-            Text("This permanently deletes your account and all your ratings and favorites. This can't be undone. Confirm with your Apple ID to continue.")
+            Text(.settingsDeleteAccountMessage)
                 .textStyle(.body, color: .secondaryText)
                 .multilineTextAlignment(.center)
 
@@ -192,7 +192,7 @@ private struct DeleteAccountSheet: View {
                 .clipShape(RoundedRectangle(cornerRadius: Radius.signInButton, style: .continuous))
             }
 
-            Button("Cancel") { dismiss() }
+            Button(String(localized: .settingsCancel)) { dismiss() }
                 .disabled(dataModel.isDeletingAccount)
                 .padding(.bottom, Spacing.xs)
         }
@@ -220,14 +220,14 @@ private struct DeleteAccountSheet: View {
                     // The wipe runs before the auth user is deleted, so a failure
                     // here can leave an emptied-but-live account. Retrying finishes
                     // the job (the second wipe is a no-op), so say so.
-                    errorMessage = "We couldn't finish deleting your account. Please try again."
+                    errorMessage = String(localized: .settingsDeleteAccountError)
                 }
             case .failure(let error):
                 // Cancellation is a normal outcome — leave the sheet open, no error.
                 if let authError = error as? ASAuthorizationError, authError.code == .canceled {
                     return
                 }
-                errorMessage = "Couldn't verify your Apple ID. Please try again."
+                errorMessage = String(localized: .settingsDeleteAccountVerifyError)
             }
         }
     }

@@ -19,16 +19,16 @@ struct RecentAlbumsSection: View {
     var body: some View {
         if albums.isEmpty {
             ContentUnavailableView {
-                Label("Search music", systemImage: "magnifyingglass")
+                Label(String(localized: .searchRecentEmptyTitle), systemImage: "magnifyingglass")
                     .foregroundStyle(Color.primaryText)
             } description: {
-                Text("Find albums and rate everything you listen to.")
+                Text(.searchRecentEmptyMessage)
                     .textStyle(.body, color: .secondaryText)
             }
         } else {
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 HStack(alignment: .firstTextBaseline) {
-                    Text("Recent")
+                    Text(.searchRecentTitle)
                         .textStyle(.titleSection)
 
                     Spacer()
@@ -37,7 +37,7 @@ struct RecentAlbumsSection: View {
                         Button {
                             showClearAlert = true
                         } label: {
-                            Text("Clear")
+                            Text(.searchRecentClear)
                                 .textStyle(.captionEmphasis, color: .accentPrimary)
                         }
                     }
@@ -69,13 +69,13 @@ struct RecentAlbumsSection: View {
 
                 Spacer()
             }
-            .alert("Clear Recent Searches", isPresented: $showClearAlert) {
-                Button("Cancel", role: .cancel) { }
-                Button("Clear", role: .destructive) {
+            .alert(String(localized: .searchRecentClearTitle), isPresented: $showClearAlert) {
+                Button(String(localized: .searchRecentCancel), role: .cancel) { }
+                Button(String(localized: .searchRecentClear), role: .destructive) {
                     onClear?()
                 }
             } message: {
-                Text("Are you sure you want to clear all recent albums?")
+                Text(.searchRecentClearMessage)
             }
         }
     }

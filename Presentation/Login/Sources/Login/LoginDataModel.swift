@@ -53,33 +53,33 @@ final class LoginDataModel {
             analyticsManager.log(.loginFailed(errorType: loginError == .localStorageFailed ? "local_storage_failed" : "authentication_failed"))
             switch loginError {
             case .localStorageFailed:
-                errorTitle = "Storage Error"
-                errorMessage = "Unable to save your login information. Please ensure the app has sufficient storage and try again."
+                errorTitle = String(localized: .errorStorageTitle)
+                errorMessage = String(localized: .errorStorageMessage)
             case .authenticationFailed:
-                errorTitle = "Authentication Failed"
-                errorMessage = "Unable to sign in with Apple. Please check your internet connection and try again."
+                errorTitle = String(localized: .errorAuthTitle)
+                errorMessage = String(localized: .errorAuthMessage)
             }
         } else if let authError = error as? ASAuthorizationError {
             analyticsManager.log(.loginFailed(errorType: "apple_error"))
             switch authError.code {
             case .unknown:
-                errorTitle = "Sign In Error"
-                errorMessage = "An unexpected error occurred. Please try again."
+                errorTitle = String(localized: .errorSignInTitle)
+                errorMessage = String(localized: .errorUnexpectedMessage)
             case .notHandled:
-                errorTitle = "Sign In Error"
-                errorMessage = "Unable to complete sign in. Please try again."
+                errorTitle = String(localized: .errorSignInTitle)
+                errorMessage = String(localized: .errorIncompleteMessage)
             case .failed:
-                errorTitle = "Sign In Failed"
-                errorMessage = "Apple Sign In failed. Please check your Apple ID settings and try again."
+                errorTitle = String(localized: .errorSignInFailedTitle)
+                errorMessage = String(localized: .errorAppleMessage)
             default:
-                errorTitle = "Sign In Error"
-                errorMessage = "An error occurred during sign in. Please try again."
+                errorTitle = String(localized: .errorSignInTitle)
+                errorMessage = String(localized: .errorUnknownMessage)
             }
         } else {
             // Generic error
             analyticsManager.log(.loginFailed(errorType: "unknown"))
-            errorTitle = "Sign In Failed"
-            errorMessage = "Unable to sign in. Please check your internet connection and try again."
+            errorTitle = String(localized: .errorSignInFailedTitle)
+            errorMessage = String(localized: .errorNetworkMessage)
         }
 
         self.isShowingErrorAlert = true

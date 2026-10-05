@@ -42,9 +42,8 @@ this has succeeded. The flow is:
    `buildForTesting: true` when you also want the test targets compiled
 
 Prefer the MCP over CLI `xcodebuild` — it's faster (uses the already-open Xcode
-window) and avoids the `xcode-select` developer-dir issue. The MCP does
-sometimes fail to connect at session start (`CONNECTION_CLOSED`); fall back to
-the CLI below when it does.
+window). The MCP does sometimes fail to connect at session start
+(`CONNECTION_CLOSED`); fall back to the CLI below when it does.
 
 ### Building the App
 
@@ -54,25 +53,18 @@ Two schemes available:
 
 ```bash
 # Build production
-DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer \
-  xcodebuild -scheme "BeatRate" -project BeatRate.xcodeproj \
+xcodebuild -scheme "BeatRate" -project BeatRate.xcodeproj \
   -destination 'generic/platform=iOS Simulator' -quiet build
 
 # Build development
-DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer \
-  xcodebuild -scheme "BeatRate Development" -project BeatRate.xcodeproj \
+xcodebuild -scheme "BeatRate Development" -project BeatRate.xcodeproj \
   -destination 'generic/platform=iOS Simulator' -quiet build
 
 # Run in Xcode (recommended)
 open BeatRate.xcodeproj
 ```
 
-> **Note:** `xcodebuild` requires full Xcode, not just Command Line Tools. This
-> machine has **Xcode-beta only** — there is no `/Applications/Xcode.app` — so
-> pass `DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer` as above
-> rather than running `sudo xcode-select`.
->
-> Check the **exit code**, not the output: under `-quiet` a target whose only
+> **Note:** check the **exit code**, not the output: under `-quiet` a target whose only
 > diagnostic is a warning still prints `error: the following command failed with
 > exit code 0 but produced no further output`. Exit code 0 means the build
 > succeeded.
@@ -88,8 +80,7 @@ From the CLI, a simulator destination is **required** — without `-destination`
 xcodebuild picks "My Mac" and fails provisioning:
 
 ```bash
-DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer \
-  xcodebuild -scheme "BeatRate" -project BeatRate.xcodeproj \
+xcodebuild -scheme "BeatRate" -project BeatRate.xcodeproj \
   -destination 'platform=iOS Simulator,name=iPhone 17' test
 ```
 

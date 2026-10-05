@@ -57,11 +57,15 @@ public struct MusicPlayerPickerView: View {
                 .padding(.horizontal, Spacing.lg)
                 .padding(.top, Spacing.xl)
             }
+            .scrollEdgeEffectStyle(
+                .soft,
+                for: .all
+            )
         }
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbarColorScheme(isOnboarding ? .dark : nil, for: .navigationBar)
         .toolbar(dataModel.mode == .change ? .visible : .hidden, for: .navigationBar)
-        .navigationTitle(dataModel.mode == .change ? "Main music player" : "")
+        .navigationTitle(dataModel.mode == .change ? String(localized: .pickerTitle) : "")
         .toolbarTitleDisplayMode(.inline)
         .onAppear { dataModel.track(.screenView(.musicPlayerPicker, ["mode": String(describing: dataModel.mode)])) }
     }

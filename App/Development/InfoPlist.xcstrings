@@ -1,0 +1,68 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "BeatRate Development"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "BeatRate Development"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "NSAppleMusicUsageDescription" : {
+      "comment" : "Privacy - Media Library Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "BeatRate Development uses Apple Music to help you rediscover your music."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BeatRate Development korzysta z Apple Music, aby pomóc ci na nowo odkrywać swoją muzykę."
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryAddUsageDescription" : {
+      "comment" : "Privacy - Photo Library Additions Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "BeatRate Development saves your favorite albums card to your photo library."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BeatRate Development zapisuje kartę z ulubionymi albumami w twojej bibliotece zdjęć."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.1"
+}

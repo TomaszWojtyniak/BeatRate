@@ -34,16 +34,16 @@ struct FavoritesManagerView: View {
                     searchResults
                 }
             }
-            .navigationTitle("Favorites")
+            .navigationTitle(String(localized: .favoritesTitle))
             .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $model.searchText, prompt: "Search albums to add")
+            .searchable(text: $model.searchText, prompt: String(localized: .favoritesManagerSearchPrompt))
             .onChange(of: model.searchText) { model.search() }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(String(localized: .accountCancel)) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
+                    Button(String(localized: .accountDone)) {
                         let final = model.working
                         model.track(.favoritesSaved(count: final.count))
                         Task { await onSave(final) }
@@ -61,7 +61,7 @@ struct FavoritesManagerView: View {
         List {
             Section {
                 if model.working.isEmpty {
-                    Text("Search above to add up to \(AccountDataModel.maxFavorites) albums.")
+                    Text(.favoritesManagerEmpty(max: AccountDataModel.maxFavorites))
                         .textStyle(.caption)
                 } else {
                     ForEach(model.working) { album in
@@ -71,7 +71,7 @@ struct FavoritesManagerView: View {
                     .onDelete { model.remove(atOffsets: $0) }
                 }
             } header: {
-                Text("\(model.working.count)/\(AccountDataModel.maxFavorites)")
+                Text(verbatim: "\(model.working.count)/\(AccountDataModel.maxFavorites)")
             }
         }
         // Always-on edit mode surfaces both reorder handles and delete controls —

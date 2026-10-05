@@ -102,8 +102,8 @@ struct OnboardingPlayerCard: View {
 
     private var subtitle: String {
         switch player {
-        case .appleMusic: "Open albums in Apple Music."
-        case .spotify: "Open albums in Spotify, sync recommendations."
+        case .appleMusic: String(localized: .pickerAppleMusicSubtitle)
+        case .spotify: String(localized: .pickerSpotifySubtitle)
         }
     }
 
