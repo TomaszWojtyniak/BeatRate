@@ -8,6 +8,7 @@ import Models
 import CoreApp
 import SettingUseCases
 import Analytics
+import struct MusicKit.MusicAuthorization
 import OSLog
 
 @MainActor
@@ -18,6 +19,8 @@ final class MusicPlayerPickerDataModel {
     var isProcessing: Bool = false
     var pendingChoice: MusicPlayer?
     var errorMessage: String?
+    /// Apple Music was denied earlier — the system won't prompt again, only Settings can grant it.
+    var showsOpenSettings: Bool = false
 
     private let setSettingsUseCase: SetSettingsUseCaseProtocol
     private let getSettingsUseCase: GetSettingsUseCaseProtocol
@@ -57,6 +60,7 @@ final class MusicPlayerPickerDataModel {
         isProcessing = true
         pendingChoice = player
         errorMessage = nil
+        showsOpenSettings = false
         defer {
             isProcessing = false
             pendingChoice = nil
@@ -65,6 +69,7 @@ final class MusicPlayerPickerDataModel {
         do {
             guard try await ensureConnected(player) else {
                 errorMessage = String(localized: .pickerErrorAccessDenied(player: player.displayName))
+                showsOpenSettings = player == .appleMusic && MusicAuthorization.currentStatus == .denied
                 return false
             }
         } catch {

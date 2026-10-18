@@ -12,6 +12,7 @@ import Analytics
 public struct MusicPlayerPickerView: View {
     @State private var dataModel: MusicPlayerPickerDataModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
 
     private let onComplete: (() -> Void)?
 
@@ -50,6 +51,16 @@ public struct MusicPlayerPickerView: View {
                             .textStyle(.caption, color: Color.errorRed)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, Spacing.lg)
+                    }
+
+                    if dataModel.showsOpenSettings {
+                        Button(String(localized: .pickerOpenSettings)) {
+                            dataModel.track(.openSystemSettingsTap)
+                            guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+                            openURL(url)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(Color.accentPrimary)
                     }
 
                     Spacer(minLength: Spacing.xl)

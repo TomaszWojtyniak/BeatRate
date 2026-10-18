@@ -185,14 +185,14 @@ public actor MusicRepository: MusicRepositoryProtocol {
             }
         } catch {
             CrashLogger.setValue("\(player.rawValue): error", forKey: "recently_played")
-            CrashLogger.report("RecentlyPlayed", "\(player.rawValue) fetch failed: \(error)", to: .musicRepository)
+            CrashLogger.report("RecentlyPlayed.failed", "\(player.rawValue) fetch failed: \(error)", to: .musicRepository)
             throw error
         }
 
         Logger.musicRepository.info("Recently played for \(player.rawValue): \(albums.count) albums")
         CrashLogger.setValue("\(player.rawValue): \(albums.count)\(detail)", forKey: "recently_played")
         if albums.isEmpty {
-            CrashLogger.report("RecentlyPlayed", "\(player.rawValue): fetched OK, list empty\(detail)")
+            CrashLogger.report("RecentlyPlayed.empty", "\(player.rawValue): fetched OK, list empty\(detail)")
         }
         return albums
     }

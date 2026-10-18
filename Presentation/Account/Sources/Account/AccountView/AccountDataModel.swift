@@ -232,7 +232,13 @@ final class AccountDataModel {
                 mainMusicPlayer: userProfile?.mainMusicPlayer
             )
 
-            try await setLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
+            // Names only: Settings changes the player/Spotify flags without
+            // refreshing `userProfile`, and the merge leaves nil fields untouched.
+            try await setLoginUseCase.saveUserProfile(userId: userId, profile: FirebaseUserProfile(
+                email: updatedProfile.email,
+                firstName: updatedProfile.firstName,
+                lastName: updatedProfile.lastName
+            ))
             self.userProfile = updatedProfile
             Logger.account.info("User profile updated successfully")
         } catch {

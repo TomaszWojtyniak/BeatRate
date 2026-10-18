@@ -246,6 +246,24 @@
         }
       }
     },
+    "picker.openSettings" : {
+      "comment" : "Button that opens the system Settings app so the user can allow Apple Music access they previously denied.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwórz Ustawienia"
+          }
+        }
+      }
+    },
     "picker.spotify.subtitle" : {
       "comment" : "A description of how to open albums in Spotify and sync recommendations.",
       "extractionState" : "manual",

@@ -56,11 +56,12 @@ public final class CrashLogger {
     /// Non-fatal with a readable reason, for outcomes that aren't a thrown error
     /// (denied permission, empty list) or need context the error lacks. The
     /// console groups them by `domain`; the reason is in the event's logs.
-    /// Each domain+reason goes out once per launch: Crashlytics keeps only the
-    /// latest 8 non-fatals per session, so a repeat must not push out the rest.
+    /// Each domain goes out once per launch — reasons carry IDs and errors, so
+    /// they'd never repeat exactly. Crashlytics keeps only the latest 8
+    /// non-fatals per session; later ones stay as breadcrumbs.
     nonisolated public static func report(_ domain: String, _ reason: String, to logger: Logger? = nil) {
         log(reason, to: logger, file: domain)  // tagged [domain] instead of [module]
-        guard reported.withLock({ $0.insert("\(domain)|\(reason)").inserted }) else { return }
+        guard reported.withLock({ $0.insert(domain).inserted }) else { return }
         Crashlytics.crashlytics().record(error: NSError(
             domain: "BeatRate.\(domain)",
             code: 0,
