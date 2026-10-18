@@ -18,7 +18,6 @@ final class SplashDataModel {
     private let getSplashUseCase: GetSplashUseCaseProtocol
     private let musicPlayerManager: MusicPlayerManager
     private let analyticsManager: AnalyticsManager
-    private let crashLogger: CrashLogger
 
     var errorMessage: String = "Unable to load data. Retrying..."
     var shouldComplete: Bool = true  // Controls whether onComplete() should be called
@@ -35,12 +34,10 @@ final class SplashDataModel {
 
     init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase(),
          musicPlayerManager: MusicPlayerManager = .shared,
-         analyticsManager: AnalyticsManager = .shared,
-         crashLogger: CrashLogger = .shared) {
+         analyticsManager: AnalyticsManager = .shared) {
         self.getSplashUseCase = getSplashUseCase
         self.musicPlayerManager = musicPlayerManager
         self.analyticsManager = analyticsManager
-        self.crashLogger = crashLogger
     }
 
     func track(_ event: AnalyticsEvent) {
@@ -152,8 +149,7 @@ final class SplashDataModel {
             Logger.splash.info("MusicKit authorization granted")
             return true
         } else {
-            Logger.splash.error("MusicKit authorization was not granted")
-            CrashLogger.report("Connect.appleMusic", "splash: authorization not granted")
+            CrashLogger.report("Connect.appleMusic", "splash: authorization not granted", to: .splash)
             // The error message is already set in loadInitialData() when this returns false
             return false
         }
@@ -226,14 +222,13 @@ final class SplashDataModel {
     }
 
     private func handleFetchError(_ error: Error) async {
-        Logger.splash.error("Error fetching data: \(error.localizedDescription)")
-        CrashLogger.log("[splash] Error fetching data: \(error.localizedDescription)")
+        CrashLogger.log("Error fetching data: \(error.localizedDescription)", to: .splash)
 
         if shouldRetry() {
             await performRetry(reason: .connectionError)
         } else {
             // Only the final failure: the retries before it are expected noise offline.
-            crashLogger.reportToCrashlytics(error: error)
+            CrashLogger.report("SplashFetch", "\(error)")
             await handleMaxRetriesReached(
                 errorType: "network failure",
                 userMessage: String(localized: .splashErrorConnection)
@@ -287,8 +282,7 @@ final class SplashDataModel {
         // Enter the app anyway. Home renders the failure with its own retry, and a
         // splash screen the user cannot leave is worse than an empty one they can:
         // a reviewer on bad hotel wifi would otherwise never see the app at all.
-        Logger.splash.error("Max retries reached, \(errorType). Entering the app so Home can recover.")
-        CrashLogger.log("[splash] Max retries reached, \(errorType). Entering the app so Home can recover.")
+        CrashLogger.log("Max retries reached, \(errorType). Entering the app so Home can recover.", to: .splash)
         errorMessage = userMessage
         shouldComplete = true
     }

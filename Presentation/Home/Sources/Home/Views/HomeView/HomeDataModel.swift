@@ -67,8 +67,7 @@ final class HomeDataModel {
             Logger.home.debug("Fetched \(sections.count) sections from network")
         } catch let error {
             didFail = true
-            Logger.home.error("Failed to fetch sections: \(error)")
-            CrashLogger.log("[home] Failed to fetch sections: \(error)")
+            CrashLogger.log("Failed to fetch sections: \(error)", to: .home)
             self.crashLogger.reportToCrashlytics(error: error)
         }
         state = resolveState(didFail: didFail)

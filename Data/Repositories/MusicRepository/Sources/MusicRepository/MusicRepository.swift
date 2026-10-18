@@ -184,9 +184,8 @@ public actor MusicRepository: MusicRepositoryProtocol {
                 detail = " (\(spotifyAlbums.count) played on Spotify)"
             }
         } catch {
-            Logger.musicRepository.error("Recently played for \(player.rawValue) failed: \(error)")
             CrashLogger.setValue("\(player.rawValue): error", forKey: "recently_played")
-            CrashLogger.report("RecentlyPlayed", "\(player.rawValue) fetch failed: \(error)")
+            CrashLogger.report("RecentlyPlayed", "\(player.rawValue) fetch failed: \(error)", to: .musicRepository)
             throw error
         }
 
@@ -213,7 +212,7 @@ public actor MusicRepository: MusicRepositoryProtocol {
             do {
                 matches = try await self.musicKitService.searchAlbums(searchTerm: searchTerm)
             } catch {
-                CrashLogger.log("[musicRepository] Catalog search for a Spotify recent failed: \(error)")
+                CrashLogger.log("Catalog search for a Spotify recent failed: \(error)")
                 return nil
             }
             guard let match = SpotifyAlbumMatcher.bestMatch(for: spotifyAlbum, in: matches) else {

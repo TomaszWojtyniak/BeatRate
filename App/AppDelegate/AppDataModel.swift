@@ -71,8 +71,7 @@ class AppDataModel {
         do {
             self.user = try await self.getAppUseCase.getCurrentUser()
         } catch let error {
-            Logger.app.error("Cant get current user: \(error)")
-            CrashLogger.log("[app] Cant get current user: \(error)")
+            CrashLogger.log("Cant get current user: \(error)", to: .app)
         }
     }
 

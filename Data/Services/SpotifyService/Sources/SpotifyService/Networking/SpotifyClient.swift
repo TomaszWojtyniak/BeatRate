@@ -38,7 +38,7 @@ nonisolated struct SpotifyClient: Sendable {
         do {
             return try decoder.decode(data)
         } catch {
-            SpotifyLog.error("Response from \(url.path()) failed to decode: \(error)")
+            CrashLogger.log("Response from \(url.path()) failed to decode: \(error)", to: .spotifyService)
             throw SpotifyFailure.transient
         }
     }
@@ -53,18 +53,18 @@ nonisolated struct SpotifyClient: Sendable {
 
             switch outcome {
             case .success(let data):
-                SpotifyLog.info("GET \(url.path()) → OK (\(data.count) bytes, attempt \(attempt + 1))")
+                CrashLogger.log("GET \(url.path()) → OK (\(data.count) bytes, attempt \(attempt + 1))", to: .spotifyService, level: .info)
                 return data
 
             case .unauthorized:
                 // One forced refresh — the stored token looked fresh but Spotify
                 // disagrees (revoked access, rotated secret, clock skew).
                 guard !hasRefreshed else {
-                    SpotifyLog.error("GET \(url.path()) still 401 after refresh — session expired")
+                    CrashLogger.log("GET \(url.path()) still 401 after refresh — session expired", to: .spotifyService)
                     await session.signOut()
                     throw SpotifyFailure.sessionExpired
                 }
-                SpotifyLog.info("GET \(url.path()) → 401, refreshing token once")
+                CrashLogger.log("GET \(url.path()) → 401, refreshing token once", to: .spotifyService, level: .info)
                 hasRefreshed = true
                 accessToken = try await session.refreshedAccessToken()
 
@@ -72,11 +72,11 @@ nonisolated struct SpotifyClient: Sendable {
                 guard attempt < Self.maxRetries else {
                     let failure = SpotifyResponseClassifier.failure(forStatus: status, retryAfter: retryAfter)
                         ?? SpotifyFailure.transient
-                    SpotifyLog.error("GET \(url.path()) exhausted retries at \(status)")
+                    CrashLogger.log("GET \(url.path()) exhausted retries at \(status)", to: .spotifyService)
                     throw failure
                 }
                 let delay = retryAfter ?? Self.baseBackoff * pow(2, Double(attempt))
-                SpotifyLog.info("GET \(url.path()) → \(status), retry \(attempt + 1)/\(Self.maxRetries) in \(delay)s")
+                CrashLogger.log("GET \(url.path()) → \(status), retry \(attempt + 1)/\(Self.maxRetries) in \(delay)s", to: .spotifyService, level: .info)
                 await retryDelay(delay)
                 attempt += 1
 
@@ -108,7 +108,7 @@ nonisolated struct SpotifyClient: Sendable {
             (data, response) = try await transport.send(request)
         } catch {
             // Offline or timed out. The session is fine — never sign out here.
-            SpotifyLog.error("GET \(url.path()) transport error: \(error)")
+            CrashLogger.log("GET \(url.path()) transport error: \(error)", to: .spotifyService)
             return .failed(SpotifyResponseClassifier.failure(forTransportError: error))
         }
 
@@ -119,7 +119,7 @@ nonisolated struct SpotifyClient: Sendable {
             return .retryable(status: status, retryAfter: SpotifyResponseClassifier.retryAfterSeconds(from: response))
         }
         let failure = SpotifyResponseClassifier.failure(forStatus: status, retryAfter: nil) ?? .transient
-        SpotifyLog.error("GET \(url.path()) failed with \(status) (\(failure)): \(SpotifyLog.body(data))")
+        CrashLogger.log("GET \(url.path()) failed with \(status) (\(failure)): \(String(decoding: data.prefix(300), as: UTF8.self))", to: .spotifyService)
         return .failed(failure)
     }
 }

@@ -22,7 +22,6 @@ final class AccountDataModel {
     private let setAccountUseCase: SetAccountUseCaseProtocol
     private let musicPlayerManager: MusicPlayerManager
     private let analyticsManager: AnalyticsManager
-    private let crashLogger: CrashLogger
 
     /// A user can curate at most this many favorite albums.
     static let maxFavorites = 4
@@ -68,15 +67,13 @@ final class AccountDataModel {
          getAccountUseCase: GetAccountUseCaseProtocol = GetAccountUseCase(),
          setAccountUseCase: SetAccountUseCaseProtocol = SetAccountUseCase(),
          musicPlayerManager: MusicPlayerManager = .shared,
-         analyticsManager: AnalyticsManager = .shared,
-         crashLogger: CrashLogger = .shared) {
+         analyticsManager: AnalyticsManager = .shared) {
         self.getLoginUseCase = getLoginUseCase
         self.setLoginUseCase = setLoginUseCase
         self.getAccountUseCase = getAccountUseCase
         self.setAccountUseCase = setAccountUseCase
         self.musicPlayerManager = musicPlayerManager
         self.analyticsManager = analyticsManager
-        self.crashLogger = crashLogger
     }
 
     func track(_ event: AnalyticsEvent) {
@@ -185,7 +182,7 @@ final class AccountDataModel {
             let reason = musicPlayerManager.current == nil
                 ? "no player selected"
                 : "spotify, premium \(String(describing: userProfile?.hasSpotifyPremium))"
-            CrashLogger.log("[account] Recently listened skipped: \(reason)")
+            CrashLogger.log("Recently listened skipped: \(reason)")
             CrashLogger.setValue("skipped: \(reason)", forKey: "recently_played")
             return []
         }
@@ -210,9 +207,7 @@ final class AccountDataModel {
             try await setAccountUseCase.setFavoriteAlbums(albumIds: capped.map(\.id))
             Logger.account.info("Saved \(capped.count) favorites")
         } catch {
-            Logger.account.error("Failed to save favorites: \(error)")
-            CrashLogger.log("[account] Failed to save favorites: \(error)")
-            crashLogger.reportToCrashlytics(error: error)
+            CrashLogger.report("SaveFavorites", "Failed to save favorites: \(error)", to: .account)
             errorMessage = "Failed to save favorites"
             // Re-sync with the server so the UI can't drift from what was stored.
             favoriteAlbums = (try? await getAccountUseCase.getFavoriteAlbums()) ?? favoriteAlbums
@@ -241,9 +236,7 @@ final class AccountDataModel {
             self.userProfile = updatedProfile
             Logger.account.info("User profile updated successfully")
         } catch {
-            Logger.account.error("Failed to save user profile: \(error)")
-            CrashLogger.log("[account] Failed to save user profile: \(error)")
-            crashLogger.reportToCrashlytics(error: error)
+            CrashLogger.report("SaveProfile", "Failed to save user profile: \(error)", to: .account)
             errorMessage = "Failed to save profile"
         }
     }

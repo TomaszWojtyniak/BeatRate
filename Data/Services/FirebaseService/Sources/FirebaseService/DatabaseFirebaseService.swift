@@ -56,8 +56,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
         Logger.firebaseService.debug("Snapshot exists: \(snapshot.exists())")
 
         guard let value = snapshot.value as? [String: Any] else {
-            Logger.firebaseService.warning("No sections data found in Firebase or data format invalid")
-            CrashLogger.log("[firebaseService] No sections data found in Firebase or data format invalid")
+            CrashLogger.log("No sections data found in Firebase or data format invalid", to: .firebaseService)
             return []
         }
 
@@ -72,8 +71,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
 
             return activeSections
         } catch let error as DecodingError {
-            Logger.firebaseService.error("Failed to decode sections from Firebase")
-            CrashLogger.log("[firebaseService] Failed to decode sections from Firebase: \(error)")
+            CrashLogger.log("Failed to decode sections from Firebase: \(error)", to: .firebaseService)
             switch error {
             case .keyNotFound(let key, let context):
                 Logger.firebaseService.error("Missing key '\(key.stringValue)' at path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
@@ -88,8 +86,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
             }
             throw error
         } catch {
-            Logger.firebaseService.error("Failed to process sections data: \(error.localizedDescription)")
-            CrashLogger.log("[firebaseService] Failed to process sections data: \(error.localizedDescription)")
+            CrashLogger.log("Failed to process sections data: \(error.localizedDescription)", to: .firebaseService)
             throw error
         }
     }
@@ -460,8 +457,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
                 try await self.recalculateAlbumStats(albumId: albumId)
                 return true
             } catch {
-                Logger.firebaseService.error("Failed to recompute stats for album \(albumId): \(error.localizedDescription)")
-                CrashLogger.log("[firebaseService] Failed to recompute stats for album \(albumId): \(error.localizedDescription)")
+                CrashLogger.log("Failed to recompute stats for album \(albumId): \(error.localizedDescription)", to: .firebaseService)
                 return nil
             }
         }

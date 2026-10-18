@@ -62,19 +62,16 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
             try await keychainManager.saveAppleUserID(appleIDCredential.user)
             Logger.firebaseService.debug("Saved Apple user ID to Keychain")
         } catch {
-            Logger.firebaseService.error("CRITICAL: Failed to save Apple user ID to Keychain: \(error.localizedDescription)")
-            CrashLogger.log("[firebaseService] CRITICAL: Failed to save Apple user ID to Keychain: \(error.localizedDescription)")
+            CrashLogger.log("CRITICAL: Failed to save Apple user ID to Keychain: \(error.localizedDescription)", to: .firebaseService)
             await crashLogger.reportToCrashlytics(error: error)
 
             // Rollback Firebase authentication since we can't save credentials
-            Logger.firebaseService.warning("Rolling back Firebase authentication due to Keychain failure")
-            CrashLogger.log("[firebaseService] Rolling back Firebase authentication due to Keychain failure")
+            CrashLogger.log("Rolling back Firebase authentication due to Keychain failure", to: .firebaseService)
             do {
                 try Auth.auth().signOut()
                 Logger.firebaseService.debug("Successfully rolled back Firebase authentication")
             } catch {
-                Logger.firebaseService.error("Failed to rollback Firebase auth: \(error.localizedDescription)")
-                CrashLogger.log("[firebaseService] Failed to rollback Firebase auth: \(error.localizedDescription)")
+                CrashLogger.log("Failed to rollback Firebase auth: \(error.localizedDescription)", to: .firebaseService)
             }
 
             // Throw the original Keychain error
@@ -100,8 +97,7 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
             try await keychainManager.deleteAppleUserID()
             Logger.firebaseService.debug("Deleted Apple user ID from Keychain")
         } catch {
-            Logger.firebaseService.error("Failed to delete Apple user ID from Keychain: \(error.localizedDescription)")
-            CrashLogger.log("[firebaseService] Failed to delete Apple user ID from Keychain: \(error.localizedDescription)")
+            CrashLogger.log("Failed to delete Apple user ID from Keychain: \(error.localizedDescription)", to: .firebaseService)
             // Don't throw - Keychain cleanup is not critical for sign out
         }
     }
@@ -136,8 +132,7 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
             } catch {
                 // Non-fatal: still delete the account even if revocation fails,
                 // but surface it — a persistent failure means stale Apple grants.
-                Logger.firebaseService.error("Apple token revoke failed: \(error.localizedDescription)")
-                CrashLogger.log("[firebaseService] Apple token revoke failed: \(error.localizedDescription)")
+                CrashLogger.log("Apple token revoke failed: \(error.localizedDescription)", to: .firebaseService)
                 await crashLogger.reportToCrashlytics(error: error)
             }
         }
@@ -181,8 +176,7 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
                 Logger.firebaseService.debug("User profile already exists, no new data to update")
             }
         } catch {
-            Logger.firebaseService.error("Failed to check existing user profile: \(error.localizedDescription)")
-            CrashLogger.log("[firebaseService] Failed to check existing user profile: \(error.localizedDescription)")
+            CrashLogger.log("Failed to check existing user profile: \(error.localizedDescription)", to: .firebaseService)
             await crashLogger.reportToCrashlytics(error: error)
         }
     }
@@ -212,8 +206,7 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
             try await databaseService.saveUserProfile(userId: userId, profile: profile)
             Logger.firebaseService.debug("New user profile created successfully")
         } catch {
-            Logger.firebaseService.error("Failed to save user profile: \(error.localizedDescription)")
-            CrashLogger.log("[firebaseService] Failed to save user profile: \(error.localizedDescription)")
+            CrashLogger.log("Failed to save user profile: \(error.localizedDescription)", to: .firebaseService)
             await crashLogger.reportToCrashlytics(error: error)
         }
     }

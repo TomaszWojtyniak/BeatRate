@@ -22,7 +22,6 @@ final class SettingsDataModel {
     private let getSettingsUseCase: GetSettingsUseCaseProtocol
     private let musicPlayerManager: MusicPlayerManager
     private let analyticsManager: AnalyticsManager
-    private let crashLogger: CrashLogger
     private let sessionManager: SessionManager
 
     /// The user's main player, surfaced for the view so it doesn't reach for the
@@ -51,14 +50,12 @@ final class SettingsDataModel {
          getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase(),
          musicPlayerManager: MusicPlayerManager = .shared,
          analyticsManager: AnalyticsManager = .shared,
-         sessionManager: SessionManager = .shared,
-         crashLogger: CrashLogger = .shared) {
+         sessionManager: SessionManager = .shared) {
         self.getSplashUseCase = getSplashUseCase
         self.getSettingsUseCase = getSettingsUseCase
         self.musicPlayerManager = musicPlayerManager
         self.analyticsManager = analyticsManager
         self.sessionManager = sessionManager
-        self.crashLogger = crashLogger
         self.isAnalyticsEnabled = analyticsManager.consent == true
     }
 
@@ -100,9 +97,7 @@ final class SettingsDataModel {
             analyticsManager.log(.logout)
             Logger.settings.info("Logout successful")
         } catch {
-            Logger.settings.error("Logout failed: \(error)")
-            CrashLogger.log("[settings] Logout failed: \(error)")
-            crashLogger.reportToCrashlytics(error: error)
+            CrashLogger.report("Logout", "Logout failed: \(error)", to: .settings)
             throw error
         }
     }
@@ -125,9 +120,7 @@ final class SettingsDataModel {
             analyticsManager.log(.accountDeleted)
             Logger.settings.info("Account deletion successful")
         } catch {
-            Logger.settings.error("Account deletion failed: \(error)")
-            CrashLogger.log("[settings] Account deletion failed: \(error)")
-            crashLogger.reportToCrashlytics(error: error)
+            CrashLogger.report("DeleteAccount", "Account deletion failed: \(error)", to: .settings)
             throw error
         }
     }

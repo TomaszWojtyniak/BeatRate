@@ -53,8 +53,7 @@ public actor SetLoginUseCase: SetLoginUseCaseProtocol {
             userId = try await loginRepository.setLoginData(authResult: authResult)
             Logger.loginUseCases.info("Firebase authentication successful for user: \(userId)")
         } catch {
-            Logger.loginUseCases.error("Firebase authentication failed: \(error.localizedDescription)")
-            CrashLogger.log("[loginUseCases] Firebase authentication failed: \(error.localizedDescription)")
+            CrashLogger.log("Firebase authentication failed: \(error.localizedDescription)", to: .loginUseCases)
             throw LoginUseCaseError.authenticationFailed
         }
 
@@ -66,17 +65,14 @@ public actor SetLoginUseCase: SetLoginUseCaseProtocol {
             return userId
         } catch {
             // CRITICAL: Local storage failed - rollback Firebase authentication
-            Logger.loginUseCases.error("Local storage failed: \(error.localizedDescription)")
-            CrashLogger.log("[loginUseCases] Local storage failed: \(error.localizedDescription)")
-            Logger.loginUseCases.warning("Rolling back Firebase authentication due to local storage failure")
-            CrashLogger.log("[loginUseCases] Rolling back Firebase authentication due to local storage failure")
+            CrashLogger.log("Local storage failed: \(error.localizedDescription)", to: .loginUseCases)
+            CrashLogger.log("Rolling back Firebase authentication due to local storage failure", to: .loginUseCases)
 
             do {
                 try await loginRepository.signOut()
                 Logger.loginUseCases.info("Successfully rolled back Firebase authentication")
             } catch {
-                Logger.loginUseCases.error("Failed to rollback Firebase auth: \(error.localizedDescription)")
-                CrashLogger.log("[loginUseCases] Failed to rollback Firebase auth: \(error.localizedDescription)")
+                CrashLogger.log("Failed to rollback Firebase auth: \(error.localizedDescription)", to: .loginUseCases)
                 // Continue to throw the original error even if rollback fails
             }
 

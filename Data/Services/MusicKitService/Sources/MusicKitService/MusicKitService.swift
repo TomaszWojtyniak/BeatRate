@@ -35,8 +35,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
 
     public func requestMusicAuthorization() async -> MusicAuthorizationResult {
         let status = await MusicAuthorization.request()
-        Logger.musicService.info("Authorization status: \(String(describing: status))")
-        CrashLogger.log("[musicKit] Authorization status: \(status)")
+        CrashLogger.log("Authorization status: \(status)", to: .musicService, level: .info)
         CrashLogger.setValue("\(status)", forKey: "apple_music_auth")
 
         guard status == .authorized else {
@@ -45,9 +44,9 @@ public actor MusicKitService: MusicKitServiceProtocol {
 
         if let subscription = await currentSubscription(timeout: Constants.subscriptionTimeout) {
             canPlayAppleMusic = subscription.canPlayCatalogContent
-            CrashLogger.log("[musicKit] Subscription: canPlayCatalogContent \(subscription.canPlayCatalogContent), canBecomeSubscriber \(subscription.canBecomeSubscriber)")
+            CrashLogger.log("Subscription: canPlayCatalogContent \(subscription.canPlayCatalogContent), canBecomeSubscriber \(subscription.canBecomeSubscriber)")
         } else {
-            CrashLogger.log("[musicKit] Subscription check timed out, keeping canPlay \(canPlayAppleMusic)")
+            CrashLogger.log("Subscription check timed out, keeping canPlay \(canPlayAppleMusic)")
         }
         CrashLogger.setValue("\(canPlayAppleMusic)", forKey: "apple_music_subscription")
 
@@ -94,8 +93,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
         do {
             loadedTracks = try await tracks
         } catch {
-            Logger.musicService.error("Failed to fetch tracks for album \(id): \(error)")
-            CrashLogger.log("[musicKit] Failed to fetch tracks for album \(id): \(error)")
+            CrashLogger.log("Failed to fetch tracks for album \(id): \(error)", to: .musicService)
             loadedTracks = nil
         }
         return albumData(from: album, tracks: loadedTracks)
@@ -214,7 +212,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
             return albumData(from: album)
         }
         // Playlists and stations are dropped, so "played only playlists" also ends up empty.
-        CrashLogger.log("[musicKit] Recently played: \(response.items.count) items → \(albums.count) albums")
+        CrashLogger.log("Recently played: \(response.items.count) items → \(albums.count) albums")
         return albums
     }
 

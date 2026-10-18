@@ -67,11 +67,10 @@ public struct AlbumDetailsContainer: View {
         state = .loading
         do {
             let album = try await getAlbumByIdUseCase.fetchAlbum(id: albumId)
-            CrashLogger.log("[albumDetails] Loaded album \(albumId), tracks: \(album.appleMusicAlbumData.tracks.map { "\($0.count)" } ?? "none yet")")
+            CrashLogger.log("Loaded album \(albumId), tracks: \(album.appleMusicAlbumData.tracks.map { "\($0.count)" } ?? "none yet")")
             state = .loaded(album)
         } catch {
-            Logger.albumDetails.error("Failed to load album \(albumId): \(error)")
-            CrashLogger.report("AlbumDetails", "load \(albumId) failed: \(error)")
+            CrashLogger.report("AlbumDetails", "load \(albumId) failed: \(error)", to: .albumDetails)
             state = .failed(String(localized: .albumErrorMessage))
         }
     }

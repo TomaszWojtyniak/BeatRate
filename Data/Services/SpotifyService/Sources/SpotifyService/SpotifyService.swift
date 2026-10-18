@@ -46,19 +46,13 @@ public actor SpotifyService: SpotifyServiceProtocol {
     // MARK: - Authorization
 
     public func requestAuthorization() async throws -> SpotifyAuthResult {
-        SpotifyLog.info("Connect: starting authorization")
-        do {
-            _ = try await session.authorize()
-        } catch {
-            SpotifyLog.error("Connect: authorization failed: \(error)")
-            CrashLogger.setValue("connect failed: \(error)", forKey: "spotify_connection")
-            throw error
-        }
+        CrashLogger.log("Connect: starting authorization", to: .spotifyService, level: .info)
+        _ = try await session.authorize()
 
         // Premium comes from the same /me call the connection check uses, so
         // connecting costs one request rather than two.
         let premium = await currentPremiumStatus()
-        SpotifyLog.info("Connect: authorized, premium: \(premium)")
+        CrashLogger.log("Connect: authorized, premium: \(premium)", to: .spotifyService, level: .info)
         CrashLogger.setValue("connected", forKey: "spotify_connection")
         CrashLogger.setValue("\(premium)", forKey: "spotify_premium")
         return SpotifyAuthResult(isAuthorized: true, premium: premium)
@@ -75,7 +69,7 @@ public actor SpotifyService: SpotifyServiceProtocol {
     /// forced a full reconnect.
     public func verifyConnection() async -> SpotifyConnectionState {
         let state = await checkConnection()
-        SpotifyLog.info("Connection check: \(state)")
+        CrashLogger.log("Connection check: \(state)", to: .spotifyService, level: .info)
         CrashLogger.setValue("\(state)", forKey: "spotify_connection")
         return state
     }
@@ -87,15 +81,15 @@ public actor SpotifyService: SpotifyServiceProtocol {
         } catch SpotifyFailure.noSession {
             return .notConnected
         } catch SpotifyFailure.sessionExpired {
-            SpotifyLog.error("Connection check: session expired, reconnect required")
+            CrashLogger.log("Connection check: session expired, reconnect required", to: .spotifyService)
             return .needsReauth
         } catch SpotifyFailure.notAllowlisted {
-            SpotifyLog.error("Connection check: account is not on the Development Mode allowlist")
+            CrashLogger.log("Connection check: account is not on the Development Mode allowlist", to: .spotifyService)
             return .notAllowlisted
         } catch {
             // Transient, rate-limited, or unrecognized: the session is probably
             // fine. Do not prompt the user to reconnect.
-            SpotifyLog.error("Connection check unavailable: \(error)")
+            CrashLogger.log("Connection check unavailable: \(error)", to: .spotifyService)
             return .unavailable
         }
     }
@@ -103,19 +97,13 @@ public actor SpotifyService: SpotifyServiceProtocol {
     // MARK: - Recently Played
 
     public func fetchRecentlyPlayedAlbums() async throws -> [SpotifyRecentAlbum] {
-        SpotifyLog.info("Recently played: fetching")
-        let response: SpotifyRecentlyPlayedResponse
-        do {
-            response = try await client.get(
-                SpotifyAPI.recentlyPlayed(limit: SpotifyAPI.Limit.recentlyPlayedPage),
-                session: session
-            )
-        } catch {
-            SpotifyLog.error("Recently played: fetch failed: \(error)")
-            throw error
-        }
+        CrashLogger.log("Recently played: fetching", to: .spotifyService, level: .info)
+        let response: SpotifyRecentlyPlayedResponse = try await client.get(
+            SpotifyAPI.recentlyPlayed(limit: SpotifyAPI.Limit.recentlyPlayedPage),
+            session: session
+        )
         let albums = response.uniqueAlbums
-        SpotifyLog.info("Recently played: \(response.items.count) tracks → \(albums.count) unique albums")
+        CrashLogger.log("Recently played: \(response.items.count) tracks → \(albums.count) unique albums", to: .spotifyService, level: .info)
         return albums
     }
 
@@ -124,11 +112,11 @@ public actor SpotifyService: SpotifyServiceProtocol {
     private func currentPremiumStatus() async -> SpotifyPremiumStatus {
         do {
             let user: SpotifyUserResponse = try await client.get(SpotifyAPI.me, session: session)
-            SpotifyLog.info("Premium check: product \(user.product ?? "nil")")
+            CrashLogger.log("Premium check: product \(user.product ?? "nil")", to: .spotifyService, level: .info)
             return SpotifyPremiumStatus(product: user.product)
         } catch {
             // Unknown, never "free" — a failed check must not read as a downgrade.
-            SpotifyLog.error("Premium check failed: \(error)")
+            CrashLogger.log("Premium check failed: \(error)", to: .spotifyService)
             return .unknown
         }
     }
