@@ -102,7 +102,7 @@ final class AlbumDetailsDataModel {
             previousRating = rating ?? 0
             return rating
         } catch let error {
-            Logger.albumDetails.error("error fetching user rating: \(error)")
+            CrashLogger.log("Fetching user rating for \(self.album.id) failed: \(error)", to: .albumDetails)
             return nil
         }
     }
@@ -131,7 +131,7 @@ final class AlbumDetailsDataModel {
             // Refresh album data to get updated avgRating from cache
             await refreshAlbumData()
         } catch let error {
-            Logger.albumDetails.error("error saving album: \(error)")
+            CrashLogger.report("RateAlbum", "error saving album: \(error)", to: .albumDetails)
             // Rollback to previous rating on error
             myRating = previousRating
         }
@@ -151,12 +151,21 @@ final class AlbumDetailsDataModel {
     }
 
     func loadTracksIfNeeded() async {
-        guard album.appleMusicAlbumData.tracks?.isEmpty != false else { return }
+        if let tracks = album.appleMusicAlbumData.tracks, !tracks.isEmpty {
+            CrashLogger.log("Tracklist for \(album.id) already loaded: \(tracks.count) tracks")
+            return
+        }
 
         do {
             self.album = try await getAlbumDetailsUseCase.fetchFullAlbum(albumId: album.id)
+            let count = album.appleMusicAlbumData.tracks?.count ?? 0
+            CrashLogger.log("Tracklist for \(album.id) fetched: \(count) tracks")
+            if count == 0 {
+                // The reason, if MusicKit had one, is in the preceding [MusicKitService] log.
+                CrashLogger.report("Tracklist", "album \(album.id): fetched but no tracks")
+            }
         } catch {
-            Logger.albumDetails.error("Failed to backfill tracks for album \(self.album.id): \(error)")
+            CrashLogger.report("Tracklist", "album \(album.id) fetch failed: \(error)", to: .albumDetails)
         }
     }
 
@@ -167,7 +176,7 @@ final class AlbumDetailsDataModel {
                 Logger.albumDetails.info("Refreshed album data with updated avgRating")
             }
         } catch {
-            Logger.albumDetails.error("Failed to refresh album data: \(error)")
+            CrashLogger.log("Refreshing album \(self.album.id) failed: \(error)", to: .albumDetails)
         }
     }
 }

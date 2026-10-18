@@ -77,15 +77,15 @@ public actor LoginRepository: LoginRepositoryProtocol {
     public func setLoginData(authResult: ASAuthorization) async throws -> String {
         if let appleIDCredential = authResult.credential as? ASAuthorizationAppleIDCredential {
             guard let nonce = currentNonce else {
-                Logger.loginRepository.error("Login callback received with no nonce in flight")
+                CrashLogger.log("Login callback received with no nonce in flight", to: .loginRepository)
                 throw LoginError.wrongData
             }
             guard let appleIDToken = appleIDCredential.identityToken else {
-                Logger.loginRepository.error("Unable to fetch identity token")
+                CrashLogger.log("Unable to fetch identity token", to: .loginRepository)
                 throw LoginError.wrongData
             }
             guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
-                Logger.loginRepository.error("Unable to serialize token string from data: \(appleIDToken.debugDescription)")
+                CrashLogger.log("Unable to serialize token string from data", to: .loginRepository)
                 throw LoginError.wrongData
             }
             
@@ -118,12 +118,12 @@ public actor LoginRepository: LoginRepositoryProtocol {
             throw LoginError.wrongData
         }
         guard let nonce = currentNonce else {
-            Logger.loginRepository.error("Account deletion attempted with no nonce in flight")
+            CrashLogger.log("Account deletion attempted with no nonce in flight", to: .loginRepository)
             throw LoginError.wrongData
         }
         guard let appleIDToken = appleIDCredential.identityToken,
               let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
-            Logger.loginRepository.error("Unable to serialize identity token for account deletion")
+            CrashLogger.log("Unable to serialize identity token for account deletion", to: .loginRepository)
             throw LoginError.wrongData
         }
         let authorizationCode = appleIDCredential.authorizationCode

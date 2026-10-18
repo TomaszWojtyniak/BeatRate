@@ -168,14 +168,33 @@ public actor MusicRepository: MusicRepositoryProtocol {
 
     // MARK: - Recently Listened
 
+    /// Every recents load goes through here, so this is where a failed fetch is
+    /// told apart from an empty history in Crashlytics.
     public func fetchRecentlyListenedAlbums(for player: MusicPlayer) async throws -> [AppleMusicAlbumData] {
-        switch player {
-        case .appleMusic:
-            return try await musicKitService.fetchRecentlyPlayedAlbums()
-        case .spotify:
-            let spotifyAlbums = try await spotifyService.fetchRecentlyPlayedAlbums()
-            return await matchSpotifyAlbumsToAppleMusic(spotifyAlbums)
+        let albums: [AppleMusicAlbumData]
+        var detail = ""
+        do {
+            switch player {
+            case .appleMusic:
+                albums = try await musicKitService.fetchRecentlyPlayedAlbums()
+            case .spotify:
+                let spotifyAlbums = try await spotifyService.fetchRecentlyPlayedAlbums()
+                albums = await matchSpotifyAlbumsToAppleMusic(spotifyAlbums)
+                // Empty after matching is a different bug from an empty Spotify history.
+                detail = " (\(spotifyAlbums.count) played on Spotify)"
+            }
+        } catch {
+            CrashLogger.setValue("\(player.rawValue): error", forKey: "recently_played")
+            CrashLogger.report("RecentlyPlayed.failed", "\(player.rawValue) fetch failed: \(error)", to: .musicRepository)
+            throw error
         }
+
+        Logger.musicRepository.info("Recently played for \(player.rawValue): \(albums.count) albums")
+        CrashLogger.setValue("\(player.rawValue): \(albums.count)\(detail)", forKey: "recently_played")
+        if albums.isEmpty {
+            CrashLogger.report("RecentlyPlayed.empty", "\(player.rawValue): fetched OK, list empty\(detail)")
+        }
+        return albums
     }
 
     /// Apple throttles bursts of catalog requests, so cap how many of the up to
@@ -189,7 +208,13 @@ public actor MusicRepository: MusicRepositoryProtocol {
         await spotifyAlbums.concurrentCompactMap(maxConcurrent: Self.maxConcurrentCatalogSearches) { spotifyAlbum in
             let searchTerm = "\(spotifyAlbum.name) \(spotifyAlbum.artist)"
                 .trimmingCharacters(in: .whitespaces)
-            let matches = (try? await self.musicKitService.searchAlbums(searchTerm: searchTerm)) ?? []
+            let matches: [AppleMusicAlbumData]
+            do {
+                matches = try await self.musicKitService.searchAlbums(searchTerm: searchTerm)
+            } catch {
+                CrashLogger.log("Catalog search for a Spotify recent failed: \(error)")
+                return nil
+            }
             guard let match = SpotifyAlbumMatcher.bestMatch(for: spotifyAlbum, in: matches) else {
                 Logger.musicRepository.debug("No verified Apple Music match for '\(spotifyAlbum.name)' by '\(spotifyAlbum.artist)'")
                 return nil

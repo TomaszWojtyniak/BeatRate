@@ -7,6 +7,7 @@
 
 import Foundation
 import AuthenticationServices
+import Analytics
 import UIKit
 
 /// Drives the ASWebAuthenticationSession OAuth sheet on the main actor and keeps
@@ -57,6 +58,7 @@ final class SpotifyWebAuthSession: NSObject, ASWebAuthenticationPresentationCont
             // start() returning false means the completion handler will never
             // fire — resume here or the continuation (and caller) hangs forever.
             guard session.start() else {
+                CrashLogger.log("Sign-in sheet failed to start", to: .spotifyService)
                 continuation.resume(throwing: SpotifyFailure.authorizationFailed)
                 return
             }
@@ -71,11 +73,20 @@ final class SpotifyWebAuthSession: NSObject, ASWebAuthenticationPresentationCont
             // Dismissing the sheet is a choice, not a failure — callers must not
             // surface it as an error.
             let isCancellation = (error as? ASWebAuthenticationSessionError)?.code == .canceledLogin
+            if isCancellation {
+                CrashLogger.log("Sign-in sheet dismissed by the user", to: .spotifyService, level: .info)
+            } else {
+                CrashLogger.log("Sign-in sheet failed: \(error)", to: .spotifyService)
+            }
             return .failure(isCancellation ? SpotifyFailure.authCancelled : SpotifyFailure.authorizationFailed)
         }
-        guard let callbackURL,
-              let code = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)?
-                .queryItems?.first(where: { $0.name == SpotifyAPI.Param.code })?.value else {
+        let queryItems = callbackURL.flatMap {
+            URLComponents(url: $0, resolvingAgainstBaseURL: false)?.queryItems
+        } ?? []
+        guard let code = queryItems.first(where: { $0.name == SpotifyAPI.Param.code })?.value else {
+            // Spotify reports a declined consent screen as `?error=access_denied`.
+            let spotifyError = queryItems.first(where: { $0.name == "error" })?.value ?? "none"
+            CrashLogger.log("Callback without authorization code (callback: \(callbackURL != nil), error: \(spotifyError))", to: .spotifyService)
             return .failure(SpotifyFailure.authorizationFailed)
         }
         return .success(code)

@@ -179,6 +179,11 @@ final class AccountDataModel {
     private func fetchRecentlyListenedAlbums() async -> [AlbumModel] {
         guard let player = recentsPlayer(for: userProfile) else {
             Logger.account.info("No player eligible for recently listened; skipping")
+            let reason = musicPlayerManager.current == nil
+                ? "no player selected"
+                : "spotify, premium \(String(describing: userProfile?.hasSpotifyPremium))"
+            CrashLogger.log("Recently listened skipped: \(reason)")
+            CrashLogger.setValue("skipped: \(reason)", forKey: "recently_played")
             return []
         }
 
@@ -202,7 +207,7 @@ final class AccountDataModel {
             try await setAccountUseCase.setFavoriteAlbums(albumIds: capped.map(\.id))
             Logger.account.info("Saved \(capped.count) favorites")
         } catch {
-            Logger.account.error("Failed to save favorites: \(error)")
+            CrashLogger.report("SaveFavorites", "Failed to save favorites: \(error)", to: .account)
             errorMessage = "Failed to save favorites"
             // Re-sync with the server so the UI can't drift from what was stored.
             favoriteAlbums = (try? await getAccountUseCase.getFavoriteAlbums()) ?? favoriteAlbums
@@ -221,14 +226,23 @@ final class AccountDataModel {
                 email: userProfile?.email,
                 firstName: firstName.isEmpty ? nil : firstName,
                 lastName: lastName.isEmpty ? nil : lastName,
-                hasAppleMusicSubscription: userProfile?.hasAppleMusicSubscription
+                hasAppleMusicSubscription: userProfile?.hasAppleMusicSubscription,
+                hasSpotifyConnection: userProfile?.hasSpotifyConnection,
+                hasSpotifyPremium: userProfile?.hasSpotifyPremium,
+                mainMusicPlayer: userProfile?.mainMusicPlayer
             )
 
-            try await setLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
+            // Names only: Settings changes the player/Spotify flags without
+            // refreshing `userProfile`, and the merge leaves nil fields untouched.
+            try await setLoginUseCase.saveUserProfile(userId: userId, profile: FirebaseUserProfile(
+                email: updatedProfile.email,
+                firstName: updatedProfile.firstName,
+                lastName: updatedProfile.lastName
+            ))
             self.userProfile = updatedProfile
             Logger.account.info("User profile updated successfully")
         } catch {
-            Logger.account.error("Failed to save user profile: \(error)")
+            CrashLogger.report("SaveProfile", "Failed to save user profile: \(error)", to: .account)
             errorMessage = "Failed to save profile"
         }
     }

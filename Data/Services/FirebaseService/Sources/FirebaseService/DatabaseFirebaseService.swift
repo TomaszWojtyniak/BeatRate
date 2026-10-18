@@ -56,7 +56,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
         Logger.firebaseService.debug("Snapshot exists: \(snapshot.exists())")
 
         guard let value = snapshot.value as? [String: Any] else {
-            Logger.firebaseService.warning("No sections data found in Firebase or data format invalid")
+            CrashLogger.log("No sections data found in Firebase or data format invalid", to: .firebaseService)
             return []
         }
 
@@ -71,7 +71,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
 
             return activeSections
         } catch let error as DecodingError {
-            Logger.firebaseService.error("Failed to decode sections from Firebase")
+            CrashLogger.log("Failed to decode sections from Firebase: \(error)", to: .firebaseService)
             switch error {
             case .keyNotFound(let key, let context):
                 Logger.firebaseService.error("Missing key '\(key.stringValue)' at path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
@@ -86,7 +86,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
             }
             throw error
         } catch {
-            Logger.firebaseService.error("Failed to process sections data: \(error.localizedDescription)")
+            CrashLogger.log("Failed to process sections data: \(error.localizedDescription)", to: .firebaseService)
             throw error
         }
     }
@@ -364,23 +364,23 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
         let db = database.reference()
         let userRef = db.child("users").child(userId)
 
-        // Encode profile data
-        let encoder = JSONEncoder()
-        let jsonData = try encoder.encode(profile)
-        let profileJson = try JSONSerialization.jsonObject(with: jsonData)
+        // Merge field by field instead of replacing the `profile` node: a writer
+        // that only knows some fields (Edit Profile, sign-in) used to wipe the
+        // rest, e.g. `mainMusicPlayer` and the Spotify flags. nil fields are left
+        // untouched — except the names, which every writer carries and Edit
+        // Profile clears by passing nil.
+        let jsonData = try JSONEncoder().encode(profile)
+        var fields = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] ?? [:]
+        for key in ["firstName", "lastName"] where fields[key] == nil {
+            fields[key] = NSNull()
+        }
 
-        // Create complete user structure if it doesn't exist
-        let updates: [String: Any] = [
-            "profile": profileJson,
-            // Initialize user_ratings as empty object if it doesn't exist
-            // This won't overwrite existing ratings
-        ]
+        var allUpdates: [String: Any] = Dictionary(uniqueKeysWithValues: fields.map { ("profile/\($0.key)", $0.value) })
 
         // Check if user_ratings exists, if not create it
         let ratingsRef = userRef.child("user_ratings")
         let ratingsSnapshot = try await ratingsRef.getData()
 
-        var allUpdates = updates
         if !ratingsSnapshot.exists() {
             // Create empty user_ratings node
             allUpdates["user_ratings"] = [String: Any]()
@@ -457,7 +457,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
                 try await self.recalculateAlbumStats(albumId: albumId)
                 return true
             } catch {
-                Logger.firebaseService.error("Failed to recompute stats for album \(albumId): \(error.localizedDescription)")
+                CrashLogger.log("Failed to recompute stats for album \(albumId): \(error.localizedDescription)", to: .firebaseService)
                 return nil
             }
         }

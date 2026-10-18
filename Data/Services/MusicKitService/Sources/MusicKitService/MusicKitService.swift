@@ -35,6 +35,8 @@ public actor MusicKitService: MusicKitServiceProtocol {
 
     public func requestMusicAuthorization() async -> MusicAuthorizationResult {
         let status = await MusicAuthorization.request()
+        CrashLogger.log("Authorization status: \(status)", to: .musicService, level: .info)
+        CrashLogger.setValue("\(status)", forKey: "apple_music_auth")
 
         guard status == .authorized else {
             return await MusicAuthorizationResult(status: status, hasSubscription: false)
@@ -42,7 +44,11 @@ public actor MusicKitService: MusicKitServiceProtocol {
 
         if let subscription = await currentSubscription(timeout: Constants.subscriptionTimeout) {
             canPlayAppleMusic = subscription.canPlayCatalogContent
+            CrashLogger.log("Subscription: canPlayCatalogContent \(subscription.canPlayCatalogContent), canBecomeSubscriber \(subscription.canBecomeSubscriber)")
+        } else {
+            CrashLogger.log("Subscription check timed out, keeping canPlay \(canPlayAppleMusic)")
         }
+        CrashLogger.setValue("\(canPlayAppleMusic)", forKey: "apple_music_subscription")
 
         return await MusicAuthorizationResult(status: status, hasSubscription: canPlayAppleMusic)
     }
@@ -87,7 +93,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
         do {
             loadedTracks = try await tracks
         } catch {
-            Logger.musicService.error("Failed to fetch tracks for album \(id): \(error)")
+            CrashLogger.log("Failed to fetch tracks for album \(id): \(error)", to: .musicService)
             loadedTracks = nil
         }
         return albumData(from: album, tracks: loadedTracks)
@@ -201,10 +207,13 @@ public actor MusicKitService: MusicKitServiceProtocol {
         request.limit = Constants.albumRecentLimit
         let response = try await request.response()
 
-        return response.items.compactMap { item in
+        let albums = response.items.compactMap { item -> AppleMusicAlbumData? in
             guard case let .album(album) = item else { return nil }
             return albumData(from: album)
         }
+        // Playlists and stations are dropped, so "played only playlists" also ends up empty.
+        CrashLogger.log("Recently played: \(response.items.count) items → \(albums.count) albums")
+        return albums
     }
 
     // MARK: - Album Mapping

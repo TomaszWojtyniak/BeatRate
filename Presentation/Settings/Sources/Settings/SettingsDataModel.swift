@@ -97,7 +97,7 @@ final class SettingsDataModel {
             analyticsManager.log(.logout)
             Logger.settings.info("Logout successful")
         } catch {
-            Logger.settings.error("Logout failed: \(error)")
+            CrashLogger.report("Logout", "Logout failed: \(error)", to: .settings)
             throw error
         }
     }
@@ -120,7 +120,7 @@ final class SettingsDataModel {
             analyticsManager.log(.accountDeleted)
             Logger.settings.info("Account deletion successful")
         } catch {
-            Logger.settings.error("Account deletion failed: \(error)")
+            CrashLogger.report("DeleteAccount", "Account deletion failed: \(error)", to: .settings)
             throw error
         }
     }

@@ -42,12 +42,13 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
         let authResult = await musicRepository.requestMusicAuthorization()
 
         guard await authResult.isAuthorized else {
-            Logger.settings.info("Apple Music authorization denied")
+            // The exact status is in the preceding [MusicKitService] log and `apple_music_auth` key.
+            CrashLogger.report("Connect.appleMusic", "authorization not granted", to: .settings)
             return false
         }
 
         guard let userId = try await swiftDataManager.getCurrentUserId() else {
-            Logger.settings.error("No user ID found when saving Apple Music status")
+            CrashLogger.report("Connect.appleMusic", "no user id when saving status", to: .settings)
             return false
         }
 
@@ -65,7 +66,7 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
         )
 
         try await setLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
-        Logger.settings.info("Apple Music connected, has subscription: \(hasSubscription)")
+        CrashLogger.log("Apple Music connected, has subscription: \(hasSubscription)", to: .settings, level: .info)
         return true
     }
     
@@ -73,12 +74,12 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
         let authResult = try await musicRepository.requestSpotifyAuthorization()
 
         guard await authResult.isAuthorized else {
-            Logger.settings.info("Spotify authorization denied")
+            CrashLogger.report("Connect.spotify", "authorization not granted", to: .settings)
             return false
         }
 
         guard let userId = try await swiftDataManager.getCurrentUserId() else {
-            Logger.settings.error("No user ID found when saving Spotify status")
+            CrashLogger.report("Connect.spotify", "no user id when saving status", to: .settings)
             return false
         }
 
@@ -96,7 +97,7 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
         )
 
         try await setLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
-        Logger.settings.info("Spotify connected, premium: \(String(describing: isPremium))")
+        CrashLogger.log("Spotify connected, premium: \(String(describing: isPremium))", to: .settings, level: .info)
 
         return true
     }
@@ -127,7 +128,7 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
             try await setLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
             Logger.settings.info("Main music player synced to Firebase")
         } catch {
-            Logger.settings.error("Failed to sync main music player to Firebase: \(error)")
+            CrashLogger.log("Failed to sync main music player to Firebase: \(error)", to: .settings)
         }
     }
 }

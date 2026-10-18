@@ -358,13 +358,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rate yours at beatrate.app"
+            "value" : "Rate yours at beatrateapp.com"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Oceń swoje na beatrate.app"
+            "value" : "Oceń swoje na beatrateapp.com"
           }
         }
       }

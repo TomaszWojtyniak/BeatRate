@@ -8,6 +8,7 @@ import Models
 import CoreApp
 import SettingUseCases
 import Analytics
+import struct MusicKit.MusicAuthorization
 import OSLog
 
 @MainActor
@@ -18,6 +19,8 @@ final class MusicPlayerPickerDataModel {
     var isProcessing: Bool = false
     var pendingChoice: MusicPlayer?
     var errorMessage: String?
+    /// Apple Music was denied earlier — the system won't prompt again, only Settings can grant it.
+    var showsOpenSettings: Bool = false
 
     private let setSettingsUseCase: SetSettingsUseCaseProtocol
     private let getSettingsUseCase: GetSettingsUseCaseProtocol
@@ -57,6 +60,7 @@ final class MusicPlayerPickerDataModel {
         isProcessing = true
         pendingChoice = player
         errorMessage = nil
+        showsOpenSettings = false
         defer {
             isProcessing = false
             pendingChoice = nil
@@ -65,10 +69,12 @@ final class MusicPlayerPickerDataModel {
         do {
             guard try await ensureConnected(player) else {
                 errorMessage = String(localized: .pickerErrorAccessDenied(player: player.displayName))
+                showsOpenSettings = player == .appleMusic && MusicAuthorization.currentStatus == .denied
                 return false
             }
         } catch {
-            Logger.onboarding.error("\(player.displayName) connect failed: \(error)")
+            // Spotify failures are preceded by detailed [SpotifyService] logs in the same report.
+            CrashLogger.report("Connect.\(player.rawValue)", "\(player.displayName) connect failed: \(error)", to: .onboarding)
             errorMessage = String(localized: .pickerErrorConnect(player: player.displayName))
             return false
         }
@@ -81,7 +87,7 @@ final class MusicPlayerPickerDataModel {
             try await setSettingsUseCase.setMainMusicPlayer(player)
             return true
         } catch {
-            Logger.onboarding.error("Failed to set main music player: \(error)")
+            CrashLogger.log("Failed to set main music player: \(error)", to: .onboarding)
             errorMessage = String(localized: .pickerErrorSave)
             return false
         }

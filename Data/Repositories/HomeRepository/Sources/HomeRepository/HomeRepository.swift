@@ -92,7 +92,7 @@ public actor HomeRepository: HomeRepositoryProtocol {
     public func saveAlbumRating(albumId: String, rating: Double, albumMetadata: (artist: String, title: String)? = nil) async throws {
         // Use cached user ID to avoid MainActor hop
         guard let currentUserId = try await getCurrentUserId(), !currentUserId.isEmpty else {
-            Logger.homeRepository.error("Cannot save rating: User not logged in")
+            CrashLogger.log("Cannot save rating: User not logged in", to: .homeRepository)
             throw HomeRepositoryError.albumDataMismatch
         }
 
@@ -146,12 +146,15 @@ public actor HomeRepository: HomeRepositoryProtocol {
 
         do {
             let cachedSections = try await swiftDataManager.getCachedSections()
-            if !cachedSections.isEmpty {
+            // Sections without a single album were built while MusicKit was
+            // refused — every lookup failed and was dropped. Serving them would
+            // keep Home blank for the rest of the 24h window after access is granted.
+            if cachedSections.contains(where: { !$0.albums.isEmpty }) {
                 Logger.homeRepository.info("Returning cached sections")
                 return cachedSections
             }
         } catch {
-            Logger.homeRepository.error("Failed to get cached sections: \(error)")
+            CrashLogger.log("Failed to get cached sections: \(error)", to: .homeRepository)
         }
 
         return nil
@@ -298,7 +301,7 @@ public actor HomeRepository: HomeRepositoryProtocol {
 
         if firebaseTitle != musicTitle || firebaseArtist != musicArtist {
             let albumId = album.id
-            Logger.homeRepository.error("Wrong album data for album id: \(albumId)")
+            CrashLogger.log("Wrong album data for album id: \(albumId)", to: .homeRepository)
             throw HomeRepositoryError.albumDataMismatch
         }
     }

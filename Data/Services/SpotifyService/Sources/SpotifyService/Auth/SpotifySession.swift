@@ -40,19 +40,23 @@ actor SpotifySession {
 
     func authorize() async throws -> SpotifyTokens {
         guard let redirectUri, let callbackScheme else {
+            CrashLogger.log("Authorize: no redirect URI / callback scheme configured", to: .spotifyService)
             throw SpotifyFailure.authorizationFailed
         }
 
         let pkce = PKCE()
         // Nil means there is no window scene to present the sheet on.
         guard let webAuth = await SpotifyWebAuthSession.make() else {
+            CrashLogger.log("Authorize: no window scene to present the sign-in sheet on", to: .spotifyService)
             throw SpotifyFailure.authorizationFailed
         }
+        CrashLogger.log("Authorize: presenting sign-in sheet (redirect \(redirectUri.absoluteString))", to: .spotifyService, level: .info)
         let code = try await webAuth.authorize(
             url: authorizationURL(codeChallenge: pkce.challenge, redirectUri: redirectUri),
             callbackScheme: callbackScheme
         )
 
+        CrashLogger.log("Authorize: got authorization code, exchanging for tokens", to: .spotifyService, level: .info)
         let response = try await postToken(fields: [
             (SpotifyAPI.Param.grantType, SpotifyAPI.GrantType.authorizationCode),
             (SpotifyAPI.Param.code, code),
@@ -63,7 +67,7 @@ actor SpotifySession {
 
         let tokens = response.tokens()
         try await tokenStore.save(tokens)
-        Logger.spotifyService.info("Spotify authorization successful")
+        CrashLogger.log("Authorize: success (refresh token: \(response.refreshToken != nil), expires in \(Int(response.expiresIn ?? SpotifyTokenResponse.defaultLifetime))s)", to: .spotifyService, level: .info)
         return tokens
     }
 
@@ -73,15 +77,23 @@ actor SpotifySession {
     /// is inside its leeway. Avoids the guaranteed 401 round-trip the old code
     /// paid on the first request after every expiry.
     func validAccessToken(at now: Date = Date()) async throws -> String {
-        guard let tokens = try await loadTokens() else { throw SpotifyFailure.noSession }
+        guard let tokens = try await loadTokens() else {
+            CrashLogger.log("No stored session", to: .spotifyService, level: .info)
+            throw SpotifyFailure.noSession
+        }
         if tokens.isFresh(at: now) { return tokens.accessToken }
+        CrashLogger.log("Access token expired at \(tokens.expiresAt), refreshing", to: .spotifyService, level: .info)
         return try await refresh(from: tokens, at: now).accessToken
     }
 
     /// Forces a refresh regardless of expiry. Used after a 401 on a token we
     /// believed was fresh.
     func refreshedAccessToken(at now: Date = Date()) async throws -> String {
-        guard let tokens = try await loadTokens() else { throw SpotifyFailure.noSession }
+        guard let tokens = try await loadTokens() else {
+            CrashLogger.log("Forced refresh: no stored session", to: .spotifyService)
+            throw SpotifyFailure.noSession
+        }
+        CrashLogger.log("Forced refresh after 401 (token expires at \(tokens.expiresAt))", to: .spotifyService, level: .info)
         return try await refresh(from: tokens, at: now).accessToken
     }
 
@@ -92,7 +104,7 @@ actor SpotifySession {
     func signOut() async {
         refreshTask = nil
         try? await tokenStore.clear()
-        Logger.spotifyService.info("Spotify session cleared")
+        CrashLogger.log("Session cleared", to: .spotifyService, level: .info)
     }
 
     // MARK: - Refresh
@@ -101,7 +113,7 @@ actor SpotifySession {
         do {
             return try await tokenStore.load()
         } catch {
-            Logger.spotifyService.error("Failed to read Spotify tokens: \(error)")
+            CrashLogger.log("Failed to read tokens from Keychain: \(error)", to: .spotifyService)
             throw SpotifyFailure.noSession
         }
     }
@@ -119,7 +131,7 @@ actor SpotifySession {
 
     private func performRefresh(from tokens: SpotifyTokens, at now: Date) async throws -> SpotifyTokens {
         guard let refreshToken = tokens.refreshToken else {
-            Logger.spotifyService.error("No refresh token on file — session expired")
+            CrashLogger.log("No refresh token on file — session expired", to: .spotifyService)
             await signOut()
             throw SpotifyFailure.sessionExpired
         }
@@ -132,7 +144,7 @@ actor SpotifySession {
 
         let refreshed = tokens.merging(response, issuedAt: now)
         try await tokenStore.save(refreshed)
-        Logger.spotifyService.info("Spotify token refresh successful")
+        CrashLogger.log("Token refresh successful (refresh token rotated: \(response.refreshToken != nil))", to: .spotifyService, level: .info)
         return refreshed
     }
 
@@ -152,12 +164,12 @@ actor SpotifySession {
         do {
             (data, response) = try await transport.send(request)
         } catch {
-            Logger.spotifyService.error("Spotify token request failed in transport: \(error)")
+            CrashLogger.log("Token request failed in transport: \(error)", to: .spotifyService)
             throw SpotifyResponseClassifier.failure(forTransportError: error)
         }
 
         guard (200...299).contains(response.statusCode) else {
-            Logger.spotifyService.error("Spotify token request rejected: \(response.statusCode)")
+            CrashLogger.log("Token request rejected with \(response.statusCode): \(String(decoding: data.prefix(300), as: UTF8.self))", to: .spotifyService)
             if (400...499).contains(response.statusCode) {
                 await signOut()
                 throw SpotifyFailure.sessionExpired
@@ -168,7 +180,7 @@ actor SpotifySession {
         do {
             return try SpotifyNetworkClient().decode(data)
         } catch {
-            Logger.spotifyService.error("Spotify token response failed to decode: \(error)")
+            CrashLogger.log("Token response failed to decode: \(error)", to: .spotifyService)
             throw SpotifyFailure.transient
         }
     }
