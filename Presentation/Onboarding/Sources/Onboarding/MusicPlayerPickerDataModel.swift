@@ -69,6 +69,8 @@ final class MusicPlayerPickerDataModel {
             }
         } catch {
             Logger.onboarding.error("\(player.displayName) connect failed: \(error)")
+            // Spotify failures are preceded by detailed [spotify] logs in the same report.
+            CrashLogger.report("Connect.\(player.rawValue)", "\(error)")
             errorMessage = String(localized: .pickerErrorConnect(player: player.displayName))
             return false
         }
@@ -82,6 +84,7 @@ final class MusicPlayerPickerDataModel {
             return true
         } catch {
             Logger.onboarding.error("Failed to set main music player: \(error)")
+            CrashLogger.log("[onboarding] Failed to set main music player: \(error)")
             errorMessage = String(localized: .pickerErrorSave)
             return false
         }

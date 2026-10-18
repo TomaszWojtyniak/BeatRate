@@ -130,7 +130,13 @@ nonisolated public enum AnalyticsEvent: Sendable {
     var parameters: [String: Any] {
         switch self {
         case let .screenView(screen, extra):
-            return extra.merging([AnalyticsParameterScreenName: screen.rawValue]) { $1 }
+            // screen_class too: left out, the SDK fills it with the SwiftUI
+            // hosting controller, and GA's default "Pages and screens" report
+            // groups by class, so every row read as the same unnamed screen.
+            return extra.merging([
+                AnalyticsParameterScreenName: screen.rawValue,
+                AnalyticsParameterScreenClass: screen.rawValue,
+            ]) { $1 }
         case let .tabSelected(tab):
             return ["tab": tab]
         case let .albumTap(source, albumId, section):

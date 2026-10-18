@@ -539,7 +539,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n  if [ \"${CONFIGURATION}\" = \"Release\" ]; then\n      \"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n  fi\n";
+			shellScript = "\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n";
 		};
 		8B7266F22DE9EF2100681754 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -783,7 +783,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development: Tomasz Wojtyniak (2TXYHNCUHJ)";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 969V354CHJ;
 				ENABLE_PREVIEWS = YES;
@@ -792,7 +792,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = BeatRate;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
-				INFOPLIST_KEY_NSAppleMusicUsageDescription = "BeatRate uses Apple Music to help you rediscover your music.";
+				INFOPLIST_KEY_NSAppleMusicUsageDescription = "BeatRate uses music library access to show album artwork, tracklists and new releases. No subscription required.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "BeatRate saves your favorite albums card to your photo library.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -834,6 +834,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution: Tomasz Wojtyniak (969V354CHJ)";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 969V354CHJ;
 				ENABLE_PREVIEWS = YES;
@@ -842,7 +843,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = BeatRate;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
-				INFOPLIST_KEY_NSAppleMusicUsageDescription = "BeatRate uses Apple Music to help you rediscover your music.";
+				INFOPLIST_KEY_NSAppleMusicUsageDescription = "BeatRate uses music library access to show album artwork, tracklists and new releases. No subscription required.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "BeatRate saves your favorite albums card to your photo library.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -959,7 +960,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 969V354CHJ;
 				ENABLE_PREVIEWS = YES;
@@ -968,7 +969,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "BeatRate Development";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
-				INFOPLIST_KEY_NSAppleMusicUsageDescription = "BeatRate Development uses Apple Music to help you rediscover your music.";
+				INFOPLIST_KEY_NSAppleMusicUsageDescription = "BeatRate Development uses music library access to show album artwork, tracklists and new releases. No subscription required.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "BeatRate Development saves your favorite albums card to your photo library.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -1017,7 +1018,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "BeatRate Development";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
-				INFOPLIST_KEY_NSAppleMusicUsageDescription = "BeatRate Development uses Apple Music to help you rediscover your music.";
+				INFOPLIST_KEY_NSAppleMusicUsageDescription = "BeatRate Development uses music library access to show album artwork, tracklists and new releases. No subscription required.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "BeatRate Development saves your favorite albums card to your photo library.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

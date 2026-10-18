@@ -10,7 +10,6 @@ import Models
 import AlbumDetails
 import Account
 import CoreUI
-import UIKit
 import Analytics
 
 @MainActor
@@ -33,24 +32,6 @@ public struct HomeView: View {
                         .tint(Color.accentPrimary)
                     Text(.homeLoading)
                         .textStyle(.body, color: .secondaryText)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .meshBackground()
-
-            case .needsAppleMusicAccess:
-                ContentUnavailableView {
-                    Label(String(localized: .homeMusicAccessTitle), systemImage: "music.note")
-                        .foregroundStyle(Color.primaryText)
-                } description: {
-                    Text(.homeMusicAccessMessage)
-                        .textStyle(.body, color: .secondaryText)
-                } actions: {
-                    Button(String(localized: .homeMusicAccessOpenSettings)) {
-                        dataModel.track(.openSystemSettingsTap)
-                        openAppSettings()
-                    }
-                        .buttonStyle(.borderedProminent)
-                        .tint(Color.accentPrimary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .meshBackground()
@@ -141,11 +122,6 @@ public struct HomeView: View {
             // High priority - user is waiting for initial home screen load
             await self.dataModel.loadInitialData()
         }
-    }
-
-    private func openAppSettings() {
-        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
-        UIApplication.shared.open(url)
     }
 }
 

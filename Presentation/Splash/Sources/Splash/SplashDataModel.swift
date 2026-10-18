@@ -18,6 +18,7 @@ final class SplashDataModel {
     private let getSplashUseCase: GetSplashUseCaseProtocol
     private let musicPlayerManager: MusicPlayerManager
     private let analyticsManager: AnalyticsManager
+    private let crashLogger: CrashLogger
 
     var errorMessage: String = "Unable to load data. Retrying..."
     var shouldComplete: Bool = true  // Controls whether onComplete() should be called
@@ -34,10 +35,12 @@ final class SplashDataModel {
 
     init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase(),
          musicPlayerManager: MusicPlayerManager = .shared,
-         analyticsManager: AnalyticsManager = .shared) {
+         analyticsManager: AnalyticsManager = .shared,
+         crashLogger: CrashLogger = .shared) {
         self.getSplashUseCase = getSplashUseCase
         self.musicPlayerManager = musicPlayerManager
         self.analyticsManager = analyticsManager
+        self.crashLogger = crashLogger
     }
 
     func track(_ event: AnalyticsEvent) {
@@ -80,8 +83,8 @@ final class SplashDataModel {
 
     private func continueAfterMusicKitGate() async {
         // Step 2b: Request MusicKit authorization. A refusal is not fatal. Album
-        // metadata comes from MusicKit, so Home will be thin without it — but that
-        // is Home's story to tell, and Home offers the way to grant it. Holding the
+        // metadata comes from MusicKit, so the tabs can't work without it — but
+        // `TabBarView` tells that story and links to Settings. Holding the
         // user here leaves them no route into the app at all: an App Review
         // rejection under 5.1.1, and a dead end for guests who never needed an
         // account in the first place.
@@ -150,6 +153,7 @@ final class SplashDataModel {
             return true
         } else {
             Logger.splash.error("MusicKit authorization was not granted")
+            CrashLogger.report("Connect.appleMusic", "splash: authorization not granted")
             // The error message is already set in loadInitialData() when this returns false
             return false
         }
@@ -223,10 +227,13 @@ final class SplashDataModel {
 
     private func handleFetchError(_ error: Error) async {
         Logger.splash.error("Error fetching data: \(error.localizedDescription)")
+        CrashLogger.log("[splash] Error fetching data: \(error.localizedDescription)")
 
         if shouldRetry() {
             await performRetry(reason: .connectionError)
         } else {
+            // Only the final failure: the retries before it are expected noise offline.
+            crashLogger.reportToCrashlytics(error: error)
             await handleMaxRetriesReached(
                 errorType: "network failure",
                 userMessage: String(localized: .splashErrorConnection)
@@ -281,6 +288,7 @@ final class SplashDataModel {
         // splash screen the user cannot leave is worse than an empty one they can:
         // a reviewer on bad hotel wifi would otherwise never see the app at all.
         Logger.splash.error("Max retries reached, \(errorType). Entering the app so Home can recover.")
+        CrashLogger.log("[splash] Max retries reached, \(errorType). Entering the app so Home can recover.")
         errorMessage = userMessage
         shouldComplete = true
     }

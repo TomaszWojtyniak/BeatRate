@@ -1,6 +1,57 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "musicAccess.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BeatRate needs music library access to show album artwork, tracklists and release details. No subscription required — turn on access in Settings to use the app."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BeatRate potrzebuje dostępu do biblioteki muzycznej, aby wyświetlać okładki albumów, listy utworów i szczegóły wydań. Subskrypcja nie jest wymagana — włącz dostęp w Ustawieniach, aby korzystać z aplikacji."
+          }
+        }
+      }
+    },
+    "musicAccess.openSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwórz Ustawienia"
+          }
+        }
+      }
+    },
+    "musicAccess.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music Library Access Needed"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potrzebny dostęp do biblioteki muzycznej"
+          }
+        }
+      }
+    },
     "tab.account" : {
       "extractionState" : "manual",
       "localizations" : {

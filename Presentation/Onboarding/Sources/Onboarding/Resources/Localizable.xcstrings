@@ -47,13 +47,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Search the full Apple Music catalog."
+            "value" : "Search millions of albums."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Przeszukuj cały katalog Apple Music."
+            "value" : "Przeszukuj miliony albumów."
           }
         }
       }
@@ -85,13 +85,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "BeatRate uses Apple Music's catalog to show you new releases, fetch album metadata and tracklists, and let you rate every album you listen to."
+            "value" : "BeatRate needs music library access to show you new releases, fetch album details and tracklists, and let you rate every album you listen to. No subscription required."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "BeatRate korzysta z katalogu Apple Music, aby pokazywać ci nowe wydania, pobierać informacje o albumach i listy utworów oraz pozwalać ci oceniać każdy album, którego słuchasz."
+            "value" : "BeatRate potrzebuje dostępu do biblioteki muzycznej, aby pokazywać ci nowe wydania, pobierać informacje o albumach i listy utworów oraz pozwalać ci oceniać każdy album, którego słuchasz. Subskrypcja nie jest wymagana."
           }
         }
       }

@@ -83,6 +83,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
             return try ModelContainer(for: schema)
         } catch {
             Logger.swiftDataManager.error("Cache store unusable (\(error)) — rebuilding it from scratch")
+            CrashLogger.log("[swiftDataManager] Cache store unusable (\(error)) — rebuilding it from scratch")
         }
 
         destroyStore()
@@ -93,6 +94,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
             // Nothing left to fall back to but memory. The app launches and works;
             // the cache simply does not survive relaunch.
             Logger.swiftDataManager.fault("Rebuild failed (\(error)) — running with an in-memory cache")
+            CrashLogger.log("[swiftDataManager] Rebuild failed (\(error)) — running with an in-memory cache")
             // A memory-only container with a valid schema has no failure mode left.
             return try! ModelContainer(for: schema, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
         }
@@ -375,6 +377,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         } catch {
             // Log but don't fail - user is still logged out
             Logger.swiftDataManager.error("Failed to clear cache during logout: \(error)")
+            CrashLogger.log("[swiftDataManager] Failed to clear cache during logout: \(error)")
         }
     }
     

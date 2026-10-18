@@ -6,27 +6,18 @@
 //
 
 import SwiftUI
-import MusicRepository
 import Models
 import HomeRepository
 
 public protocol GetHomeUseCaseProtocol: Sendable {
-    func authorizeMusicKit() async -> MusicAuthorizationInfo
     func fetchHomeSections() async throws -> [HomeSection]
 }
 
 public actor GetHomeUseCase: GetHomeUseCaseProtocol {
-    private let musicRepository: MusicRepositoryProtocol
     private let homeRepository: HomeRepositoryProtocol
     
-    public init(musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
-                homeRepository: HomeRepositoryProtocol = HomeRepository.shared) {
-        self.musicRepository = musicRepository
+    public init(homeRepository: HomeRepositoryProtocol = HomeRepository.shared) {
         self.homeRepository = homeRepository
-    }
-    
-    public func authorizeMusicKit() async -> MusicAuthorizationInfo {
-        return await musicRepository.requestMusicAuthorization()
     }
     
     public func fetchHomeSections() async throws -> [HomeSection] {

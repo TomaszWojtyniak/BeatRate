@@ -190,6 +190,7 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
             return true
         } catch {
             Logger.splash.error("Could not rebuild the login row: \(error.localizedDescription)")
+            CrashLogger.log("[splash] Could not rebuild the login row: \(error.localizedDescription)")
             return false
         }
     }
@@ -225,6 +226,7 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
             try await logout()
         } catch {
             Logger.splash.error("Forced logout after credential revocation failed: \(error)")
+            CrashLogger.log("[splash] Forced logout after credential revocation failed: \(error)")
         }
     }
 
@@ -276,6 +278,7 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
         // of logging out and reporting a deletion that never happened.
         guard let userId: String = (try? await swiftDataManager.getCurrentUserId()) ?? nil else {
             Logger.splash.error("Account deletion attempted with no current user id")
+            CrashLogger.log("[splash] Account deletion attempted with no current user id")
             throw LoginError.wrongData
         }
         try await loginRepository.deleteAccount(userId: userId, authResult: authResult)

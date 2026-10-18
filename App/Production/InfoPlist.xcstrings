@@ -34,13 +34,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "BeatRate uses Apple Music to help you rediscover your music."
+            "value" : "BeatRate uses music library access to show album artwork, tracklists and new releases. No subscription required."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "BeatRate korzysta z Apple Music, aby pomóc ci na nowo odkrywać swoją muzykę."
+            "value" : "BeatRate korzysta z dostępu do biblioteki muzycznej, aby wyświetlać okładki albumów, listy utworów i nowe wydania. Subskrypcja nie jest wymagana."
           }
         }
       }

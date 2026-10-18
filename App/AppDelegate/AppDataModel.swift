@@ -72,6 +72,7 @@ class AppDataModel {
             self.user = try await self.getAppUseCase.getCurrentUser()
         } catch let error {
             Logger.app.error("Cant get current user: \(error)")
+            CrashLogger.log("[app] Cant get current user: \(error)")
         }
     }
 
@@ -85,6 +86,7 @@ class AppDataModel {
                 if !isLoggedIn {
                     // Logout or account deletion: stop attributing events to that user.
                     self.analyticsManager.setUserId(nil)
+                    self.crashLogger.setUserIdentifier(nil)
                 }
 
                 if isLoggedIn && wasLoggedOut {

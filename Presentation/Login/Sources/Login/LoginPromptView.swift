@@ -120,6 +120,7 @@ public struct LoginPromptView: View {
                         Logger.login.debug("Complete login successful from prompt (Firebase + local storage)")
                     } catch let error {
                         Logger.login.error("Login from prompt failed: \(error.localizedDescription)")
+                        CrashLogger.log("[login] Login from prompt failed: \(error.localizedDescription)")
                         await self.dataModel.handleLoginFailure(error: error)
                     }
                 case .failure(let error):

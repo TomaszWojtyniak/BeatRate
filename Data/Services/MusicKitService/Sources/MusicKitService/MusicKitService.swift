@@ -35,6 +35,9 @@ public actor MusicKitService: MusicKitServiceProtocol {
 
     public func requestMusicAuthorization() async -> MusicAuthorizationResult {
         let status = await MusicAuthorization.request()
+        Logger.musicService.info("Authorization status: \(String(describing: status))")
+        CrashLogger.log("[musicKit] Authorization status: \(status)")
+        CrashLogger.setValue("\(status)", forKey: "apple_music_auth")
 
         guard status == .authorized else {
             return await MusicAuthorizationResult(status: status, hasSubscription: false)
@@ -42,7 +45,11 @@ public actor MusicKitService: MusicKitServiceProtocol {
 
         if let subscription = await currentSubscription(timeout: Constants.subscriptionTimeout) {
             canPlayAppleMusic = subscription.canPlayCatalogContent
+            CrashLogger.log("[musicKit] Subscription: canPlayCatalogContent \(subscription.canPlayCatalogContent), canBecomeSubscriber \(subscription.canBecomeSubscriber)")
+        } else {
+            CrashLogger.log("[musicKit] Subscription check timed out, keeping canPlay \(canPlayAppleMusic)")
         }
+        CrashLogger.setValue("\(canPlayAppleMusic)", forKey: "apple_music_subscription")
 
         return await MusicAuthorizationResult(status: status, hasSubscription: canPlayAppleMusic)
     }
@@ -88,6 +95,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
             loadedTracks = try await tracks
         } catch {
             Logger.musicService.error("Failed to fetch tracks for album \(id): \(error)")
+            CrashLogger.log("[musicKit] Failed to fetch tracks for album \(id): \(error)")
             loadedTracks = nil
         }
         return albumData(from: album, tracks: loadedTracks)
@@ -201,10 +209,13 @@ public actor MusicKitService: MusicKitServiceProtocol {
         request.limit = Constants.albumRecentLimit
         let response = try await request.response()
 
-        return response.items.compactMap { item in
+        let albums = response.items.compactMap { item -> AppleMusicAlbumData? in
             guard case let .album(album) = item else { return nil }
             return albumData(from: album)
         }
+        // Playlists and stations are dropped, so "played only playlists" also ends up empty.
+        CrashLogger.log("[musicKit] Recently played: \(response.items.count) items → \(albums.count) albums")
+        return albums
     }
 
     // MARK: - Album Mapping

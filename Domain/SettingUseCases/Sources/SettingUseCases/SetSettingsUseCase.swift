@@ -43,11 +43,14 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
 
         guard await authResult.isAuthorized else {
             Logger.settings.info("Apple Music authorization denied")
+            // The exact status is in the preceding [musicKit] log and `apple_music_auth` key.
+            CrashLogger.report("Connect.appleMusic", "authorization not granted")
             return false
         }
 
         guard let userId = try await swiftDataManager.getCurrentUserId() else {
             Logger.settings.error("No user ID found when saving Apple Music status")
+            CrashLogger.report("Connect.appleMusic", "no user id when saving status")
             return false
         }
 
@@ -66,6 +69,7 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
 
         try await setLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
         Logger.settings.info("Apple Music connected, has subscription: \(hasSubscription)")
+        CrashLogger.log("[settings] Apple Music connected, has subscription: \(hasSubscription)")
         return true
     }
     
@@ -74,11 +78,13 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
 
         guard await authResult.isAuthorized else {
             Logger.settings.info("Spotify authorization denied")
+            CrashLogger.report("Connect.spotify", "authorization not granted")
             return false
         }
 
         guard let userId = try await swiftDataManager.getCurrentUserId() else {
             Logger.settings.error("No user ID found when saving Spotify status")
+            CrashLogger.report("Connect.spotify", "no user id when saving status")
             return false
         }
 
@@ -97,6 +103,7 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
 
         try await setLoginUseCase.saveUserProfile(userId: userId, profile: updatedProfile)
         Logger.settings.info("Spotify connected, premium: \(String(describing: isPremium))")
+        CrashLogger.log("[settings] Spotify connected, premium: \(String(describing: isPremium))")
 
         return true
     }
@@ -128,6 +135,7 @@ public actor SetSettingsUseCase: SetSettingsUseCaseProtocol {
             Logger.settings.info("Main music player synced to Firebase")
         } catch {
             Logger.settings.error("Failed to sync main music player to Firebase: \(error)")
+            CrashLogger.log("[settings] Failed to sync main music player to Firebase: \(error)")
         }
     }
 }

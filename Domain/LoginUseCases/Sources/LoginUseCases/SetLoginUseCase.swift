@@ -54,6 +54,7 @@ public actor SetLoginUseCase: SetLoginUseCaseProtocol {
             Logger.loginUseCases.info("Firebase authentication successful for user: \(userId)")
         } catch {
             Logger.loginUseCases.error("Firebase authentication failed: \(error.localizedDescription)")
+            CrashLogger.log("[loginUseCases] Firebase authentication failed: \(error.localizedDescription)")
             throw LoginUseCaseError.authenticationFailed
         }
 
@@ -66,13 +67,16 @@ public actor SetLoginUseCase: SetLoginUseCaseProtocol {
         } catch {
             // CRITICAL: Local storage failed - rollback Firebase authentication
             Logger.loginUseCases.error("Local storage failed: \(error.localizedDescription)")
+            CrashLogger.log("[loginUseCases] Local storage failed: \(error.localizedDescription)")
             Logger.loginUseCases.warning("Rolling back Firebase authentication due to local storage failure")
+            CrashLogger.log("[loginUseCases] Rolling back Firebase authentication due to local storage failure")
 
             do {
                 try await loginRepository.signOut()
                 Logger.loginUseCases.info("Successfully rolled back Firebase authentication")
             } catch {
                 Logger.loginUseCases.error("Failed to rollback Firebase auth: \(error.localizedDescription)")
+                CrashLogger.log("[loginUseCases] Failed to rollback Firebase auth: \(error.localizedDescription)")
                 // Continue to throw the original error even if rollback fails
             }
 
