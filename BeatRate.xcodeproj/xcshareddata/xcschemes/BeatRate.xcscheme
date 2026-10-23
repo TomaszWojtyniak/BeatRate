@@ -41,6 +41,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "8BED07FA2DE0D68500838DD7"
                BuildableName = "BeatRateTests.xctest"
+               BlueprintName = "BeatRateTests"
                ReferencedContainer = "container:BeatRate.xcodeproj">
             </BuildableReference>
          </TestableReference>
