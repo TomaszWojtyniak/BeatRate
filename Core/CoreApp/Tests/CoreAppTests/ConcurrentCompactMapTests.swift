@@ -4,7 +4,7 @@ import Testing
 
 struct ConcurrentCompactMapTests {
 
-    @Test func preservesInputOrder() async {
+    @Test func `preserves input order`() async {
         let input = Array(0..<50)
         let result = await input.concurrentCompactMap(maxConcurrent: 4) { value -> Int? in
             try? await Task.sleep(for: .milliseconds(Int.random(in: 1...10)))
@@ -13,14 +13,14 @@ struct ConcurrentCompactMapTests {
         #expect(result == input.map { $0 * 2 })
     }
 
-    @Test func dropsNilResults() async {
+    @Test func `drops nil results`() async {
         let result = await Array(0..<10).concurrentCompactMap(maxConcurrent: 3) { value -> Int? in
             value.isMultiple(of: 2) ? value : nil
         }
         #expect(result == [0, 2, 4, 6, 8])
     }
 
-    @Test func neverExceedsMaxConcurrent() async {
+    @Test func `never exceeds max concurrent`() async {
         let counter = ConcurrencyCounter()
         _ = await Array(0..<20).concurrentCompactMap(maxConcurrent: 4) { value -> Int? in
             await counter.enter()
@@ -31,12 +31,12 @@ struct ConcurrentCompactMapTests {
         #expect(await counter.maxObserved <= 4)
     }
 
-    @Test func handlesEmptyInput() async {
+    @Test func `returns empty for empty input`() async {
         let result = await [Int]().concurrentCompactMap(maxConcurrent: 4) { value -> Int? in value }
         #expect(result.isEmpty)
     }
 
-    @Test func clampsNonPositiveMaxConcurrentToSequential() async {
+    @Test func `clamps non positive max concurrent to sequential`() async {
         let result = await [1, 2, 3].concurrentCompactMap(maxConcurrent: 0) { value -> Int? in value }
         #expect(result == [1, 2, 3])
     }

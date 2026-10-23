@@ -17,7 +17,7 @@ public final class MusicPlayerManager {
 
     private let userDefaultsManager: UserDefaultsManager
 
-    private init(userDefaultsManager: UserDefaultsManager = .shared) {
+    init(userDefaultsManager: UserDefaultsManager = .shared) {
         self.userDefaultsManager = userDefaultsManager
     }
 

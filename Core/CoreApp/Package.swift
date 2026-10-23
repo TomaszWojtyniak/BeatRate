@@ -33,7 +33,7 @@ let package = Package(
         ),
         .testTarget(
             name: "CoreAppTests",
-            dependencies: ["CoreApp"]
+            dependencies: ["CoreApp", "Models"]
         ),
     ]
 )

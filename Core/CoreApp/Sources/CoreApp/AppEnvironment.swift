@@ -7,9 +7,11 @@ public enum AppEnvironment {
 
     /// Returns the current app environment based on the bundle identifier
     nonisolated public static var current: AppEnvironment {
-        guard let bundleID = Bundle.main.bundleIdentifier else {
-            return .production
-        }
+        from(bundleID: Bundle.main.bundleIdentifier)
+    }
+
+    nonisolated static func from(bundleID: String?) -> AppEnvironment {
+        guard let bundleID else { return .production }
         return bundleID.contains("development") ? .development : .production
     }
 

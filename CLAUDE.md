@@ -233,6 +233,79 @@ Add to `Core/Models/Sources/Models/`. Models should:
 - Use `@MainActor` isolation if used only in UI
 - Provide init methods for different data sources (Firebase, MusicKit, SwiftData)
 
+## Unit Tests — always write them
+
+Every code change ships with unit tests **in the module it touches**
+(`<Package>/Tests/<Package>Tests/`). The goal is **100% line coverage** of each
+module's non-view code (views are out of scope, see below). A change is not done until that module's tests pass and coverage is checked.
+
+- **Before writing tests**, load the `swift-testing-expert` skill
+  (`.claude/skills/swift-testing-expert`) and check whether the code is testable
+  (hidden singletons, `.shared` inside logic, `Date()`/`UUID()` created inline,
+  system frameworks called directly). If it isn't, make the smallest refactor that
+  allows injection (protocol + init parameter with the production default) first.
+- **Framework**: Swift Testing only (`import Testing`, `@Test`, `#expect`,
+  `#require`). No XCTest. Group related tests in a `struct` suite named
+  `<TypeUnderTest>Tests`; mark it `@MainActor` when the type under test is
+  main-actor isolated (the default here, see below).
+- **Test names describe the behaviour — no comment above the test.** Use Swift's
+  raw identifiers (backticks) so the function name *is* the sentence:
+
+  ```swift
+  @Test func `undecodable firebase blob reads as nil without losing the album`() { ... }
+  ```
+
+  Don't add `@Test("display name")` or a `///` comment restating it. A comment is
+  only for a non-obvious *why* (e.g. the bug it guards against).
+- **Never unit-test SwiftUI views** (no `body`, no `ImageRenderer`, no snapshot
+  tests). If a view holds logic that belongs in its view model / data model
+  (state decisions, formatting, filtering, branching on data), move it there and
+  test that. Don't force it: purely presentational branches (`if let image`,
+  `isLoading ? … : …`) stay in the view and are simply excluded from the
+  coverage target — don't create a view model just to make a line testable.
+- **Parameterize** (`@Test(arguments:)`) instead of copy-pasting tests that
+  differ only by input.
+- **Tests must be parallel-safe**: no shared mutable state, no real
+  `UserDefaults.standard`, Keychain, network, Firebase, MusicKit or on-disk
+  SwiftData. Use an in-memory `ModelContainer` or a `UserDefaults(suiteName:)`
+  per test. `.serialized` only with a comment saying why.
+
+### Test doubles — one convention for all modules
+
+- Hand-written, no mocking libraries. Doubles live in one file per test target:
+  `Tests/<Package>Tests/<Package>TestDoubles.swift`.
+- Name by role + the protocol they replace:
+  - `Stub<Protocol>` — returns canned / scripted values. It may record calls via
+    `private(set)` properties (`sentRequests`, `saveCount`) so tests can assert
+    on them. This is the default double.
+  - `Fake<Protocol>` — a working lightweight implementation (in-memory store).
+  - No separate `Mock`/`Spy` types; recording lives on the `Stub`.
+- A double is an `actor` when the protocol is used from actors / is `Sendable`,
+  otherwise a `final class` (main-actor by default isolation).
+- Inject doubles through the init; never swap a `.shared` singleton in tests.
+- Small fixtures (sample `AppleMusicAlbumData`, etc.) go as `static let` on the
+  suite, or in the doubles file when several suites share them.
+- Reference implementation: `Data/Services/SpotifyService/Tests/SpotifyServiceTests/SpotifyTestDoubles.swift`.
+
+### Running a module's tests and checking coverage
+
+Prefer the Xcode MCP (`RunSomeTests` / `RunAllTests` on the `BeatRate Development`
+scheme, simulator **iPhone Duo**). For coverage from the CLI:
+
+```bash
+xcodebuild test -scheme "BeatRate Development" -project BeatRate.xcodeproj \
+  -destination 'platform=iOS Simulator,name=iPhone Duo' \
+  -only-testing:CoreAppTests -enableCodeCoverage YES \
+  -resultBundlePath /tmp/CoreApp.xcresult
+```
+
+```bash
+xcrun xccov view --report --only-targets /tmp/CoreApp.xcresult
+```
+
+Anything left uncovered must be named in the hand-back with the reason (e.g.
+SwiftUI `body`, a thin wrapper over a system framework) — never silently.
+
 ## Git Workflow
 
 - Main branch: `development` (use for PRs)

@@ -14,7 +14,7 @@ public nonisolated final class UserDefaultsManager: Sendable {
     /// only its underlying read/write methods are invoked, which the system synchronises.
     nonisolated(unsafe) private let defaults: UserDefaults
 
-    private init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
     }
 
