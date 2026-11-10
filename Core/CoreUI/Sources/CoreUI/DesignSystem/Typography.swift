@@ -15,7 +15,7 @@
 
 import SwiftUI
 
-public enum AppTextStyle {
+public enum AppTextStyle: CaseIterable {
 
     // MARK: – Brand display (large wordmarks)
 

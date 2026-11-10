@@ -10,7 +10,7 @@ import Models
 
 public struct HomeSectionView: View {
 
-    private static let seeAllThreshold = 10
+    static let seeAllThreshold = 10
 
     let name: String
     let albums: [AlbumModel]
@@ -25,7 +25,12 @@ public struct HomeSectionView: View {
     }
 
     private var visibleAlbums: [AlbumModel] {
-        onSeeAll != nil ? Array(albums.prefix(Self.seeAllThreshold)) : albums
+        Self.visibleAlbums(albums, canSeeAll: onSeeAll != nil)
+    }
+
+    /// With a "See all" destination the row is capped; without one it shows everything.
+    static func visibleAlbums(_ albums: [AlbumModel], canSeeAll: Bool) -> [AlbumModel] {
+        canSeeAll ? Array(albums.prefix(seeAllThreshold)) : albums
     }
 
     public var body: some View {
