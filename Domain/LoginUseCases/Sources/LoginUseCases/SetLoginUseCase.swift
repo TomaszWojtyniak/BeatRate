@@ -45,12 +45,18 @@ public actor SetLoginUseCase: SetLoginUseCaseProtocol {
     /// Performs a complete login with transaction-like rollback support.
     /// If Firebase auth succeeds but local storage fails, Firebase auth is rolled back.
     public func performCompleteLogin(authResult: ASAuthorization) async throws -> String {
+        try await completeLogin { try await self.loginRepository.setLoginData(authResult: authResult) }
+    }
+
+    /// The rollback flow, with the Apple sign-in step passed in: `ASAuthorization`
+    /// has no public initializer, so tests drive this directly.
+    func completeLogin(signIn: @Sendable () async throws -> String) async throws -> String {
         Logger.loginUseCases.info("Starting complete login flow with rollback support")
 
         // Step 1: Authenticate with Firebase and save to Keychain
         let userId: String
         do {
-            userId = try await loginRepository.setLoginData(authResult: authResult)
+            userId = try await signIn()
             Logger.loginUseCases.info("Firebase authentication successful for user: \(userId)")
         } catch {
             CrashLogger.log("Firebase authentication failed: \(error.localizedDescription)", to: .loginUseCases)

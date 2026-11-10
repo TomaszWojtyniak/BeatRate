@@ -35,13 +35,23 @@ public protocol GetSplashUseCaseProtocol: Sendable {
     func deleteAccount(authResult: ASAuthorization) async throws
 }
 
+/// The Keychain calls splash makes, so tests don't touch the real Keychain.
+nonisolated protocol AppleCredentialStore: Sendable {
+    func loadAppleUserID() async throws -> String?
+    func deleteAppleUserID() async throws
+    func deleteSpotifyTokens() async throws
+}
+
+extension KeychainManager: AppleCredentialStore {}
+
 public actor GetSplashUseCase: GetSplashUseCaseProtocol {
     private let musicRepository: MusicRepositoryProtocol
     private let homeRepository: HomeRepositoryProtocol
     private let loginRepository: LoginRepositoryProtocol
     private let swiftDataManager: SwiftDataManagerProtocol
     private let getLoginUseCase: GetLoginUseCaseProtocol
-    private let keychainManager: KeychainManager
+    private let keychainManager: any AppleCredentialStore
+    private let credentialState: @Sendable (String) async -> ASAuthorizationAppleIDProvider.CredentialState
     private let sessionManager: SessionManager
     private let musicPlayerManager: MusicPlayerManager
     private let userDefaultsManager: UserDefaultsManager
@@ -57,12 +67,39 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
         userDefaultsManager: UserDefaultsManager = .shared,
         keychainManager: KeychainManager = .shared
     ) {
+        self.init(
+            musicRepository: musicRepository,
+            homeRepository: homeRepository,
+            loginRepository: loginRepository,
+            swiftDataManager: swiftDataManager,
+            getLoginUseCase: getLoginUseCase,
+            sessionManager: sessionManager,
+            musicPlayerManager: musicPlayerManager,
+            userDefaultsManager: userDefaultsManager,
+            credentialStore: keychainManager,
+            credentialState: Self.fetchAppleIDCredentialState
+        )
+    }
+
+    init(
+        musicRepository: MusicRepositoryProtocol,
+        homeRepository: HomeRepositoryProtocol,
+        loginRepository: LoginRepositoryProtocol,
+        swiftDataManager: SwiftDataManagerProtocol,
+        getLoginUseCase: GetLoginUseCaseProtocol,
+        sessionManager: SessionManager,
+        musicPlayerManager: MusicPlayerManager,
+        userDefaultsManager: UserDefaultsManager,
+        credentialStore: any AppleCredentialStore,
+        credentialState: @escaping @Sendable (String) async -> ASAuthorizationAppleIDProvider.CredentialState
+    ) {
+        self.credentialState = credentialState
         self.musicRepository = musicRepository
         self.homeRepository = homeRepository
         self.loginRepository = loginRepository
         self.swiftDataManager = swiftDataManager
         self.getLoginUseCase = getLoginUseCase
-        self.keychainManager = keychainManager
+        self.keychainManager = credentialStore
         self.sessionManager = sessionManager
         self.musicPlayerManager = musicPlayerManager
         self.userDefaultsManager = userDefaultsManager
@@ -235,9 +272,7 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
             return false
         }
 
-        let credentialState = await fetchAppleIDCredentialState(for: appleUserID)
-
-        switch credentialState {
+        switch await credentialState(appleUserID) {
         case .authorized:
             // Credentials are valid
             return true
@@ -256,7 +291,7 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
         }
     }
     
-    private func fetchAppleIDCredentialState(for userId: String) async -> ASAuthorizationAppleIDProvider.CredentialState {
+    private nonisolated static func fetchAppleIDCredentialState(for userId: String) async -> ASAuthorizationAppleIDProvider.CredentialState {
         await withCheckedContinuation { continuation in
             let provider = ASAuthorizationAppleIDProvider()
             provider.getCredentialState(forUserID: userId) { state, _ in

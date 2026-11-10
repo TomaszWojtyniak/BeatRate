@@ -45,7 +45,7 @@ public final class SessionManager {
     /// Lives here rather than in the view so it survives the view being rebuilt.
     private var hasAutoPromptedAccount = false
 
-    init() {}
+    public init() {}
 
     /// Mirrors the authoritative login state. Called only from `AppDataModel`.
     ///
