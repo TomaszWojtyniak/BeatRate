@@ -35,10 +35,10 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
     let databaseService: DatabaseFirebaseServiceProtocol
     let keychainManager: KeychainManager
 
-    private init(analyticsManager: AnalyticsManager = .shared,
-                 crashLogger: CrashLogger = .shared,
-                 databaseService: DatabaseFirebaseService = .shared,
-                 keychainManager: KeychainManager = .shared) {
+    init(analyticsManager: AnalyticsManager = .shared,
+         crashLogger: CrashLogger = .shared,
+         databaseService: any DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared,
+         keychainManager: KeychainManager = .shared) {
         self.analyticsManager = analyticsManager
         self.crashLogger = crashLogger
         self.databaseService = databaseService
@@ -78,7 +78,13 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
             throw error
         }
 
-        await createUserProfileIfNeeded(userId: userId, appleIDCredential: appleIDCredential, firebaseUser: authResult.user)
+        // Apple sends the email and name only on the very first sign-in.
+        await createUserProfileIfNeeded(
+            userId: userId,
+            email: appleIDCredential.email ?? authResult.user.email,
+            firstName: appleIDCredential.fullName?.givenName,
+            lastName: appleIDCredential.fullName?.familyName
+        )
 
         let isNewUser = authResult.additionalUserInfo?.isNewUser ?? false
         await analyticsManager.setUserId(userId)
@@ -156,9 +162,9 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
         return authResult
     }
 
-    private func createUserProfileIfNeeded(userId: String, appleIDCredential: ASAuthorizationAppleIDCredential, firebaseUser: FirebaseAuth.User) async {
+    func createUserProfileIfNeeded(userId: String, email: String?, firstName: String?, lastName: String?) async {
         do {
-            let userData = extractUserData(from: appleIDCredential, firebaseUser: firebaseUser)
+            let userData = (email: email, firstName: firstName, lastName: lastName)
 
             // Only proceed if we have name data from Apple (only available on first sign-in)
             let hasNameData = userData.firstName != nil || userData.lastName != nil
@@ -179,14 +185,6 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
             CrashLogger.log("Failed to check existing user profile: \(error.localizedDescription)", to: .firebaseService)
             await crashLogger.reportToCrashlytics(error: error)
         }
-    }
-
-    private func extractUserData(from appleIDCredential: ASAuthorizationAppleIDCredential, firebaseUser: FirebaseAuth.User) -> (email: String?, firstName: String?, lastName: String?) {
-        let email = appleIDCredential.email ?? firebaseUser.email
-        let firstName = appleIDCredential.fullName?.givenName
-        let lastName = appleIDCredential.fullName?.familyName
-
-        return (email: email, firstName: firstName, lastName: lastName)
     }
 
     private func saveNewUserProfile(userId: String, userData: (email: String?, firstName: String?, lastName: String?)) async {

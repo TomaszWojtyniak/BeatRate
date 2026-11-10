@@ -55,14 +55,19 @@ actor StubTransport: SpotifyTransport {
 /// failure never signs the user out.
 actor StubTokenStore: SpotifyTokenStoring {
     private var tokens: SpotifyTokens?
+    private let failsToLoad: Bool
     private(set) var clearCount = 0
     private(set) var saveCount = 0
 
-    init(tokens: SpotifyTokens? = nil) {
+    init(tokens: SpotifyTokens? = nil, failsToLoad: Bool = false) {
         self.tokens = tokens
+        self.failsToLoad = failsToLoad
     }
 
-    func load() async throws -> SpotifyTokens? { tokens }
+    func load() async throws -> SpotifyTokens? {
+        if failsToLoad { throw SpotifyFailure.transient }
+        return tokens
+    }
 
     func save(_ tokens: SpotifyTokens) async throws {
         self.tokens = tokens

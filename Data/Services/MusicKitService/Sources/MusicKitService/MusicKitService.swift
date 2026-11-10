@@ -14,13 +14,19 @@ public actor MusicKitService: MusicKitServiceProtocol {
     public static let shared = MusicKitService()
 
     let analyticsManager: AnalyticsManager
+    private let dataSource: any AppleMusicDataSource
 
     private var canPlayAppleMusic: Bool = false
     /// The user's storefront country code, cached for the actor's lifetime.
     private var cachedStorefront: String?
 
     public init(analyticsManager: AnalyticsManager = .shared) {
+        self.init(analyticsManager: analyticsManager, dataSource: MusicKitDataSource())
+    }
+
+    init(analyticsManager: AnalyticsManager, dataSource: any AppleMusicDataSource) {
         self.analyticsManager = analyticsManager
+        self.dataSource = dataSource
     }
 
     // MARK: - Authorization
@@ -101,13 +107,13 @@ public actor MusicKitService: MusicKitServiceProtocol {
 
     /// Fetches an album's tracks through the raw `albums/{id}/tracks` relationship
     /// endpoint, following pagination until the full list is collected.
-    private func fetchTracks(albumId: String) async throws -> [Models.Track] {
+    func fetchTracks(albumId: String) async throws -> [Models.Track] {
         var tracks: [Models.Track] = []
         var nextURL: URL? = AppleMusicAPI.albumTracks(storefront: try await storefront(), albumId: albumId)
 
         while let url = nextURL {
-            let response = try await MusicDataRequest(urlRequest: URLRequest(url: url)).response()
-            let page = try JSONDecoder().decode(AppleMusicTracksPage.self, from: response.data)
+            let data = try await dataSource.data(for: URLRequest(url: url))
+            let page = try JSONDecoder().decode(AppleMusicTracksPage.self, from: data)
             tracks.append(contentsOf: page.tracks)
             nextURL = page.next.flatMap(AppleMusicAPI.nextPage)
         }
@@ -119,7 +125,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
         if let cachedStorefront {
             return cachedStorefront
         }
-        let storefront = try await MusicDataRequest.currentCountryCode
+        let storefront = try await dataSource.countryCode()
         cachedStorefront = storefront
         return storefront
     }
@@ -219,7 +225,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
     // MARK: - Album Mapping
 
     /// Maps a MusicKit catalog album to the app-facing model.
-    private func albumData(from album: Album, tracks: [Models.Track]? = nil) -> AppleMusicAlbumData {
+    func albumData(from album: Album, tracks: [Models.Track]? = nil) -> AppleMusicAlbumData {
         AppleMusicAlbumData(
             id: album.id.rawValue,
             title: album.title,
@@ -237,7 +243,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
     // MARK: - Artist Mapping
 
     /// Maps a MusicKit catalog artist to the app-facing model.
-    private func artistData(from artist: Artist,
+    func artistData(from artist: Artist,
                             albums: [AppleMusicAlbumData]? = nil,
                             singles: [AppleMusicAlbumData]? = nil,
                             latestRelease: AppleMusicAlbumData? = nil) -> AppleMusicArtistData {

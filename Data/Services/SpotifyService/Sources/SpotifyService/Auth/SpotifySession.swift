@@ -185,7 +185,7 @@ actor SpotifySession {
         }
     }
 
-    private func authorizationURL(codeChallenge: String, redirectUri: URL) -> URL {
+    func authorizationURL(codeChallenge: String, redirectUri: URL) -> URL {
         SpotifyAPI.authorize.appending(queryItems: [
             URLQueryItem(name: SpotifyAPI.Param.clientId, value: clientId),
             URLQueryItem(name: SpotifyAPI.Param.responseType, value: SpotifyAPI.Value.responseTypeCode),

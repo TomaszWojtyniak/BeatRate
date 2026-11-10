@@ -65,7 +65,7 @@ final class SpotifyWebAuthSession: NSObject, ASWebAuthenticationPresentationCont
         }
     }
 
-    private nonisolated static func authorizationCode(
+    nonisolated static func authorizationCode(
         from callbackURL: URL?,
         error: Error?
     ) -> Result<String, Error> {

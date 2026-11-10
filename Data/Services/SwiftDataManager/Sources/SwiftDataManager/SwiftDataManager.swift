@@ -41,18 +41,32 @@ public protocol SwiftDataManagerProtocol: Sendable {
     func clearRecentAlbums() async throws
 }
 
+/// The one Keychain call logout needs, so tests don't touch the real Keychain.
+nonisolated protocol AppleUserIDStore: Sendable {
+    func deleteAppleUserID() async throws
+}
+
+extension KeychainManager: AppleUserIDStore {}
+
 @Observable
 @MainActor
 public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol {
-    public static let shared = SwiftDataManager()
+    public static let shared = SwiftDataManager(container: makeContainer())
     public let container: ModelContainer
-    private let keychainManager: KeychainManager
+    private let appleUserIDStore: any AppleUserIDStore
+    private let now: @Sendable () -> Date
 
     private let loginStateStream: AsyncStream<Bool>
     private let loginStateContinuation: AsyncStream<Bool>.Continuation
 
-    private init(keychainManager: KeychainManager = .shared) {
-        self.keychainManager = keychainManager
+    init(
+        container: ModelContainer,
+        appleUserIDStore: any AppleUserIDStore = KeychainManager.shared,
+        now: @escaping @Sendable () -> Date = Date.init
+    ) {
+        self.container = container
+        self.appleUserIDStore = appleUserIDStore
+        self.now = now
 
         // Create AsyncStream for login state changes
         var continuation: AsyncStream<Bool>.Continuation!
@@ -60,9 +74,9 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
             continuation = cont
         }
         self.loginStateContinuation = continuation
-
-        container = Self.makeContainer()
     }
+
+    static let schema = Schema([CachedAlbum.self, CachedSection.self, User.self, RecentAlbum.self])
 
     /// A store that will not open — corrupted, or written by a schema this build
     /// no longer understands — is discarded and rebuilt rather than crashing on
@@ -76,11 +90,12 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
     /// Keychain Apple ID plus Firebase's own session, both of which outlive this
     /// store. Any future model holding state that is not recoverable from
     /// elsewhere must not live in this container.
-    private static func makeContainer() -> ModelContainer {
-        let schema = Schema([CachedAlbum.self, CachedSection.self, User.self, RecentAlbum.self])
-
+    static func makeContainer(
+        open: (Schema) throws -> ModelContainer = { try ModelContainer(for: $0) },
+        destroyStore: () -> Void = destroyStore
+    ) -> ModelContainer {
         do {
-            return try ModelContainer(for: schema)
+            return try open(schema)
         } catch {
             CrashLogger.log("Cache store unusable (\(error)) — rebuilding it from scratch", to: .swiftDataManager)
         }
@@ -88,7 +103,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         destroyStore()
 
         do {
-            return try ModelContainer(for: schema)
+            return try open(schema)
         } catch {
             // Nothing left to fall back to but memory. The app launches and works;
             // the cache simply does not survive relaunch.
@@ -99,7 +114,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
     }
 
     /// Removes the default store and its write-ahead log siblings.
-    private static func destroyStore() {
+    nonisolated private static func destroyStore() {
         let store = URL.applicationSupportDirectory.appending(path: "default.store")
         for path in [store.path, store.path + "-shm", store.path + "-wal"] {
             try? FileManager.default.removeItem(atPath: path)
@@ -193,7 +208,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         guard let sections, !sections.isEmpty else { return false }
         
         // Check if cache is less than 24 hours old
-        let dayAgo = Date().addingTimeInterval(-86400)
+        let dayAgo = now().addingTimeInterval(-86400)
         return sections.allSatisfy { $0.lastUpdated > dayAgo }
     }
     
@@ -243,7 +258,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
 
         // Check if user rating cache is valid (7 days)
         if let updatedAt = cachedAlbum.userRatingUpdatedAt {
-            let sevenDaysAgo = Date().addingTimeInterval(-(7 * 24 * 60 * 60)) // 7 days in seconds
+            let sevenDaysAgo = now().addingTimeInterval(-(7 * 24 * 60 * 60)) // 7 days in seconds
             if updatedAt > sevenDaysAgo {
                 return cachedAlbum.userRating
             }
@@ -262,7 +277,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         }
 
         cachedAlbum.userRating = rating
-        cachedAlbum.userRatingUpdatedAt = Date()
+        cachedAlbum.userRatingUpdatedAt = now()
         try context.save()
     }
 
@@ -291,13 +306,13 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
     /// The cache is small (home + viewed albums), so fetching all and filtering
     /// in memory avoids a large `IN`-style predicate.
     public func cacheUserRatings(_ ratings: [String: Double]) async throws {
-        let now = Date()
+        let syncedAt = now()
         var didUpdate = false
         for cachedAlbum in try context.fetch(FetchDescriptor<CachedAlbum>()) {
             let rating = ratings[cachedAlbum.id]
             guard cachedAlbum.userRating != rating else { continue }
             cachedAlbum.userRating = rating
-            cachedAlbum.userRatingUpdatedAt = rating == nil ? nil : now
+            cachedAlbum.userRatingUpdatedAt = rating == nil ? nil : syncedAt
             didUpdate = true
         }
 
@@ -363,7 +378,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
 
         // Clear Apple user ID from Keychain
         do {
-            try await keychainManager.deleteAppleUserID()
+            try await appleUserIDStore.deleteAppleUserID()
         } catch {
             // Log but don't fail - user is still logged out in SwiftData
             Logger.swiftDataManager.error("Failed to delete Apple user ID from Keychain: \(error)")
@@ -412,10 +427,11 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
         if let existingAlbum = try context.fetch(descriptor).first {
             // Update the addedAt timestamp to move it to the top
             existingAlbum.appleMusicAlbumData = album
-            existingAlbum.addedAt = Date()
+            existingAlbum.addedAt = now()
         } else {
             // Add new recent album
             guard let recentAlbum = RecentAlbum(id: album.id, appleMusicAlbumData: album) else { return }
+            recentAlbum.addedAt = now()
             context.insert(recentAlbum)
         }
 
