@@ -13,7 +13,7 @@ private struct StarView: View {
     let index: Int
     let rating: Double
 
-    private var fill: Double { rating - Double(index) }
+    private var fill: StarRatingScale.Fill { StarRatingScale.fill(ofStar: index, rating: rating) }
 
     var body: some View {
         ZStack {
@@ -21,11 +21,11 @@ private struct StarView: View {
                 .textStyle(.iconRating, color: .gray.opacity(0.3))
                 .scaleEffect(1.3)
 
-            if fill >= 1.0 {
+            if fill == .full {
                 Image(systemName: "star.fill")
                     .textStyle(.iconRating, color: .accentPrimary)
                     .scaleEffect(1.3)
-            } else if fill >= 0.5 {
+            } else if fill == .half {
                 Image(systemName: "star.leadinghalf.filled")
                     .textStyle(.iconRating, color: .accentPrimary)
                     .scaleEffect(1.3)
@@ -38,15 +38,10 @@ struct StarRatingView: View {
     @Binding var rating: Double
     var onRatingFinalized: ((Double) -> Void)?
 
-    private let maxRating: Int = 10
-    private let totalScale: Double = 10.0
+    private let maxRating = StarRatingScale.starCount
     @State private var lastTappedStar: Int = -1
     @State private var lastTapTime: Date = .distantPast
     @State private var containerWidth: CGFloat = 0
-
-    private var starWidth: CGFloat {
-        containerWidth > 0 ? containerWidth / CGFloat(maxRating) : 1
-    }
 
     var body: some View {
         HStack(spacing: Spacing.xs) {
@@ -92,10 +87,10 @@ struct StarRatingView: View {
         .accessibilityAdjustableAction { direction in
             switch direction {
             case .increment:
-                setRating(min(rating + 0.5, totalScale))
+                setRating(rating + 0.5)
                 onRatingFinalized?(rating)
             case .decrement:
-                setRating(max(rating - 0.5, 0))
+                setRating(rating - 0.5)
                 onRatingFinalized?(rating)
             @unknown default:
                 break
@@ -104,14 +99,10 @@ struct StarRatingView: View {
     }
 
     private func handleTap(at location: CGPoint) {
-        let index = min(Int(location.x / starWidth), maxRating - 1)
+        let index = StarRatingScale.tappedStar(atX: location.x, width: containerWidth)
         let now = Date()
-
-        if lastTappedStar == index && now.timeIntervalSince(lastTapTime) < 0.5 {
-            setRating(Double(index) + 0.5)
-        } else {
-            setRating(Double(index + 1))
-        }
+        let isQuickRepeat = lastTappedStar == index && now.timeIntervalSince(lastTapTime) < 0.5
+        setRating(StarRatingScale.tapRating(star: index, isQuickRepeat: isQuickRepeat))
 
         lastTappedStar = index
         lastTapTime = now
@@ -119,25 +110,14 @@ struct StarRatingView: View {
     }
 
     private func setRating(_ newRating: Double) {
-        let clamped = min(max(newRating, 0), totalScale)
+        let clamped = StarRatingScale.clamped(newRating)
         if rating != clamped {
             rating = clamped
         }
     }
 
     private func updateRating(from location: CGPoint) {
-        let clampedX = min(max(location.x, 0), containerWidth)
-        let starIndex = Int(clampedX / starWidth)
-        let remainder = clampedX.truncatingRemainder(dividingBy: starWidth) / starWidth
-
-        var newRating = Double(starIndex)
-        if remainder > 0.75 {
-            newRating += 1.0
-        } else if remainder > 0.25 {
-            newRating += 0.5
-        }
-
-        setRating(newRating)
+        setRating(StarRatingScale.dragRating(atX: location.x, width: containerWidth))
     }
 }
 

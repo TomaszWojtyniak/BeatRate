@@ -62,6 +62,23 @@ final class AccountDataModel {
         return "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
     }
 
+    /// Full name, else the email, else nothing.
+    var displayName: String {
+        fullName ?? userProfile?.email ?? ""
+    }
+
+    /// Avatar letters: name initials, else the email's first letter, else "?".
+    var initials: String {
+        let first = (userProfile?.firstName?.first).map { String($0) } ?? ""
+        let last = (userProfile?.lastName?.first).map { String($0) } ?? ""
+        let combined = (first + last).uppercased()
+        if !combined.isEmpty { return combined }
+        if let initial = userProfile?.email?.first {
+            return String(initial).uppercased()
+        }
+        return "?"
+    }
+
     init(getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),
          setLoginUseCase: SetLoginUseCaseProtocol = SetLoginUseCase(),
          getAccountUseCase: GetAccountUseCaseProtocol = GetAccountUseCase(),

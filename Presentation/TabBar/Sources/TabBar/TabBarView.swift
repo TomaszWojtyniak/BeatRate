@@ -29,7 +29,7 @@ public struct TabBarView: View {
         TabView(selection: $selection) {
             ForEach(tabs) { tab in
                 Tab(value: tab, role: tab == TabBarScreen.search ? .prominent : .none) {
-                    if hasMusicAccess || tab == .account {
+                    if tab.isAvailable(hasMusicAccess: hasMusicAccess) {
                         tab.destination
                     } else {
                         MusicAccessUnavailableView()

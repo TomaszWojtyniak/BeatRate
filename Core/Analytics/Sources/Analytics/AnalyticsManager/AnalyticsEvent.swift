@@ -89,7 +89,7 @@ nonisolated public enum AnalyticsEvent: Sendable {
     case logout
     case accountDeleted
 
-    var name: String {
+    public var name: String {
         switch self {
         case .screenView: AnalyticsEventScreenView
         case .tabSelected: "tab_selected"
@@ -127,7 +127,7 @@ nonisolated public enum AnalyticsEvent: Sendable {
         }
     }
 
-    var parameters: [String: Any] {
+    public var parameters: [String: Any] {
         switch self {
         case let .screenView(screen, extra):
             // screen_class too: left out, the SDK fills it with the SwiftUI

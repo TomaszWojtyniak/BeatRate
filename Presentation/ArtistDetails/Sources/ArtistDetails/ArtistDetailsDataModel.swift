@@ -30,7 +30,7 @@ final class ArtistDetailsDataModel {
     var isLoading = false
     var loadFailed = false
 
-    private var loadTask: Task<Void, Never>?
+    private(set) var loadTask: Task<Void, Never>?
 
     init(
         source: Source,

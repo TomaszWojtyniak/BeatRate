@@ -18,7 +18,8 @@ import Analytics
 final class FavoritesManagerModel {
     private let getSearchUseCase: GetSearchUseCaseProtocol
     private let analyticsManager: AnalyticsManager
-    private var searchTask: Task<Void, Never>?
+    private(set) var searchTask: Task<Void, Never>?
+    private let debounce: Duration
 
     var working: [AlbumModel]
     var searchText: String = ""
@@ -29,7 +30,9 @@ final class FavoritesManagerModel {
 
     init(initial: [AlbumModel],
          getSearchUseCase: GetSearchUseCaseProtocol = GetSearchUseCase(),
-         analyticsManager: AnalyticsManager = .shared) {
+         analyticsManager: AnalyticsManager = .shared,
+         debounce: Duration = .milliseconds(500)) {
+        self.debounce = debounce
         self.working = initial
         self.getSearchUseCase = getSearchUseCase
         self.analyticsManager = analyticsManager
@@ -72,7 +75,7 @@ final class FavoritesManagerModel {
 
         isSearching = true
         searchTask = Task {
-            try? await Task.sleep(for: .milliseconds(500))
+            try? await Task.sleep(for: debounce)
             guard !Task.isCancelled else { isSearching = false; return }
 
             do {

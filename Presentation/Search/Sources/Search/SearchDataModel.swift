@@ -18,7 +18,8 @@ public final class SearchDataModel {
     private let saveRecentAlbumUseCase: SaveRecentAlbumUseCaseProtocol
     private let clearRecentAlbumsUseCase: ClearRecentAlbumsUseCaseProtocol
     private let analyticsManager: AnalyticsManager
-    private var searchTask: Task<Void, Never>?
+    private(set) var searchTask: Task<Void, Never>?
+    private let debounce: Duration
 
     public var albums: [AppleMusicAlbumData] = []
     public var artists: [AppleMusicArtistData] = []
@@ -34,8 +35,10 @@ public final class SearchDataModel {
         getRecentAlbumsUseCase: GetRecentAlbumsUseCaseProtocol = GetRecentAlbumsUseCase(),
         saveRecentAlbumUseCase: SaveRecentAlbumUseCaseProtocol = SaveRecentAlbumUseCase(),
         clearRecentAlbumsUseCase: ClearRecentAlbumsUseCaseProtocol = ClearRecentAlbumsUseCase(),
-        analyticsManager: AnalyticsManager = .shared
+        analyticsManager: AnalyticsManager = .shared,
+        debounce: Duration = .milliseconds(500)
     ) {
+        self.debounce = debounce
         self.getSearchUseCase = getSearchUseCase
         self.getRecentAlbumsUseCase = getRecentAlbumsUseCase
         self.saveRecentAlbumUseCase = saveRecentAlbumUseCase
@@ -66,8 +69,7 @@ public final class SearchDataModel {
 
         // Create a new debounced search task
         searchTask = Task {
-            // Wait 500ms before searching
-            try? await Task.sleep(for: .milliseconds(500))
+            try? await Task.sleep(for: debounce)
 
             // Check if task was cancelled while sleeping
             guard !Task.isCancelled else {
@@ -100,16 +102,18 @@ public final class SearchDataModel {
         }
     }
     
-    public func saveRecentAlbum(_ album: AppleMusicAlbumData) {
+    @discardableResult
+    public func saveRecentAlbum(_ album: AppleMusicAlbumData) -> Task<Void, Never> {
         Task {
             await saveRecentAlbumUseCase.save(album: album)
             recentAlbums = await getRecentAlbumsUseCase.fetchRecentAlbums()
         }
     }
 
-    public func clearRecentAlbums() {
+    @discardableResult
+    public func clearRecentAlbums() -> Task<Void, Never> {
         analyticsManager.log(.recentClearConfirm)
-        Task {
+        return Task {
             await clearRecentAlbumsUseCase.clearAll()
             recentAlbums = []
         }

@@ -26,13 +26,16 @@ final class MusicPlayerPickerDataModel {
     private let getSettingsUseCase: GetSettingsUseCaseProtocol
     private let musicPlayerManager: MusicPlayerManager
     private let analyticsManager: AnalyticsManager
+    private let appleMusicStatus: () -> MusicAuthorization.Status
 
     init(mode: MusicPlayerPickerMode,
          setSettingsUseCase: SetSettingsUseCaseProtocol = SetSettingsUseCase(),
          getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase(),
          musicPlayerManager: MusicPlayerManager = .shared,
-         analyticsManager: AnalyticsManager = .shared) {
+         analyticsManager: AnalyticsManager = .shared,
+         appleMusicStatus: @escaping () -> MusicAuthorization.Status = { MusicAuthorization.currentStatus }) {
         self.mode = mode
+        self.appleMusicStatus = appleMusicStatus
         self.setSettingsUseCase = setSettingsUseCase
         self.getSettingsUseCase = getSettingsUseCase
         self.musicPlayerManager = musicPlayerManager
@@ -69,7 +72,7 @@ final class MusicPlayerPickerDataModel {
         do {
             guard try await ensureConnected(player) else {
                 errorMessage = String(localized: .pickerErrorAccessDenied(player: player.displayName))
-                showsOpenSettings = player == .appleMusic && MusicAuthorization.currentStatus == .denied
+                showsOpenSettings = player == .appleMusic && appleMusicStatus() == .denied
                 return false
             }
         } catch {

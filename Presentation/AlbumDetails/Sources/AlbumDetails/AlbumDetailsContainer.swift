@@ -14,32 +14,23 @@ import OSLog
 /// Container view that fetches album data by ID before showing details
 /// Checks cache first (home albums only), then fetches from MusicKit
 public struct AlbumDetailsContainer: View {
-    let albumId: String
-
-    private enum LoadState {
-        case loading
-        case loaded(AlbumModel)
-        case failed(String)
-    }
-
-    @State private var state: LoadState = .loading
-
-    private let getAlbumByIdUseCase: GetAlbumByIdUseCaseProtocol
-    private let analyticsManager: AnalyticsManager
+    @State private var dataModel: AlbumDetailsContainerDataModel
 
     public init(
         albumId: String,
         getAlbumByIdUseCase: GetAlbumByIdUseCaseProtocol = GetAlbumByIdUseCase(),
         analyticsManager: AnalyticsManager = .shared
     ) {
-        self.albumId = albumId
-        self.getAlbumByIdUseCase = getAlbumByIdUseCase
-        self.analyticsManager = analyticsManager
+        self._dataModel = State(initialValue: AlbumDetailsContainerDataModel(
+            albumId: albumId,
+            getAlbumByIdUseCase: getAlbumByIdUseCase,
+            analyticsManager: analyticsManager
+        ))
     }
 
     public var body: some View {
         Group {
-            switch state {
+            switch dataModel.state {
             case .loading:
                 ProgressView(String(localized: .albumLoading))
             case .failed(let message):
@@ -49,8 +40,7 @@ public struct AlbumDetailsContainer: View {
                     Text(message)
                 } actions: {
                     Button(String(localized: .albumErrorRetry)) {
-                        analyticsManager.log(.retryTap(screen: .albumDetails))
-                        Task { await fetchAlbum() }
+                        Task { await dataModel.retry() }
                     }
                     .buttonStyle(.borderedProminent)
                 }
@@ -59,19 +49,7 @@ public struct AlbumDetailsContainer: View {
             }
         }
         .task {
-            await fetchAlbum()
-        }
-    }
-
-    private func fetchAlbum() async {
-        state = .loading
-        do {
-            let album = try await getAlbumByIdUseCase.fetchAlbum(id: albumId)
-            CrashLogger.log("Loaded album \(albumId), tracks: \(album.appleMusicAlbumData.tracks.map { "\($0.count)" } ?? "none yet")")
-            state = .loaded(album)
-        } catch {
-            CrashLogger.report("AlbumDetails", "load \(albumId) failed: \(error)", to: .albumDetails)
-            state = .failed(String(localized: .albumErrorMessage))
+            await dataModel.load()
         }
     }
 }

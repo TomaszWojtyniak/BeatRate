@@ -108,8 +108,7 @@ public struct HomeView: View {
         }
         .onChange(of: selectedAlbum) { _, album in
             guard let album else { return }
-            let section = dataModel.homeSections.first { $0.albums.contains { $0.id == album.id } }
-            dataModel.track(.albumTap(source: .homeSection, albumId: album.id, section: section?.analyticsName))
+            dataModel.trackHomeAlbumTap(album)
         }
         .onChange(of: gridSelectedAlbum) { _, album in
             guard let album else { return }

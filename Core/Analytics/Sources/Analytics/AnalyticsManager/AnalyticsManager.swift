@@ -22,7 +22,12 @@ public final class AnalyticsManager {
     private let defaults: UserDefaults
     private let backend: AnalyticsBackend
 
-    init(defaults: UserDefaults = .standard, backend: AnalyticsBackend = FirebaseAnalyticsBackend()) {
+    convenience init(defaults: UserDefaults = .standard) {
+        self.init(defaults: defaults, backend: FirebaseAnalyticsBackend())
+    }
+
+    /// Test seam: lets other modules record events instead of sending them.
+    public init(defaults: UserDefaults, backend: AnalyticsBackend) {
         self.defaults = defaults
         self.backend = backend
         Logger.analytics.info("Analytics Manager initialized")
@@ -77,7 +82,7 @@ public final class AnalyticsManager {
 }
 
 /// The Firebase calls `AnalyticsManager` makes, so tests can record them instead.
-protocol AnalyticsBackend {
+public protocol AnalyticsBackend {
     func setConsent(analyticsGranted: Bool)
     func setCollectionEnabled(_ enabled: Bool)
     func resetData()
