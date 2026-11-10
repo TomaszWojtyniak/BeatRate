@@ -11,36 +11,10 @@ struct AlbumTracklistView: View {
     let tracks: [Track]
     var onToggle: (Bool) -> Void = { _ in }
 
-    /// Number of tracks shown when collapsed.
-    private static let collapsedLimit = 5
-
     @State private var isExpanded = false
 
-    private var sortedTracks: [Track] {
-        tracks.sorted {
-            let lhs = ($0.discNumber ?? 1, $0.trackNumber ?? 0)
-            let rhs = ($1.discNumber ?? 1, $1.trackNumber ?? 0)
-            return lhs < rhs
-        }
-    }
-
-    private var canCollapse: Bool {
-        tracks.count > Self.collapsedLimit
-    }
-
-    private var visibleTracks: [Track] {
-        guard canCollapse, !isExpanded else { return sortedTracks }
-        return Array(sortedTracks.prefix(Self.collapsedLimit))
-    }
-
-    private var showsDiscHeaders: Bool {
-        Set(tracks.map { $0.discNumber ?? 1 }).count > 1
-    }
-
-    private var groupedVisible: [(disc: Int, tracks: [Track])] {
-        Dictionary(grouping: visibleTracks, by: { $0.discNumber ?? 1 })
-            .map { (disc: $0.key, tracks: $0.value) }
-            .sorted { $0.disc < $1.disc }
+    private var layout: TracklistLayout {
+        TracklistLayout(tracks: tracks, isExpanded: isExpanded)
     }
 
     var body: some View {
@@ -65,11 +39,11 @@ struct AlbumTracklistView: View {
     private var card: some View {
         VStack(spacing: 0) {
             TracklistContent(
-                groups: groupedVisible,
-                showsDiscHeaders: showsDiscHeaders
+                groups: layout.groupedVisible,
+                showsDiscHeaders: layout.showsDiscHeaders
             )
 
-            if canCollapse {
+            if layout.canCollapse {
                 Divider().padding(.leading, Spacing.md)
                 toggleButton
             }
@@ -159,7 +133,7 @@ private struct TrackRow: View {
             Spacer(minLength: Spacing.xs)
 
             if let duration = track.duration {
-                Text(format(duration))
+                Text(TracklistLayout.duration(duration))
                     .textStyle(.caption, color: .secondaryText)
                     .monospacedDigit()
             }
@@ -171,13 +145,6 @@ private struct TrackRow: View {
 
     private var numberText: String {
         track.trackNumber.map(String.init) ?? "·"
-    }
-
-    private func format(_ duration: TimeInterval) -> String {
-        let total = Int(duration.rounded())
-        let minutes = total / 60
-        let seconds = total % 60
-        return String(format: "%d:%02d", minutes, seconds)
     }
 }
 

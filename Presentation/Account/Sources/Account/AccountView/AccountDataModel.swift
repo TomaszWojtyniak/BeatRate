@@ -50,6 +50,11 @@ final class AccountDataModel {
     /// The user's mean rating, `nil` until there are `minRatingsForAverage` ratings.
     var averageRating: Double? { Self.average(of: ratedAlbums.compactMap(\.userRating)) }
 
+    /// A profile needs at least one name, and no save may already be running.
+    static func canSaveProfile(firstName: String, lastName: String, isSaving: Bool) -> Bool {
+        !isSaving && !(firstName.isEmpty && lastName.isEmpty)
+    }
+
     static func average(of ratings: [Double]) -> Double? {
         let ratings = ratings.filter { $0 > 0 }  // 0 means "not rated", as in the album average
         guard ratings.count >= minRatingsForAverage else { return nil }
@@ -60,6 +65,23 @@ final class AccountDataModel {
         guard let firstName = userProfile?.firstName,
               let lastName = userProfile?.lastName else { return nil }
         return "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
+    }
+
+    /// Full name, else the email, else nothing.
+    var displayName: String {
+        fullName ?? userProfile?.email ?? ""
+    }
+
+    /// Avatar letters: name initials, else the email's first letter, else "?".
+    var initials: String {
+        let first = (userProfile?.firstName?.first).map { String($0) } ?? ""
+        let last = (userProfile?.lastName?.first).map { String($0) } ?? ""
+        let combined = (first + last).uppercased()
+        if !combined.isEmpty { return combined }
+        if let initial = userProfile?.email?.first {
+            return String(initial).uppercased()
+        }
+        return "?"
     }
 
     init(getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),

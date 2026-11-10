@@ -12,24 +12,29 @@ import Synchronization
 
 @MainActor
 public final class CrashLogger {
-    public static let shared = CrashLogger()
+    nonisolated public static let shared = CrashLogger(backend: FirebaseCrashBackend())
 
-    private init() {
+    nonisolated private let backend: CrashBackend
+    /// Domains already sent by ``report(_:_:to:)`` this launch.
+    nonisolated private let reported = Mutex<Set<String>>([])
 
+    /// Test seam: lets other modules record calls instead of sending them.
+    nonisolated public init(backend: CrashBackend) {
+        self.backend = backend
     }
     
     public func configure() {
-        Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(true)
+        backend.setCollectionEnabled(true)
     }
     
     /// Pass nil on logout so later reports aren't attributed to that user.
     public func setUserIdentifier(_ identifier: String?) {
-        Crashlytics.crashlytics().setUserID(identifier)
+        backend.setUserID(identifier)
         Logger.crashLogger.info("User identifier set: \(identifier ?? "nil")")
     }
 
     public func reportToCrashlytics(error: Error) {
-        Crashlytics.crashlytics().record(error: error)
+        backend.record(error)
     }
 
     /// Writes `message` to `logger` and leaves it as a Crashlytics breadcrumb,
@@ -43,14 +48,13 @@ public final class CrashLogger {
         level: OSLogType = .error,
         file: String = #fileID
     ) {
-        logger?.log(level: level, "\(message, privacy: .public)")
-        Crashlytics.crashlytics().log("[\(file.prefix { $0 != "/" })] \(message)")
+        shared.log(message, to: logger, level: level, file: file)
     }
 
     /// Custom key attached to every later report this session, so each one
     /// shows the state it happened in (auth status, recents outcome, …).
     nonisolated public static func setValue(_ value: String, forKey key: String) {
-        Crashlytics.crashlytics().setCustomValue(value, forKey: key)
+        shared.setValue(value, forKey: key)
     }
 
     /// Non-fatal with a readable reason, for outcomes that aren't a thrown error
@@ -60,14 +64,56 @@ public final class CrashLogger {
     /// they'd never repeat exactly. Crashlytics keeps only the latest 8
     /// non-fatals per session; later ones stay as breadcrumbs.
     nonisolated public static func report(_ domain: String, _ reason: String, to logger: Logger? = nil) {
-        log(reason, to: logger, file: domain)  // tagged [domain] instead of [module]
+        shared.report(domain, reason, to: logger)
+    }
+
+    nonisolated func log(_ message: String, to logger: Logger?, level: OSLogType, file: String) {
+        logger?.log(level: level, "\(message, privacy: .public)")
+        backend.log("[\(file.prefix { $0 != "/" })] \(message)")
+    }
+
+    nonisolated func setValue(_ value: String, forKey key: String) {
+        backend.setCustomValue(value, forKey: key)
+    }
+
+    nonisolated func report(_ domain: String, _ reason: String, to logger: Logger?) {
+        log(reason, to: logger, level: .error, file: domain)  // tagged [domain] instead of [module]
         guard reported.withLock({ $0.insert(domain).inserted }) else { return }
-        Crashlytics.crashlytics().record(error: NSError(
+        backend.record(NSError(
             domain: "BeatRate.\(domain)",
             code: 0,
             userInfo: [NSLocalizedDescriptionKey: reason]
         ))
     }
+}
 
-    nonisolated private static let reported = Mutex<Set<String>>([])
+/// The Crashlytics calls `CrashLogger` makes, so tests can record them instead.
+nonisolated public protocol CrashBackend: Sendable {
+    func setCollectionEnabled(_ enabled: Bool)
+    func setUserID(_ userId: String?)
+    func record(_ error: Error)
+    func log(_ message: String)
+    func setCustomValue(_ value: String, forKey key: String)
+}
+
+nonisolated struct FirebaseCrashBackend: CrashBackend {
+    func setCollectionEnabled(_ enabled: Bool) {
+        Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(enabled)
+    }
+
+    func setUserID(_ userId: String?) {
+        Crashlytics.crashlytics().setUserID(userId)
+    }
+
+    func record(_ error: Error) {
+        Crashlytics.crashlytics().record(error: error)
+    }
+
+    func log(_ message: String) {
+        Crashlytics.crashlytics().log(message)
+    }
+
+    func setCustomValue(_ value: String, forKey key: String) {
+        Crashlytics.crashlytics().setCustomValue(value, forKey: key)
+    }
 }

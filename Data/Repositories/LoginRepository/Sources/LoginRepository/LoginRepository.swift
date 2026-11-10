@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import AuthenticationServices
 import OSLog
 import Analytics
 import FirebaseService
@@ -18,12 +17,12 @@ public enum LoginError: Error {
 
 public protocol LoginRepositoryProtocol: Sendable {
     func currentFirebaseUserId() async -> String?
-    func setLoginData(authResult: ASAuthorization) async throws -> String
+    func setLoginData(credential: AppleSignInCredential) async throws -> String
     func getCurrentNonce() async -> String
     func getUserProfile(userId: String) async throws -> FirebaseUserProfile?
     func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws
     func signOut() async throws
-    func deleteAccount(userId: String, authResult: ASAuthorization) async throws
+    func deleteAccount(userId: String, credential: AppleSignInCredential) async throws
 }
 
 public actor LoginRepository: LoginRepositoryProtocol {
@@ -34,8 +33,8 @@ public actor LoginRepository: LoginRepositoryProtocol {
 
     var currentNonce: String?
 
-    private init(authFirebaseService: AuthFirebaseServiceProtocol = AuthFirebaseService.shared,
-                 databaseFirebaseService: DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared) {
+    init(authFirebaseService: AuthFirebaseServiceProtocol = AuthFirebaseService.shared,
+         databaseFirebaseService: DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared) {
         self.authFirebaseService = authFirebaseService
         self.databaseFirebaseService = databaseFirebaseService
     }
@@ -74,25 +73,21 @@ public actor LoginRepository: LoginRepositoryProtocol {
         await authFirebaseService.currentUserId()
     }
 
-    public func setLoginData(authResult: ASAuthorization) async throws -> String {
-        if let appleIDCredential = authResult.credential as? ASAuthorizationAppleIDCredential {
-            guard let nonce = currentNonce else {
-                CrashLogger.log("Login callback received with no nonce in flight", to: .loginRepository)
-                throw LoginError.wrongData
-            }
-            guard let appleIDToken = appleIDCredential.identityToken else {
-                CrashLogger.log("Unable to fetch identity token", to: .loginRepository)
-                throw LoginError.wrongData
-            }
-            guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
-                CrashLogger.log("Unable to serialize token string from data", to: .loginRepository)
-                throw LoginError.wrongData
-            }
-            
-            return try await self.authFirebaseService.setLoginData(idTokenString: idTokenString, nonce: nonce, appleIDCredential: appleIDCredential)
-        } else {
+    public func setLoginData(credential: AppleSignInCredential) async throws -> String {
+        guard let nonce = currentNonce else {
+            CrashLogger.log("Login callback received with no nonce in flight", to: .loginRepository)
             throw LoginError.wrongData
         }
+        guard let appleIDToken = credential.identityToken else {
+            CrashLogger.log("Unable to fetch identity token", to: .loginRepository)
+            throw LoginError.wrongData
+        }
+        guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
+            CrashLogger.log("Unable to serialize token string from data", to: .loginRepository)
+            throw LoginError.wrongData
+        }
+
+        return try await self.authFirebaseService.setLoginData(idTokenString: idTokenString, nonce: nonce, credential: credential)
     }
 
     public func getUserProfile(userId: String) async throws -> FirebaseUserProfile? {
@@ -110,28 +105,25 @@ public actor LoginRepository: LoginRepositoryProtocol {
         Logger.loginRepository.info("User signed out successfully")
     }
 
-    /// Permanently deletes the account. `authResult` is a fresh Sign in with Apple
+    /// Permanently deletes the account. `credential` is a fresh Sign in with Apple
     /// re-authentication — required to prove recent login before deletion and to
     /// obtain the authorization code Firebase needs to revoke the Apple token.
-    public func deleteAccount(userId: String, authResult: ASAuthorization) async throws {
-        guard let appleIDCredential = authResult.credential as? ASAuthorizationAppleIDCredential else {
-            throw LoginError.wrongData
-        }
+    public func deleteAccount(userId: String, credential: AppleSignInCredential) async throws {
         guard let nonce = currentNonce else {
             CrashLogger.log("Account deletion attempted with no nonce in flight", to: .loginRepository)
             throw LoginError.wrongData
         }
-        guard let appleIDToken = appleIDCredential.identityToken,
+        guard let appleIDToken = credential.identityToken,
               let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
             CrashLogger.log("Unable to serialize identity token for account deletion", to: .loginRepository)
             throw LoginError.wrongData
         }
-        let authorizationCode = appleIDCredential.authorizationCode
+        let authorizationCode = credential.authorizationCode
             .flatMap { String(data: $0, encoding: .utf8) }
 
         // Order matters: reauth and data wipe must happen while still signed in;
         // the auth user is deleted last.
-        try await authFirebaseService.reauthenticate(idTokenString: idTokenString, nonce: nonce, appleIDCredential: appleIDCredential)
+        try await authFirebaseService.reauthenticate(idTokenString: idTokenString, nonce: nonce, fullName: credential.fullName)
         try await databaseFirebaseService.deleteUserData(userId: userId)
         try await authFirebaseService.revokeAndDeleteUser(authorizationCode: authorizationCode)
         Logger.loginRepository.info("Account deleted for user: \(userId)")

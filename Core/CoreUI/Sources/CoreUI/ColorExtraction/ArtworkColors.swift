@@ -20,8 +20,14 @@ public enum ArtworkColors {
     /// and secondary — picked from the cover's four quadrants by saturation.
     /// Returns `nil` if the image can't be fetched or decoded.
     public nonisolated static func extract(from url: URL) async -> (primary: Color, secondary: Color)? {
-        guard let (data, _) = try? await URLSession.shared.data(from: url),
-              let image = UIImage(data: data),
+        guard let (data, _) = try? await URLSession.shared.data(from: url) else { return nil }
+        return extract(fromImageData: data)
+    }
+
+    /// Picks the two accent colours from already-downloaded image bytes.
+    /// Returns `nil` if the data isn't a decodable image or is too small to split.
+    nonisolated static func extract(fromImageData data: Data) -> (primary: Color, secondary: Color)? {
+        guard let image = UIImage(data: data),
               let cgImage = image.cgImage else { return nil }
 
         let ciImage = CIImage(cgImage: cgImage)
@@ -91,14 +97,14 @@ public enum ArtworkColors {
         )
     }
 
-    private nonisolated static func saturation(_ rgb: (r: Double, g: Double, b: Double)) -> Double {
+    nonisolated static func saturation(_ rgb: (r: Double, g: Double, b: Double)) -> Double {
         let maxC = max(rgb.r, rgb.g, rgb.b)
         let minC = min(rgb.r, rgb.g, rgb.b)
         return maxC == 0 ? 0 : (maxC - minC) / maxC
     }
 
     /// Hue in [0, 1]. Returns 0 for greys.
-    private nonisolated static func hue(_ rgb: (r: Double, g: Double, b: Double)) -> Double {
+    nonisolated static func hue(_ rgb: (r: Double, g: Double, b: Double)) -> Double {
         let maxC = max(rgb.r, rgb.g, rgb.b)
         let minC = min(rgb.r, rgb.g, rgb.b)
         let delta = maxC - minC

@@ -7,10 +7,6 @@
 
 import SwiftUI
 import Analytics
-// TODO: Remove @preconcurrency when Firebase SDK adds Sendable support
-// Firebase SDK is internally thread-safe but DatabaseReference is not marked Sendable
-// Last checked: 2025-01 (firebase-ios-sdk 11.13.0)
-@preconcurrency import FirebaseDatabase
 import OSLog
 import Models
 import CoreApp
@@ -35,27 +31,35 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     public static let shared = DatabaseFirebaseService()
     let analyticsManager: AnalyticsManager
     let crashLogger: CrashLogger
-    
+    private let database: any RealtimeDatabase
+    private let now: @Sendable () -> Date
+
     private init(analyticsManager: AnalyticsManager = .shared,
                  crashLogger: CrashLogger = .shared) {
+        self.init(
+            analyticsManager: analyticsManager,
+            crashLogger: crashLogger,
+            database: FirebaseRealtimeDatabase(url: AppEnvironment.current.firebaseDatabaseUrl)
+        )
+    }
+
+    init(analyticsManager: AnalyticsManager,
+         crashLogger: CrashLogger,
+         database: any RealtimeDatabase,
+         now: @escaping @Sendable () -> Date = Date.init) {
         self.analyticsManager = analyticsManager
         self.crashLogger = crashLogger
+        self.database = database
+        self.now = now
     }
 
-    /// Returns the Firebase Database instance configured for the current environment
-    private var database: Database {
-        Database.database(url: AppEnvironment.current.firebaseDatabaseUrl)
-    }
-    
     public func fetchSections() async throws -> [FirebaseAlbumSection] {
-        let ref = database.reference().child("sections")
-
         Logger.firebaseService.info("Fetching sections from Firebase...")
-        let snapshot = try await ref.getData()
+        let snapshot = try await database.read("sections")
 
-        Logger.firebaseService.debug("Snapshot exists: \(snapshot.exists())")
+        Logger.firebaseService.debug("Snapshot exists: \(snapshot.raw != nil)")
 
-        guard let value = snapshot.value as? [String: Any] else {
+        guard let value = snapshot.raw as? [String: Any] else {
             CrashLogger.log("No sections data found in Firebase or data format invalid", to: .firebaseService)
             return []
         }
@@ -92,10 +96,9 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     public func fetchAlbumData(albumId: String) async throws -> FirebaseAlbumData? {
-        let ref = database.reference().child("albums").child(albumId)
-        let snapshot = try await ref.getData()
+        let snapshot = try await database.read("albums/\(albumId)")
 
-        guard snapshot.exists(), let value = snapshot.value as? [String: Any] else {
+        guard let value = snapshot.raw as? [String: Any] else {
             Logger.firebaseService.info("No Firebase data found for album: \(albumId)")
             return nil
         }
@@ -108,16 +111,9 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     public func getUserRating(userId: String, albumId: String) async throws -> Double? {
-        let ref = database.reference()
-            .child("users")
-            .child(userId)
-            .child("user_ratings")
-            .child(albumId)
-            .child("rating")
+        let snapshot = try await database.read("users/\(userId)/user_ratings/\(albumId)/rating")
 
-        let snapshot = try await ref.getData()
-
-        guard snapshot.exists(), let rating = snapshot.value as? Double else {
+        guard let rating = snapshot.raw as? Double else {
             Logger.firebaseService.info("No user rating found for user: \(userId), album: \(albumId)")
             return nil
         }
@@ -127,14 +123,9 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     public func getUserRatedAlbumIds(userId: String) async throws -> [String] {
-        let ref = database.reference()
-            .child("users")
-            .child(userId)
-            .child("user_ratings")
+        let snapshot = try await database.read("users/\(userId)/user_ratings")
 
-        let snapshot = try await ref.getData()
-
-        guard snapshot.exists(), let ratingsData = snapshot.value as? [String: Any] else {
+        guard let ratingsData = snapshot.raw as? [String: Any] else {
             Logger.firebaseService.info("No rated albums found for user: \(userId)")
             return []
         }
@@ -176,14 +167,9 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     /// `albumId -> rating` map. Handles both the new `{rating, timestamp}` format
     /// and the legacy bare-`Double` format.
     public func getAllUserRatings(userId: String) async throws -> [String: Double] {
-        let ref = database.reference()
-            .child("users")
-            .child(userId)
-            .child("user_ratings")
+        let snapshot = try await database.read("users/\(userId)/user_ratings")
 
-        let snapshot = try await ref.getData()
-
-        guard snapshot.exists(), let ratingsData = snapshot.value as? [String: Any] else {
+        guard let ratingsData = snapshot.raw as? [String: Any] else {
             Logger.firebaseService.info("No user ratings found for user: \(userId)")
             return [:]
         }
@@ -207,14 +193,9 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     /// newest-first by timestamp. Lets a caller that needs *both* the rated-album
     /// ordering and the rating values read the node once instead of twice.
     public func getUserRatingsSorted(userId: String) async throws -> [(albumId: String, rating: Double)] {
-        let ref = database.reference()
-            .child("users")
-            .child(userId)
-            .child("user_ratings")
+        let snapshot = try await database.read("users/\(userId)/user_ratings")
 
-        let snapshot = try await ref.getData()
-
-        guard snapshot.exists(), let ratingsData = snapshot.value as? [String: Any] else {
+        guard let ratingsData = snapshot.raw as? [String: Any] else {
             Logger.firebaseService.info("No user ratings found for user: \(userId)")
             return []
         }
@@ -242,12 +223,12 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
         // the two nodes separately can half-succeed, and an `album_ratings` entry
         // with no matching user-node entry is invisible to account deletion —
         // which walks the user node — so it would outlive the account forever.
-        try await database.reference().updateChildValues([
-            "/users/\(userId)/user_ratings/\(albumId)": [
+        try await database.update("", with: [
+            "/users/\(userId)/user_ratings/\(albumId)": DatabaseValue([
                 "rating": rating,
-                "timestamp": Date().timeIntervalSince1970
-            ],
-            "/album_ratings/\(albumId)/\(userId)": rating
+                "timestamp": now().timeIntervalSince1970
+            ]),
+            "/album_ratings/\(albumId)/\(userId)": DatabaseValue(rating)
         ])
 
         let stats = try await recalculateAlbumStats(albumId: albumId)
@@ -261,9 +242,9 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     /// contribution to the shared aggregate — then recomputes the album's stats
     /// from the ratings that remain. Returns the fresh avg/count.
     public func removeUserRating(userId: String, albumId: String) async throws -> (avgRating: Double, ratingCount: Int) {
-        try await database.reference().updateChildValues([
-            "/users/\(userId)/user_ratings/\(albumId)": NSNull(),
-            "/album_ratings/\(albumId)/\(userId)": NSNull()
+        try await database.update("", with: [
+            "/users/\(userId)/user_ratings/\(albumId)": DatabaseValue(NSNull()),
+            "/album_ratings/\(albumId)/\(userId)": DatabaseValue(NSNull())
         ])
 
         let stats = try await recalculateAlbumStats(albumId: albumId)
@@ -272,11 +253,10 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     private func ensureAlbumExists(albumId: String, albumMetadata: (artist: String, title: String)?) async throws {
-        let db = database.reference()
-        let albumRef = db.child("albums").child(albumId)
-        let albumSnapshot = try await albumRef.getData()
+        let albumPath = "albums/\(albumId)"
+        let albumSnapshot = try await database.read(albumPath)
 
-        guard !albumSnapshot.exists(), let metadata = albumMetadata else {
+        guard albumSnapshot.raw == nil, let metadata = albumMetadata else {
             return
         }
 
@@ -285,12 +265,12 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
         let newAlbumData: [String: Any] = [
             "artist": metadata.artist,
             "title": metadata.title,
-            "createdAt": ServerValue.timestamp(),
+            "createdAt": database.serverTimestamp().raw as Any,
             "avgRating": 0.0,
             "ratingCount": 0
         ]
 
-        try await albumRef.setValue(newAlbumData)
+        try await database.write(DatabaseValue(newAlbumData), to: albumPath)
         Logger.firebaseService.info("Created album: \(albumId) with artist: \(metadata.artist), title: \(metadata.title)")
     }
 
@@ -299,12 +279,12 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     /// a user clearing their rating); an empty node zeroes the stats.
     @discardableResult
     private func recalculateAlbumStats(albumId: String) async throws -> (avgRating: Double, ratingCount: Int) {
-        let snapshot = try await database.reference().child("album_ratings").child(albumId).getData()
+        let snapshot = try await database.read("album_ratings/\(albumId)")
 
         // Per-entry cast, not `as? [String: Double]`: that is all-or-nothing, so a
         // single malformed child would yield an empty list and wipe every other
         // user's contribution. Ignore 0/null entries — 0 means "not rated".
-        let values = (snapshot.value as? [String: Any])?
+        let values = (snapshot.raw as? [String: Any])?
             .values
             .compactMap { $0 as? Double }
             .filter { $0 > 0 } ?? []
@@ -331,24 +311,17 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     private func updateAvgRating(albumId: String, avgRating: Double) async throws {
-        let ref = database.reference().child("albums").child(albumId).child("avgRating")
-        try await ref.setValue(avgRating)
+        try await database.write(DatabaseValue(avgRating), to: "albums/\(albumId)/avgRating")
     }
 
     private func updateRatingCount(albumId: String, ratingCount: Int) async throws {
-        let ref = database.reference().child("albums").child(albumId).child("ratingCount")
-        try await ref.setValue(ratingCount)
+        try await database.write(DatabaseValue(ratingCount), to: "albums/\(albumId)/ratingCount")
     }
 
     public func getUserProfile(userId: String) async throws -> FirebaseUserProfile? {
-        let ref = database.reference()
-            .child("users")
-            .child(userId)
-            .child("profile")
+        let snapshot = try await database.read("users/\(userId)/profile")
 
-        let snapshot = try await ref.getData()
-
-        guard snapshot.exists(), let value = snapshot.value as? [String: Any] else {
+        guard let value = snapshot.raw as? [String: Any] else {
             Logger.firebaseService.info("No user profile found for user: \(userId)")
             return nil
         }
@@ -361,8 +334,7 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     }
 
     public func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws {
-        let db = database.reference()
-        let userRef = db.child("users").child(userId)
+        let userPath = "users/\(userId)"
 
         // Merge field by field instead of replacing the `profile` node: a writer
         // that only knows some fields (Edit Profile, sign-in) used to wipe the
@@ -375,20 +347,19 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
             fields[key] = NSNull()
         }
 
-        var allUpdates: [String: Any] = Dictionary(uniqueKeysWithValues: fields.map { ("profile/\($0.key)", $0.value) })
+        var allUpdates = Dictionary(uniqueKeysWithValues: fields.map { ("profile/\($0.key)", DatabaseValue($0.value)) })
 
         // Check if user_ratings exists, if not create it
-        let ratingsRef = userRef.child("user_ratings")
-        let ratingsSnapshot = try await ratingsRef.getData()
+        let ratingsSnapshot = try await database.read("\(userPath)/user_ratings")
 
-        if !ratingsSnapshot.exists() {
+        if ratingsSnapshot.raw == nil {
             // Create empty user_ratings node
-            allUpdates["user_ratings"] = [String: Any]()
+            allUpdates["user_ratings"] = DatabaseValue([String: Any]())
             Logger.firebaseService.info("Creating user_ratings node for user: \(userId)")
         }
 
         // Update all fields atomically
-        try await userRef.updateChildValues(allUpdates)
+        try await database.update(userPath, with: allUpdates)
         Logger.firebaseService.info("Saved user profile to Firebase for user: \(userId)")
     }
 
@@ -398,14 +369,9 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     /// The node is always written as a contiguous array, so RTDB returns it as
     /// `[Any]`, preserving order.
     public func getFavoriteAlbumIds(userId: String) async throws -> [String] {
-        let ref = database.reference()
-            .child("users")
-            .child(userId)
-            .child("favorites")
+        let snapshot = try await database.read("users/\(userId)/favorites")
 
-        let snapshot = try await ref.getData()
-
-        guard snapshot.exists(), let array = snapshot.value as? [Any] else {
+        guard let array = snapshot.raw as? [Any] else {
             Logger.firebaseService.info("No favorites found for user: \(userId)")
             return []
         }
@@ -416,15 +382,12 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     /// Overwrites the user's favorites with the given ordered IDs. An empty list
     /// removes the node (deletions aren't subject to `.validate` rules).
     public func saveFavoriteAlbumIds(userId: String, albumIds: [String]) async throws {
-        let ref = database.reference()
-            .child("users")
-            .child(userId)
-            .child("favorites")
+        let path = "users/\(userId)/favorites"
 
         if albumIds.isEmpty {
-            try await ref.removeValue()
+            try await database.write(DatabaseValue(nil), to: path)
         } else {
-            try await ref.setValue(albumIds)
+            try await database.write(DatabaseValue(albumIds), to: path)
         }
         Logger.firebaseService.info("Saved \(albumIds.count) favorites for user: \(userId)")
     }
@@ -436,12 +399,12 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     public func deleteUserData(userId: String) async throws {
         let ratedAlbumIds = try await getUserRatedAlbumIds(userId: userId)
 
-        var updates: [String: Any] = ["/users/\(userId)": NSNull()]
+        var updates = ["/users/\(userId)": DatabaseValue(NSNull())]
         for albumId in ratedAlbumIds {
-            updates["/album_ratings/\(albumId)/\(userId)"] = NSNull()
+            updates["/album_ratings/\(albumId)/\(userId)"] = DatabaseValue(NSNull())
         }
 
-        try await database.reference().updateChildValues(updates)
+        try await database.update("", with: updates)
         Logger.firebaseService.info("Deleted RTDB data for user: \(userId) (\(ratedAlbumIds.count) album ratings)")
 
         // Recompute each affected album's aggregate from the ratings that remain.

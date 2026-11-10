@@ -15,6 +15,7 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../../Data/Repositories/LoginRepository"),
+        .package(path: "../../Data/Services/FirebaseService"),
         .package(path: "../../Data/Services/SwiftDataManager"),
         .package(path: "../../Core/Analytics")
     ],
@@ -24,6 +25,7 @@ let package = Package(
         .target(
             name: "LoginUseCases",
             dependencies: [
+                "FirebaseService",
                 "LoginRepository",
                 "SwiftDataManager",
                 "Analytics"

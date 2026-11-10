@@ -16,6 +16,12 @@ public enum TabBarScreen: Codable, Hashable, Identifiable, CaseIterable {
     case search
     
     public var id: TabBarScreen { self }
+
+    /// Home and Search are built on Apple Music catalog data. Account stays open
+    /// so logout and account deletion are always reachable (App Review 5.1.1(v)).
+    func isAvailable(hasMusicAccess: Bool) -> Bool {
+        hasMusicAccess || self == .account
+    }
 }
 
 extension TabBarScreen {

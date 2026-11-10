@@ -1,0 +1,242 @@
+{
+  "configurations" : [
+    {
+      "id" : "1C3C2CA0-8E7A-48AB-AB28-09254327C8F5",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testInteropMode" : "complete",
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Repositories\/MusicRepository",
+        "identifier" : "MusicRepositoryTests",
+        "name" : "MusicRepositoryTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Services\/SwiftDataManager",
+        "identifier" : "SwiftDataManagerTests",
+        "name" : "SwiftDataManagerTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/Splash",
+        "identifier" : "SplashTests",
+        "name" : "SplashTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/Settings",
+        "identifier" : "SettingsTests",
+        "name" : "SettingsTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/Onboarding",
+        "identifier" : "OnboardingTests",
+        "name" : "OnboardingTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Services\/MusicKitService",
+        "identifier" : "MusicKitServiceTests",
+        "name" : "MusicKitServiceTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/Login",
+        "identifier" : "LoginTests",
+        "name" : "LoginTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Core\/Analytics",
+        "identifier" : "AnalyticsTests",
+        "name" : "AnalyticsTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Domain\/HomeUseCases",
+        "identifier" : "HomeUseCasesTests",
+        "name" : "HomeUseCasesTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Services\/SpotifyService",
+        "identifier" : "SpotifyServiceTests",
+        "name" : "SpotifyServiceTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/ArtistDetails",
+        "identifier" : "ArtistDetailsTests",
+        "name" : "ArtistDetailsTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Core\/CoreApp",
+        "identifier" : "CoreAppTests",
+        "name" : "CoreAppTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/Home",
+        "identifier" : "HomeTests",
+        "name" : "HomeTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Services\/FirebaseService",
+        "identifier" : "FirebaseServiceTests",
+        "name" : "FirebaseServiceTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Domain\/ArtistUseCase",
+        "identifier" : "ArtistUseCaseTests",
+        "name" : "ArtistUseCaseTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Domain\/SearchUse",
+        "identifier" : "SearchUseTests",
+        "name" : "SearchUseTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Repositories\/LoginRepository",
+        "identifier" : "LoginRepositoryTests",
+        "name" : "LoginRepositoryTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Core\/Models",
+        "identifier" : "ModelsTests",
+        "name" : "ModelsTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/Account",
+        "identifier" : "AccountTests",
+        "name" : "AccountTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Domain\/SettingUseCases",
+        "identifier" : "SettingUseCasesTests",
+        "name" : "SettingUseCasesTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Domain\/LoginUseCases",
+        "identifier" : "LoginUseCasesTests",
+        "name" : "LoginUseCasesTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Repositories\/AccountRepository",
+        "identifier" : "AccountRepositoryTests",
+        "name" : "AccountRepositoryTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Domain\/SplashUseCases",
+        "identifier" : "SplashUseCasesTests",
+        "name" : "SplashUseCasesTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/Search",
+        "identifier" : "SearchTests",
+        "name" : "SearchTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Domain\/AccountUseCases",
+        "identifier" : "AccountUseCasesTests",
+        "name" : "AccountUseCasesTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Repositories\/HomeRepository",
+        "identifier" : "HomeRepositoryTests",
+        "name" : "HomeRepositoryTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Domain\/AppUseCases",
+        "identifier" : "AppUseCasesTests",
+        "name" : "AppUseCasesTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Core\/CoreUI",
+        "identifier" : "CoreUITests",
+        "name" : "CoreUITests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Repositories\/SearchRepository",
+        "identifier" : "SearchRepositoryTests",
+        "name" : "SearchRepositoryTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/TabBar",
+        "identifier" : "TabBarTests",
+        "name" : "TabBarTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/AlbumDetails",
+        "identifier" : "AlbumDetailsTests",
+        "name" : "AlbumDetailsTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:BeatRate.xcodeproj",
+        "identifier" : "8B0196CC308C012700D96609",
+        "name" : "BeatRateDevelopmentTests"
+      }
+    }
+  ],
+  "version" : 1
+}

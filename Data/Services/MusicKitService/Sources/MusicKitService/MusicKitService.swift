@@ -14,13 +14,19 @@ public actor MusicKitService: MusicKitServiceProtocol {
     public static let shared = MusicKitService()
 
     let analyticsManager: AnalyticsManager
+    private let dataSource: any AppleMusicDataSource
 
     private var canPlayAppleMusic: Bool = false
     /// The user's storefront country code, cached for the actor's lifetime.
     private var cachedStorefront: String?
 
     public init(analyticsManager: AnalyticsManager = .shared) {
+        self.init(analyticsManager: analyticsManager, dataSource: MusicKitDataSource())
+    }
+
+    init(analyticsManager: AnalyticsManager, dataSource: any AppleMusicDataSource) {
         self.analyticsManager = analyticsManager
+        self.dataSource = dataSource
     }
 
     // MARK: - Authorization
@@ -57,12 +63,21 @@ public actor MusicKitService: MusicKitServiceProtocol {
     /// arrives within `timeout` — the stream never yields on accounts without an
     /// Apple Music capability, so the caller must not await it unbounded.
     private func currentSubscription(timeout: Duration) async -> MusicSubscription? {
-        await withTaskGroup(of: MusicSubscription?.self) { group in
+        await Self.value(within: timeout) {
+            for await subscription in MusicSubscription.subscriptionUpdates {
+                return subscription
+            }
+            return nil
+        }
+    }
+
+    /// What `operation` returns, or nil if `timeout` passes first. The operation
+    /// reads the stream itself: MusicKit's update streams are not `Sendable`, so
+    /// they must not cross into the task group.
+    nonisolated static func value<T: Sendable>(within timeout: Duration, _ operation: @escaping @Sendable () async -> T?) async -> T? {
+        await withTaskGroup(of: T?.self) { group in
             group.addTask {
-                for await subscription in MusicSubscription.subscriptionUpdates {
-                    return subscription
-                }
-                return nil
+                await operation()
             }
 
             group.addTask {
@@ -101,13 +116,13 @@ public actor MusicKitService: MusicKitServiceProtocol {
 
     /// Fetches an album's tracks through the raw `albums/{id}/tracks` relationship
     /// endpoint, following pagination until the full list is collected.
-    private func fetchTracks(albumId: String) async throws -> [Models.Track] {
+    func fetchTracks(albumId: String) async throws -> [Models.Track] {
         var tracks: [Models.Track] = []
         var nextURL: URL? = AppleMusicAPI.albumTracks(storefront: try await storefront(), albumId: albumId)
 
         while let url = nextURL {
-            let response = try await MusicDataRequest(urlRequest: URLRequest(url: url)).response()
-            let page = try JSONDecoder().decode(AppleMusicTracksPage.self, from: response.data)
+            let data = try await dataSource.data(for: URLRequest(url: url))
+            let page = try JSONDecoder().decode(AppleMusicTracksPage.self, from: data)
             tracks.append(contentsOf: page.tracks)
             nextURL = page.next.flatMap(AppleMusicAPI.nextPage)
         }
@@ -119,7 +134,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
         if let cachedStorefront {
             return cachedStorefront
         }
-        let storefront = try await MusicDataRequest.currentCountryCode
+        let storefront = try await dataSource.countryCode()
         cachedStorefront = storefront
         return storefront
     }
@@ -157,20 +172,24 @@ public actor MusicKitService: MusicKitServiceProtocol {
     /// Collects an album relationship across its paginated batches, capped so
     /// huge discographies don't fan out into unbounded requests.
     private func allBatches(of collection: MusicItemCollection<Album>?) async throws -> [Album] {
+        try await Self.allBatches(of: collection, maxBatches: Constants.maxArtistAlbumBatches)
+    }
+
+    nonisolated static func allBatches<Batch: PagedBatch>(of collection: Batch?, maxBatches: Int) async throws -> [Batch.Element] {
         guard let collection else { return [] }
 
-        var albums = Array(collection)
+        var items = Array(collection)
         var currentBatch = collection
         var batchCount = 1
 
-        while currentBatch.hasNextBatch, batchCount < Constants.maxArtistAlbumBatches {
-            guard let nextBatch = try await currentBatch.nextBatch() else { break }
-            albums.append(contentsOf: nextBatch)
+        while currentBatch.hasNextBatch, batchCount < maxBatches {
+            guard let nextBatch = try await currentBatch.nextPage() else { break }
+            items.append(contentsOf: nextBatch)
             currentBatch = nextBatch
             batchCount += 1
         }
 
-        return albums
+        return items
     }
 
     // MARK: - Catalog Search
@@ -219,7 +238,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
     // MARK: - Album Mapping
 
     /// Maps a MusicKit catalog album to the app-facing model.
-    private func albumData(from album: Album, tracks: [Models.Track]? = nil) -> AppleMusicAlbumData {
+    func albumData(from album: Album, tracks: [Models.Track]? = nil) -> AppleMusicAlbumData {
         AppleMusicAlbumData(
             id: album.id.rawValue,
             title: album.title,
@@ -237,7 +256,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
     // MARK: - Artist Mapping
 
     /// Maps a MusicKit catalog artist to the app-facing model.
-    private func artistData(from artist: Artist,
+    func artistData(from artist: Artist,
                             albums: [AppleMusicAlbumData]? = nil,
                             singles: [AppleMusicAlbumData]? = nil,
                             latestRelease: AppleMusicAlbumData? = nil) -> AppleMusicArtistData {
@@ -260,5 +279,18 @@ public actor MusicKitService: MusicKitServiceProtocol {
         // Relationship batches hold 25 items, so four batches ≈ 100 albums per section.
         static let maxArtistAlbumBatches: Int = 4
         static let subscriptionTimeout: Duration = .seconds(2)
+    }
+}
+
+/// One page of a paginated MusicKit relationship, so batching can be tested
+/// without the catalog.
+nonisolated protocol PagedBatch: Sequence {
+    var hasNextBatch: Bool { get }
+    func nextPage() async throws -> Self?
+}
+
+extension MusicItemCollection: PagedBatch {
+    func nextPage() async throws -> Self? {
+        try await nextBatch()
     }
 }

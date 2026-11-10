@@ -27,6 +27,7 @@ final class SplashDataModel {
 
     private var retryCount: Int = 0
     private let maxRetries: Int = 3
+    private let retryDelay: Duration
 
     var isRetrying: Bool {
         retryCount > 0
@@ -34,7 +35,9 @@ final class SplashDataModel {
 
     init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase(),
          musicPlayerManager: MusicPlayerManager = .shared,
-         analyticsManager: AnalyticsManager = .shared) {
+         analyticsManager: AnalyticsManager = .shared,
+         retryDelay: Duration = .seconds(2)) {
+        self.retryDelay = retryDelay
         self.getSplashUseCase = getSplashUseCase
         self.musicPlayerManager = musicPlayerManager
         self.analyticsManager = analyticsManager
@@ -290,6 +293,6 @@ final class SplashDataModel {
     // MARK: - Delay Helpers
 
     private func delayForRetry() async {
-        try? await Task.sleep(for: .seconds(2))
+        try? await Task.sleep(for: retryDelay)
     }
 }

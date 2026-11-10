@@ -18,7 +18,11 @@ public enum KeychainError: Error {
 public actor KeychainManager {
     public static let shared = KeychainManager()
 
-    private init() {}
+    private let backend: KeychainBackend
+
+    init(backend: KeychainBackend = SecItemKeychainBackend()) {
+        self.backend = backend
+    }
 
     private let service = "com.beatrate.app"
 
@@ -46,10 +50,10 @@ public actor KeychainManager {
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
         ]
 
-        let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+        let status = backend.update(query, attributes: attributes)
         if status == errSecItemNotFound {
             let insert = query.merging(attributes) { current, _ in current }
-            guard SecItemAdd(insert as CFDictionary, nil) == errSecSuccess else {
+            guard backend.add(insert) == errSecSuccess else {
                 throw KeychainError.saveFailed
             }
             return
@@ -65,8 +69,7 @@ public actor KeychainManager {
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        let (status, result) = backend.copyMatching(query)
         guard status == errSecSuccess else {
             if status == errSecItemNotFound { return nil }
             throw KeychainError.loadFailed
@@ -81,7 +84,7 @@ public actor KeychainManager {
             kSecAttrService as String: service,
             kSecAttrAccount as String: key
         ]
-        let status = SecItemDelete(query as CFDictionary)
+        let status = backend.delete(query)
         guard status == errSecSuccess || status == errSecItemNotFound else {
             throw KeychainError.deleteFailed
         }
@@ -139,5 +142,34 @@ public actor KeychainManager {
     public func deleteLegacySpotifyTokens() throws {
         try delete(Key.legacySpotifyAccessToken)
         try delete(Key.legacySpotifyRefreshToken)
+    }
+}
+
+/// The four `SecItem` calls `KeychainManager` makes, so tests can run against
+/// an in-memory store and force the failure statuses.
+nonisolated protocol KeychainBackend: Sendable {
+    func update(_ query: [String: Any], attributes: [String: Any]) -> OSStatus
+    func add(_ attributes: [String: Any]) -> OSStatus
+    func copyMatching(_ query: [String: Any]) -> (OSStatus, AnyObject?)
+    func delete(_ query: [String: Any]) -> OSStatus
+}
+
+nonisolated struct SecItemKeychainBackend: KeychainBackend {
+    func update(_ query: [String: Any], attributes: [String: Any]) -> OSStatus {
+        SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+    }
+
+    func add(_ attributes: [String: Any]) -> OSStatus {
+        SecItemAdd(attributes as CFDictionary, nil)
+    }
+
+    func copyMatching(_ query: [String: Any]) -> (OSStatus, AnyObject?) {
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        return (status, result)
+    }
+
+    func delete(_ query: [String: Any]) -> OSStatus {
+        SecItemDelete(query as CFDictionary)
     }
 }

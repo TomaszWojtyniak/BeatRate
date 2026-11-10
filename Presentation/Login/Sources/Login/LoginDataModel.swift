@@ -37,11 +37,52 @@ final class LoginDataModel {
 
     /// Performs complete login with automatic rollback if local storage fails.
     /// This is the recommended method for login flow.
+    /// Signs in with the credential from the Apple sheet; a failure shows the alert.
+    func completeSignIn(authResult: ASAuthorization) async {
+        do {
+            try await performCompleteLogin(authResult: authResult)
+        } catch {
+            await reportSignInFailure(error)
+        }
+    }
+
+    func completeSignIn(credential: AppleSignInCredential) async {
+        do {
+            try await performCompleteLogin(credential: credential)
+            Logger.login.debug("Complete login successful from prompt (Firebase + local storage)")
+        } catch {
+            await reportSignInFailure(error)
+        }
+    }
+
+    /// The Apple sheet itself failed. Cancelling is a normal outcome — the guest
+    /// keeps browsing — so it is tracked but shows no error.
+    func handleAuthorizationFailure(_ error: Error) async {
+        if let authError = error as? ASAuthorizationError, authError.code == .canceled {
+            analyticsManager.log(.loginFailed(errorType: "canceled"))
+            Logger.login.debug("User cancelled sign in from prompt - no error shown")
+            return
+        }
+        await handleLoginFailure(error: error)
+    }
+
+    private func reportSignInFailure(_ error: Error) async {
+        CrashLogger.log("Login from prompt failed: \(error.localizedDescription)", to: .login)
+        await handleLoginFailure(error: error)
+    }
+
     func performCompleteLogin(authResult: ASAuthorization) async throws {
+        guard let credential = AppleSignInCredential(authResult) else {
+            throw LoginUseCaseError.authenticationFailed
+        }
+        try await performCompleteLogin(credential: credential)
+    }
+
+    func performCompleteLogin(credential: AppleSignInCredential) async throws {
         isLoading = true
         defer { isLoading = false }
 
-        _ = try await self.postLoginUseCase.performCompleteLogin(authResult: authResult)
+        _ = try await self.postLoginUseCase.performCompleteLogin(credential: credential)
     }
     
     func handleLoginFailure(error: Error) async {

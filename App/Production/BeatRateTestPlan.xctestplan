@@ -1,0 +1,242 @@
+{
+  "configurations" : [
+    {
+      "id" : "A9A3E3B8-2317-4271-9222-E6C7DFBEC793",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testInteropMode" : "complete",
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/Account",
+        "identifier" : "AccountTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/TabBar",
+        "identifier" : "TabBarTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Domain\/SettingUseCases",
+        "identifier" : "SettingUseCasesTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Domain\/AccountUseCases",
+        "identifier" : "AccountUseCasesTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/Splash",
+        "identifier" : "SplashTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Repositories\/LoginRepository",
+        "identifier" : "LoginRepositoryTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Domain\/ArtistUseCase",
+        "identifier" : "ArtistUseCaseTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/Settings",
+        "identifier" : "SettingsTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Core\/CoreApp",
+        "identifier" : "CoreAppTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Domain\/LoginUseCases",
+        "identifier" : "LoginUseCasesTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Core\/CoreUI",
+        "identifier" : "CoreUITests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Services\/SpotifyService",
+        "identifier" : "SpotifyServiceTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/ArtistDetails",
+        "identifier" : "ArtistDetailsTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Domain\/SplashUseCases",
+        "identifier" : "SplashUseCasesTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Core\/Models",
+        "identifier" : "ModelsTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/AlbumDetails",
+        "identifier" : "AlbumDetailsTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Core\/Analytics",
+        "identifier" : "AnalyticsTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Repositories\/AccountRepository",
+        "identifier" : "AccountRepositoryTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Domain\/HomeUseCases",
+        "identifier" : "HomeUseCasesTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Services\/MusicKitService",
+        "identifier" : "MusicKitServiceTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Domain\/AppUseCases",
+        "identifier" : "AppUseCasesTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:BeatRate.xcodeproj",
+        "identifier" : "8BED07FA2DE0D68500838DD7",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Repositories\/MusicRepository",
+        "identifier" : "MusicRepositoryTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Services\/FirebaseService",
+        "identifier" : "FirebaseServiceTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Services\/SwiftDataManager",
+        "identifier" : "SwiftDataManagerTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Domain\/SearchUse",
+        "identifier" : "SearchUseTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Repositories\/SearchRepository",
+        "identifier" : "SearchRepositoryTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/Login",
+        "identifier" : "LoginTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/Search",
+        "identifier" : "SearchTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/Onboarding",
+        "identifier" : "OnboardingTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Presentation\/Home",
+        "identifier" : "HomeTests",
+        "name" : "Missing Target"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Data\/Repositories\/HomeRepository",
+        "identifier" : "HomeRepositoryTests",
+        "name" : "Missing Target"
+      }
+    }
+  ],
+  "version" : 1
+}

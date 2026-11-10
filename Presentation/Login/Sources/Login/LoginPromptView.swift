@@ -115,22 +115,9 @@ public struct LoginPromptView: View {
             Task {
                 switch result {
                 case .success(let authResult):
-                    do {
-                        try await self.dataModel.performCompleteLogin(authResult: authResult)
-                        Logger.login.debug("Complete login successful from prompt (Firebase + local storage)")
-                    } catch let error {
-                        CrashLogger.log("Login from prompt failed: \(error.localizedDescription)", to: .login)
-                        await self.dataModel.handleLoginFailure(error: error)
-                    }
+                    await self.dataModel.completeSignIn(authResult: authResult)
                 case .failure(let error):
-                    // Cancellation is a normal outcome here — the guest can keep browsing.
-                    if let authError = error as? ASAuthorizationError,
-                       authError.code == .canceled {
-                        dataModel.track(.loginFailed(errorType: "canceled"))
-                        Logger.login.debug("User cancelled sign in from prompt - no error shown")
-                    } else {
-                        await self.dataModel.handleLoginFailure(error: error)
-                    }
+                    await self.dataModel.handleAuthorizationFailure(error)
                 }
             }
         })

@@ -26,13 +26,16 @@ final class MusicPlayerPickerDataModel {
     private let getSettingsUseCase: GetSettingsUseCaseProtocol
     private let musicPlayerManager: MusicPlayerManager
     private let analyticsManager: AnalyticsManager
+    private let appleMusicStatus: () -> MusicAuthorization.Status
 
     init(mode: MusicPlayerPickerMode,
          setSettingsUseCase: SetSettingsUseCaseProtocol = SetSettingsUseCase(),
          getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase(),
          musicPlayerManager: MusicPlayerManager = .shared,
-         analyticsManager: AnalyticsManager = .shared) {
+         analyticsManager: AnalyticsManager = .shared,
+         appleMusicStatus: @escaping () -> MusicAuthorization.Status = { MusicAuthorization.currentStatus }) {
         self.mode = mode
+        self.appleMusicStatus = appleMusicStatus
         self.setSettingsUseCase = setSettingsUseCase
         self.getSettingsUseCase = getSettingsUseCase
         self.musicPlayerManager = musicPlayerManager
@@ -56,6 +59,15 @@ final class MusicPlayerPickerDataModel {
     /// The choice is **only** persisted after a successful connect — cancelling or
     /// being denied leaves `MusicPlayerManager.current` untouched so we don't strand
     /// the user on a player they have no access to.
+    /// Settings pushes the picker, so it pops itself; onboarding is replaced by the app.
+    var dismissesOnCompletion: Bool { mode == .change }
+
+    /// A tap on a player card: tracked, then connected and saved.
+    func choose(_ player: MusicPlayer) async -> Bool {
+        analyticsManager.log(.musicPlayerSelected(player: player.rawValue, mode: String(describing: mode)))
+        return await select(player)
+    }
+
     func select(_ player: MusicPlayer) async -> Bool {
         isProcessing = true
         pendingChoice = player
@@ -69,7 +81,7 @@ final class MusicPlayerPickerDataModel {
         do {
             guard try await ensureConnected(player) else {
                 errorMessage = String(localized: .pickerErrorAccessDenied(player: player.displayName))
-                showsOpenSettings = player == .appleMusic && MusicAuthorization.currentStatus == .denied
+                showsOpenSettings = player == .appleMusic && appleMusicStatus() == .denied
                 return false
             }
         } catch {

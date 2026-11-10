@@ -7,7 +7,8 @@
 
 import SwiftUI
 import LoginRepository
-import AuthenticationServices
+// Re-exported so Presentation can build the credential without depending on Data.
+@_exported import struct FirebaseService.AppleSignInCredential
 import SwiftDataManager
 import OSLog
 import Analytics
@@ -28,7 +29,7 @@ public enum LoginUseCaseError: Error, LocalizedError {
 }
 
 public protocol SetLoginUseCaseProtocol: Sendable {
-    func performCompleteLogin(authResult: ASAuthorization) async throws -> String
+    func performCompleteLogin(credential: AppleSignInCredential) async throws -> String
     func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws
 }
 
@@ -44,13 +45,13 @@ public actor SetLoginUseCase: SetLoginUseCaseProtocol {
 
     /// Performs a complete login with transaction-like rollback support.
     /// If Firebase auth succeeds but local storage fails, Firebase auth is rolled back.
-    public func performCompleteLogin(authResult: ASAuthorization) async throws -> String {
+    public func performCompleteLogin(credential: AppleSignInCredential) async throws -> String {
         Logger.loginUseCases.info("Starting complete login flow with rollback support")
 
         // Step 1: Authenticate with Firebase and save to Keychain
         let userId: String
         do {
-            userId = try await loginRepository.setLoginData(authResult: authResult)
+            userId = try await loginRepository.setLoginData(credential: credential)
             Logger.loginUseCases.info("Firebase authentication successful for user: \(userId)")
         } catch {
             CrashLogger.log("Firebase authentication failed: \(error.localizedDescription)", to: .loginUseCases)

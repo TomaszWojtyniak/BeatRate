@@ -79,12 +79,10 @@ public struct MusicPlayerPickerView: View {
     }
 
     private func handleSelection(of player: MusicPlayer) {
-        dataModel.track(.musicPlayerSelected(player: player.rawValue, mode: String(describing: dataModel.mode)))
         Task {
-            let didComplete = await dataModel.select(player)
-            guard didComplete else { return }
+            guard await dataModel.choose(player) else { return }
             onComplete?()
-            if dataModel.mode == .change {
+            if dataModel.dismissesOnCompletion {
                 dismiss()
             }
         }

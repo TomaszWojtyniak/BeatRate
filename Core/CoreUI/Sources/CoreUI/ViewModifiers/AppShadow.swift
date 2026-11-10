@@ -22,7 +22,7 @@
 
 import SwiftUI
 
-public enum AppShadow {
+public enum AppShadow: CaseIterable {
     case low
     case medium
     case high
@@ -30,7 +30,7 @@ public enum AppShadow {
     case accentLift
     case destructive
 
-    fileprivate var layers: [ShadowLayer] {
+    var layers: [ShadowLayer] {
         switch self {
         case .low:
             return [.init(color: .black.opacity(0.12), radius: 6, y: 3)]
@@ -57,7 +57,7 @@ public enum AppShadow {
     }
 }
 
-private struct ShadowLayer {
+struct ShadowLayer {
     let color: Color
     let radius: CGFloat
     let x: CGFloat

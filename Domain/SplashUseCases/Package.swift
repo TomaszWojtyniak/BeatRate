@@ -18,6 +18,7 @@ let package = Package(
         .package(path: "../../Data/Repositories/MusicRepository"),
         .package(path: "../../Data/Repositories/HomeRepository"),
         .package(path: "../../Data/Repositories/LoginRepository"),
+        .package(path: "../../Data/Services/FirebaseService"),
         .package(path: "../../Data/Services/SwiftDataManager"),
         .package(path: "../../Data/Services/SpotifyService"),
         .package(path: "../../Domain/LoginUseCases"),
@@ -29,6 +30,7 @@ let package = Package(
         .target(
             name: "SplashUseCases",
             dependencies: [
+                "FirebaseService",
                 "MusicRepository",
                 "HomeRepository",
                 "LoginRepository",

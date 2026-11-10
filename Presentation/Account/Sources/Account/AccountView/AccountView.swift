@@ -25,21 +25,9 @@ public struct AccountView: View {
 
     public init() {}
 
-    private var displayName: String {
-        dataModel.fullName ?? dataModel.userProfile?.email ?? ""
-    }
+    private var displayName: String { dataModel.displayName }
 
-    private var initials: String {
-        let first = (dataModel.userProfile?.firstName?.first).map { String($0) } ?? ""
-        let last = (dataModel.userProfile?.lastName?.first).map { String($0) } ?? ""
-        let combined = (first + last).uppercased()
-        if !combined.isEmpty { return combined }
-        // Fallback to first character of email
-        if let initial = dataModel.userProfile?.email?.first {
-            return String(initial).uppercased()
-        }
-        return "?"
-    }
+    private var initials: String { dataModel.initials }
 
     public var body: some View {
         ZStack {

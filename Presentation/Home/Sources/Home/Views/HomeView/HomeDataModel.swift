@@ -40,6 +40,12 @@ final class HomeDataModel {
         analyticsManager.log(event)
     }
 
+    /// Attributes a feed tap to the first section holding the album.
+    func trackHomeAlbumTap(_ album: AlbumModel) {
+        let section = homeSections.first { $0.albums.contains { $0.id == album.id } }
+        analyticsManager.log(.albumTap(source: .homeSection, albumId: album.id, section: section?.analyticsName))
+    }
+
     /// Re-runs the whole load — this is what the empty/failed-state buttons call.
     func retry() async {
         analyticsManager.log(.retryTap(screen: .home))

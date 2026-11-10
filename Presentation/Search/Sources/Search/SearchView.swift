@@ -179,13 +179,12 @@ public struct SearchView: View {
     // MARK: - Actions
 
     private func handleAlbumTap(_ album: AppleMusicAlbumData, source: AlbumTapSource) {
-        dataModel.track(.albumTap(source: source, albumId: album.id))
-        dataModel.saveRecentAlbum(album)
+        dataModel.albumTapped(album, source: source)
         selectedAlbum = album
     }
 
     private func handleArtistTap(_ artist: AppleMusicArtistData) {
-        dataModel.track(.artistTap(artistId: artist.id))
+        dataModel.artistTapped(artist)
         selectedArtist = artist
     }
 }
