@@ -69,15 +69,23 @@ actor FakeRealtimeDatabase: RealtimeDatabase {
 @MainActor
 final class StubDatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     private let existingProfile: FirebaseUserProfile?
+    private let failsToRead: Bool
+    private let failsToSave: Bool
     private(set) var savedProfiles: [(userId: String, profile: FirebaseUserProfile)] = []
 
-    init(existingProfile: FirebaseUserProfile? = nil) {
+    init(existingProfile: FirebaseUserProfile? = nil, failsToRead: Bool = false, failsToSave: Bool = false) {
         self.existingProfile = existingProfile
+        self.failsToRead = failsToRead
+        self.failsToSave = failsToSave
     }
 
-    func getUserProfile(userId: String) async throws -> FirebaseUserProfile? { existingProfile }
+    func getUserProfile(userId: String) async throws -> FirebaseUserProfile? {
+        if failsToRead { throw StubError() }
+        return existingProfile
+    }
 
     func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws {
+        if failsToSave { throw StubError() }
         savedProfiles.append((userId, profile))
     }
 

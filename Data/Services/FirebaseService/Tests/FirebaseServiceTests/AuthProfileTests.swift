@@ -45,4 +45,21 @@ struct AuthProfileTests {
 
         #expect(database.savedProfiles.isEmpty)
     }
+
+    // Sign-in has already succeeded; a profile hiccup must not undo it.
+    @Test func `profile lookup failure is swallowed and nothing is saved`() async {
+        let database = StubDatabaseFirebaseService(failsToRead: true)
+
+        await service(database).createUserProfileIfNeeded(userId: "u", email: "a@b.c", firstName: "Ann", lastName: nil)
+
+        #expect(database.savedProfiles.isEmpty)
+    }
+
+    @Test func `profile save failure is swallowed`() async {
+        let database = StubDatabaseFirebaseService(failsToSave: true)
+
+        await service(database).createUserProfileIfNeeded(userId: "u", email: "a@b.c", firstName: "Ann", lastName: nil)
+
+        #expect(database.savedProfiles.isEmpty)
+    }
 }

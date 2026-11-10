@@ -34,8 +34,8 @@ public actor LoginRepository: LoginRepositoryProtocol {
 
     var currentNonce: String?
 
-    private init(authFirebaseService: AuthFirebaseServiceProtocol = AuthFirebaseService.shared,
-                 databaseFirebaseService: DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared) {
+    init(authFirebaseService: AuthFirebaseServiceProtocol = AuthFirebaseService.shared,
+         databaseFirebaseService: DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared) {
         self.authFirebaseService = authFirebaseService
         self.databaseFirebaseService = databaseFirebaseService
     }

@@ -43,4 +43,13 @@ struct ContainerTests {
         #expect(destroyed == 1)
         #expect(try await manager.getCurrentUserId() == "uid")
     }
+
+    @Test func `in memory manager works and signs out without the keychain`() async throws {
+        let manager = SwiftDataManager.inMemory()
+        try await manager.setUserLoggedIn(userId: "uid")
+
+        try await manager.setUserLoggedOut()
+
+        #expect(await !manager.isUserLoggedIn())
+    }
 }

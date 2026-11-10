@@ -41,13 +41,16 @@ public actor HomeRepository: HomeRepositoryProtocol {
     private var cachedUserId: String?
     private var userIdCacheTime: Date?
     private let userIdCacheDuration: TimeInterval = 300 // 5 minutes
+    private let now: @Sendable () -> Date
 
     public init(databaseFirebaseService: DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared,
                 musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
-                swiftDataManager: SwiftDataManager = .shared) {
+                swiftDataManager: SwiftDataManager = .shared,
+                now: @escaping @Sendable () -> Date = Date.init) {
         self.databaseFirebaseService = databaseFirebaseService
         self.musicRepository = musicRepository
         self.swiftDataManager = swiftDataManager
+        self.now = now
     }
     
     public func fetchHomeSections() async throws -> [HomeSection] {
@@ -127,14 +130,14 @@ public actor HomeRepository: HomeRepositoryProtocol {
         // Check cache first
         if let cached = cachedUserId,
            let cacheTime = userIdCacheTime,
-           Date().timeIntervalSince(cacheTime) < userIdCacheDuration {
+           now().timeIntervalSince(cacheTime) < userIdCacheDuration {
             return cached
         }
 
         // Fetch and cache
         let userId = try await swiftDataManager.getCurrentUserId()
         cachedUserId = userId
-        userIdCacheTime = Date()
+        userIdCacheTime = now()
         return userId
     }
 

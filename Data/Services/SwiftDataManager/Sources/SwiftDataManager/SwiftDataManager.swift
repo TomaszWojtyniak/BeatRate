@@ -48,6 +48,10 @@ nonisolated protocol AppleUserIDStore: Sendable {
 
 extension KeychainManager: AppleUserIDStore {}
 
+private nonisolated struct NoAppleUserIDStore: AppleUserIDStore {
+    func deleteAppleUserID() async throws {}
+}
+
 @Observable
 @MainActor
 public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol {
@@ -74,6 +78,15 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
             continuation = cont
         }
         self.loginStateContinuation = continuation
+    }
+
+    /// A manager over a throwaway in-memory store that never touches the
+    /// Keychain — for previews and for other modules' tests.
+    public static func inMemory() -> SwiftDataManager {
+        SwiftDataManager(
+            container: try! ModelContainer(for: schema, configurations: ModelConfiguration(isStoredInMemoryOnly: true)),
+            appleUserIDStore: NoAppleUserIDStore()
+        )
     }
 
     static let schema = Schema([CachedAlbum.self, CachedSection.self, User.self, RecentAlbum.self])
