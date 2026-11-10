@@ -72,8 +72,8 @@ struct CatalogMappingTests {
         #expect(data.albums == nil)
     }
 
-    @Test func `authorization result carries status and subscription`() async {
-        let result = await MusicAuthorizationResult(status: .denied, hasSubscription: false)
+    @Test func `authorization result carries status and subscription`() {
+        let result = MusicAuthorizationResult(status: .denied, hasSubscription: false)
 
         #expect(result.status == .denied)
         #expect(!result.hasSubscription)

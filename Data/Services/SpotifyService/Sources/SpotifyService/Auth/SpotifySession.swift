@@ -17,6 +17,8 @@ actor SpotifySession {
     private let clientId: String
     private let redirectUri: URL?
     private let callbackScheme: String?
+    /// Nil when there is no window scene to present the sign-in sheet on.
+    private let makePresenter: @Sendable () async -> (any SpotifyAuthorizationPresenter)?
 
     /// In-flight refresh shared by concurrent callers. Spotify rotates refresh
     /// tokens, so two parallel refreshes would invalidate each other.
@@ -27,8 +29,10 @@ actor SpotifySession {
         transport: any SpotifyTransport,
         clientId: String,
         redirectUri: URL? = nil,
-        callbackScheme: String? = nil
+        callbackScheme: String? = nil,
+        makePresenter: @escaping @Sendable () async -> (any SpotifyAuthorizationPresenter)? = { @MainActor in SpotifyWebAuthSession.make() }
     ) {
+        self.makePresenter = makePresenter
         self.tokenStore = tokenStore
         self.transport = transport
         self.clientId = clientId
@@ -46,7 +50,7 @@ actor SpotifySession {
 
         let pkce = PKCE()
         // Nil means there is no window scene to present the sheet on.
-        guard let webAuth = await SpotifyWebAuthSession.make() else {
+        guard let webAuth = await makePresenter() else {
             CrashLogger.log("Authorize: no window scene to present the sign-in sheet on", to: .spotifyService)
             throw SpotifyFailure.authorizationFailed
         }

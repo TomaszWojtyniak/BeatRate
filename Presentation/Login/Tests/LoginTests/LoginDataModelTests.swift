@@ -1,5 +1,6 @@
 import Analytics
 import AuthenticationServices
+import Foundation
 import LoginUseCases
 import Testing
 @testable import Login
@@ -7,12 +8,29 @@ import Testing
 @MainActor
 struct LoginDataModelTests {
     private let backend: StubAnalyticsBackend
+    private let login = StubLoginUseCases()
     private let model: LoginDataModel
+
+    private static let credential = AppleSignInCredential(user: "apple", identityToken: Data("token".utf8), authorizationCode: nil, email: nil, fullName: nil)
 
     init() {
         let analytics: AnalyticsManager
         (analytics, backend) = makeAnalytics()
-        model = LoginDataModel(getLoginUseCase: StubLoginUseCases(), postLoginUseCase: StubLoginUseCases(), analyticsManager: analytics)
+        model = LoginDataModel(getLoginUseCase: login, postLoginUseCase: login, analyticsManager: analytics)
+    }
+
+    @Test func `apple credential completes the login`() async throws {
+        try await model.performCompleteLogin(credential: Self.credential)
+
+        #expect(login.loggedInUsers == ["apple"])
+        #expect(!model.isLoading)
+    }
+
+    @Test func `failed login is passed on and stops loading`() async {
+        login.failsToLogIn = true
+
+        await #expect(throws: LoginUseCaseError.authenticationFailed) { try await model.performCompleteLogin(credential: Self.credential) }
+        #expect(!model.isLoading)
     }
 
     @Test(arguments: [
@@ -57,5 +75,36 @@ struct LoginDataModelTests {
 
         #expect(backend.logged(.signInAppleTap))
         #expect(!model.isLoading)
+    }
+
+    @Test func `successful sign in shows no alert`() async {
+        await model.completeSignIn(credential: Self.credential)
+
+        #expect(login.loggedInUsers == ["apple"])
+        #expect(!model.isShowingErrorAlert)
+    }
+
+    @Test func `failed sign in shows the alert`() async {
+        login.failsToLogIn = true
+
+        await model.completeSignIn(credential: Self.credential)
+
+        #expect(model.isShowingErrorAlert)
+        #expect(backend.logged(.loginFailed(errorType: "authentication_failed")))
+    }
+
+    // A guest who backs out of the Apple sheet just keeps browsing.
+    @Test func `cancelled apple sheet is tracked without an alert`() async {
+        await model.handleAuthorizationFailure(ASAuthorizationError(.canceled))
+
+        #expect(!model.isShowingErrorAlert)
+        #expect(backend.logged(.loginFailed(errorType: "canceled")))
+    }
+
+    @Test func `failed apple sheet shows the alert`() async {
+        await model.handleAuthorizationFailure(ASAuthorizationError(.failed))
+
+        #expect(model.isShowingErrorAlert)
+        #expect(backend.logged(.loginFailed(errorType: "apple_error")))
     }
 }

@@ -63,12 +63,21 @@ public actor MusicKitService: MusicKitServiceProtocol {
     /// arrives within `timeout` — the stream never yields on accounts without an
     /// Apple Music capability, so the caller must not await it unbounded.
     private func currentSubscription(timeout: Duration) async -> MusicSubscription? {
-        await withTaskGroup(of: MusicSubscription?.self) { group in
+        await Self.value(within: timeout) {
+            for await subscription in MusicSubscription.subscriptionUpdates {
+                return subscription
+            }
+            return nil
+        }
+    }
+
+    /// What `operation` returns, or nil if `timeout` passes first. The operation
+    /// reads the stream itself: MusicKit's update streams are not `Sendable`, so
+    /// they must not cross into the task group.
+    nonisolated static func value<T: Sendable>(within timeout: Duration, _ operation: @escaping @Sendable () async -> T?) async -> T? {
+        await withTaskGroup(of: T?.self) { group in
             group.addTask {
-                for await subscription in MusicSubscription.subscriptionUpdates {
-                    return subscription
-                }
-                return nil
+                await operation()
             }
 
             group.addTask {
@@ -163,20 +172,24 @@ public actor MusicKitService: MusicKitServiceProtocol {
     /// Collects an album relationship across its paginated batches, capped so
     /// huge discographies don't fan out into unbounded requests.
     private func allBatches(of collection: MusicItemCollection<Album>?) async throws -> [Album] {
+        try await Self.allBatches(of: collection, maxBatches: Constants.maxArtistAlbumBatches)
+    }
+
+    nonisolated static func allBatches<Batch: PagedBatch>(of collection: Batch?, maxBatches: Int) async throws -> [Batch.Element] {
         guard let collection else { return [] }
 
-        var albums = Array(collection)
+        var items = Array(collection)
         var currentBatch = collection
         var batchCount = 1
 
-        while currentBatch.hasNextBatch, batchCount < Constants.maxArtistAlbumBatches {
-            guard let nextBatch = try await currentBatch.nextBatch() else { break }
-            albums.append(contentsOf: nextBatch)
+        while currentBatch.hasNextBatch, batchCount < maxBatches {
+            guard let nextBatch = try await currentBatch.nextPage() else { break }
+            items.append(contentsOf: nextBatch)
             currentBatch = nextBatch
             batchCount += 1
         }
 
-        return albums
+        return items
     }
 
     // MARK: - Catalog Search
@@ -266,5 +279,18 @@ public actor MusicKitService: MusicKitServiceProtocol {
         // Relationship batches hold 25 items, so four batches ≈ 100 albums per section.
         static let maxArtistAlbumBatches: Int = 4
         static let subscriptionTimeout: Duration = .seconds(2)
+    }
+}
+
+/// One page of a paginated MusicKit relationship, so batching can be tested
+/// without the catalog.
+nonisolated protocol PagedBatch: Sequence {
+    var hasNextBatch: Bool { get }
+    func nextPage() async throws -> Self?
+}
+
+extension MusicItemCollection: PagedBatch {
+    func nextPage() async throws -> Self? {
+        try await nextBatch()
     }
 }

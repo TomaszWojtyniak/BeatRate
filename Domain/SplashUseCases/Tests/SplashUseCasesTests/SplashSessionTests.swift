@@ -1,4 +1,5 @@
 import AuthenticationServices
+import LoginRepository
 import Testing
 @testable import SplashUseCases
 
@@ -112,6 +113,38 @@ struct SplashSessionTests {
         harness.login.failsToSignOut = true
 
         await #expect(throws: StubError.self) { try await harness.useCase.logout() }
+        #expect(harness.cache.logOutCount == 0)
+    }
+
+    // MARK: - Account deletion
+
+    @Test func `account is deleted remotely then torn down like a logout`() async throws {
+        let harness = SplashTestHarness(keychain: StubAppleCredentialStore(appleUserID: "apple"))
+        harness.signIn()
+
+        try await harness.useCase.deleteAccount(credential: .fixture)
+
+        #expect(harness.login.deletedAccounts == ["u"])
+        #expect(harness.login.signOutCount == 1)
+        #expect(harness.cache.logOutCount == 1)
+        #expect(harness.keychain.deletedAppleID)
+    }
+
+    // Logging out would report a deletion that never happened.
+    @Test func `deletion without a user id fails loudly`() async {
+        let harness = SplashTestHarness()
+
+        await #expect(throws: LoginError.wrongData) { try await harness.useCase.deleteAccount(credential: .fixture) }
+        #expect(harness.login.deletedAccounts.isEmpty)
+        #expect(harness.login.signOutCount == 0)
+    }
+
+    @Test func `failed remote deletion keeps the user signed in`() async {
+        let harness = SplashTestHarness()
+        harness.signIn()
+        harness.login.failsToDeleteAccount = true
+
+        await #expect(throws: StubError.self) { try await harness.useCase.deleteAccount(credential: .fixture) }
         #expect(harness.cache.logOutCount == 0)
     }
 }

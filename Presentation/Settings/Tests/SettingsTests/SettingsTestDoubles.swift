@@ -80,7 +80,13 @@ final class StubSplashUseCase: GetSplashUseCaseProtocol {
     }
 
     func getCurrentNonce() async -> String { "nonce" }
-    func deleteAccount(authResult: ASAuthorization) async throws {}
+    var failsToDeleteAccount = false
+    private(set) var deletedCredentials: [String] = []
+
+    func deleteAccount(credential: AppleSignInCredential) async throws {
+        if failsToDeleteAccount { throw StubError() }
+        deletedCredentials.append(credential.user)
+    }
 }
 
 /// Main-actor because the protocol inherits its package's default main-actor isolation.

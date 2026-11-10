@@ -41,8 +41,15 @@ func makeAnalytics() -> (AnalyticsManager, StubAnalyticsBackend) {
 /// their package's default main-actor isolation.
 @MainActor
 final class StubLoginUseCases: GetLoginUseCaseProtocol, SetLoginUseCaseProtocol {
+    var failsToLogIn = false
+    private(set) var loggedInUsers: [String] = []
+
     func getCurrentNonce() async -> String { "nonce" }
     func getUserProfile(userId: String) async throws -> FirebaseUserProfile? { nil }
-    func performCompleteLogin(authResult: ASAuthorization) async throws -> String { "" }
+    func performCompleteLogin(credential: AppleSignInCredential) async throws -> String {
+        if failsToLogIn { throw LoginUseCaseError.authenticationFailed }
+        loggedInUsers.append(credential.user)
+        return "u"
+    }
     func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws {}
 }

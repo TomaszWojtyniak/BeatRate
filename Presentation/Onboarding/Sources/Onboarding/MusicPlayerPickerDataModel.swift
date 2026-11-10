@@ -59,6 +59,15 @@ final class MusicPlayerPickerDataModel {
     /// The choice is **only** persisted after a successful connect — cancelling or
     /// being denied leaves `MusicPlayerManager.current` untouched so we don't strand
     /// the user on a player they have no access to.
+    /// Settings pushes the picker, so it pops itself; onboarding is replaced by the app.
+    var dismissesOnCompletion: Bool { mode == .change }
+
+    /// A tap on a player card: tracked, then connected and saved.
+    func choose(_ player: MusicPlayer) async -> Bool {
+        analyticsManager.log(.musicPlayerSelected(player: player.rawValue, mode: String(describing: mode)))
+        return await select(player)
+    }
+
     func select(_ player: MusicPlayer) async -> Bool {
         isProcessing = true
         pendingChoice = player

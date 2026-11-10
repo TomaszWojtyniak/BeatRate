@@ -43,7 +43,7 @@ struct EditProfileView: View {
     }
 
     private var canSave: Bool {
-        !isSaving && !(firstName.isEmpty && lastName.isEmpty)
+        AccountDataModel.canSaveProfile(firstName: firstName, lastName: lastName, isSaving: isSaving)
     }
 
     var body: some View {

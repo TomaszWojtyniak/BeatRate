@@ -65,7 +65,7 @@ final class StubLoginUseCases: GetLoginUseCaseProtocol, SetLoginUseCaseProtocol 
         return profiles[userId]
     }
 
-    func performCompleteLogin(authResult: ASAuthorization) async throws -> String { "" }
+    func performCompleteLogin(credential: AppleSignInCredential) async throws -> String { "" }
 
     func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws {
         if failsToSaveProfile { throw StubError() }

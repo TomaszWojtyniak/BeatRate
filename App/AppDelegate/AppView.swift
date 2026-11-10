@@ -16,13 +16,13 @@ import CoreApp
 @MainActor
 struct AppView: View {
     @State private var dataModel = AppDataModel()
-    private let musicPlayerManager = MusicPlayerManager.shared
 
     @State private var selection: TabBarScreen? = .home
 
     var body: some View {
         Group {
-            if dataModel.showingSplash {
+            switch dataModel.rootScreen {
+            case .splash:
                 SplashView {
                     withAnimation {
                         dataModel.showingSplash = false
@@ -33,11 +33,11 @@ struct AppView: View {
                     await dataModel.getCurrentUser()
                     dataModel.setUserId()
                 }
-            } else if dataModel.isUserLoggedIn && musicPlayerManager.current == nil {
+            case .playerPicker:
                 NavigationStack {
                     MusicPlayerPickerView(mode: .onboarding)
                 }
-            } else {
+            case .tabs:
                 TabBarView(selection: $selection)
                     .onChange(of: selection) { _, tab in dataModel.trackTabSelected(tab) }
                     .alert(Text(.analyticsConsentTitle), isPresented: $dataModel.isAskingAnalyticsConsent) {

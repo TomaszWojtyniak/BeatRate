@@ -2,7 +2,9 @@ import Analytics
 import CoreApp
 import Foundation
 import Models
+import SplashUseCases
 import SpotifyService
+import AuthenticationServices
 import Testing
 @testable import Settings
 
@@ -96,5 +98,34 @@ struct SettingsDataModelTests {
         model.track(.screenView(.settings))
 
         #expect(backend.logged(.screenView(.settings)))
+    }
+
+    // MARK: - Account deletion
+
+    private static let credential = AppleSignInCredential(user: "apple", identityToken: Data("token".utf8), authorizationCode: nil, email: nil, fullName: nil)
+
+    @Test func `account deletion is tracked when it succeeds`() async throws {
+        try await model.deleteAccount(credential: Self.credential)
+
+        #expect(splash.deletedCredentials == ["apple"])
+        #expect(!model.isDeletingAccount)
+        #expect(backend.logged(.accountDeleted))
+    }
+
+    @Test func `failed account deletion is passed on and not tracked`() async {
+        splash.failsToDeleteAccount = true
+
+        await #expect(throws: StubError.self) { try await model.deleteAccount(credential: Self.credential) }
+        #expect(!model.isDeletingAccount)
+        #expect(!backend.logged(.accountDeleted))
+    }
+
+    @Test func `cancelled apple re-authentication shows no error`() {
+        #expect(model.verifyErrorMessage(for: ASAuthorizationError(.canceled)) == nil)
+    }
+
+    @Test(arguments: [ASAuthorizationError(.failed) as any Error, StubError()])
+    func `failed apple re-authentication explains itself`(error: any Error) {
+        #expect(model.verifyErrorMessage(for: error)?.isEmpty == false)
     }
 }

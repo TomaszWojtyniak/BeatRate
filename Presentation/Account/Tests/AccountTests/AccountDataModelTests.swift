@@ -222,4 +222,14 @@ struct AccountDataModelTests {
 
         #expect(backend.logged(.screenView(.account)))
     }
+
+    @Test(arguments: [
+        ("Ann", "", false, true),
+        ("", "Lee", false, true),
+        ("", "", false, false),
+        ("Ann", "Lee", true, false),
+    ])
+    func `profile can be saved with one name when no save is running`(first: String, last: String, isSaving: Bool, canSave: Bool) {
+        #expect(AccountDataModel.canSaveProfile(firstName: first, lastName: last, isSaving: isSaving) == canSave)
+    }
 }

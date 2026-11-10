@@ -17,6 +17,8 @@ import Models
 import Analytics
 import OSLog
 import AuthenticationServices
+// Re-exported so Presentation can build the credential without depending on Data.
+@_exported import struct FirebaseService.AppleSignInCredential
 
 public protocol GetSplashUseCaseProtocol: Sendable {
     func getCachedSections() async throws -> [HomeSection]
@@ -32,7 +34,7 @@ public protocol GetSplashUseCaseProtocol: Sendable {
     func areCredentialsValid() async -> Bool
     func logout() async throws
     func getCurrentNonce() async -> String
-    func deleteAccount(authResult: ASAuthorization) async throws
+    func deleteAccount(credential: AppleSignInCredential) async throws
 }
 
 /// The Keychain calls splash makes, so tests don't touch the real Keychain.
@@ -306,14 +308,14 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
 
     /// Deletes the account remotely (Apple token revoke + Firebase user + RTDB
     /// data) then reuses `logout()` for the identical local teardown.
-    public func deleteAccount(authResult: ASAuthorization) async throws {
+    public func deleteAccount(credential: AppleSignInCredential) async throws {
         // Without a userId nothing can be deleted remotely — fail loudly instead
         // of logging out and reporting a deletion that never happened.
         guard let userId: String = (try? await swiftDataManager.getCurrentUserId()) ?? nil else {
             CrashLogger.log("Account deletion attempted with no current user id", to: .splash)
             throw LoginError.wrongData
         }
-        try await loginRepository.deleteAccount(userId: userId, authResult: authResult)
+        try await loginRepository.deleteAccount(userId: userId, credential: credential)
         try await logout()
     }
 

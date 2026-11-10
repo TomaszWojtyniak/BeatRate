@@ -49,7 +49,7 @@ final class StubLoginUseCases: GetLoginUseCaseProtocol, SetLoginUseCaseProtocol 
 
     func getCurrentNonce() async -> String { "nonce" }
     func getUserProfile(userId: String) async throws -> FirebaseUserProfile? { try profile.get() }
-    func performCompleteLogin(authResult: ASAuthorization) async throws -> String { "" }
+    func performCompleteLogin(credential: AppleSignInCredential) async throws -> String { "" }
 
     func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws {
         if failsToSave { throw StubError() }

@@ -94,5 +94,5 @@ final class StubSplashUseCase: GetSplashUseCaseProtocol {
     }
 
     func getCurrentNonce() async -> String { "nonce" }
-    func deleteAccount(authResult: ASAuthorization) async throws {}
+    func deleteAccount(credential: AppleSignInCredential) async throws {}
 }

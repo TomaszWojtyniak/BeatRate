@@ -91,4 +91,17 @@ struct SearchDataModelTests {
 
         #expect(backend.logged(.screenView(.search)))
     }
+
+    @Test func `opening an album tracks it and moves it to the top of recents`() async {
+        await model.albumTapped(Self.album, source: .searchResult).value
+
+        #expect(model.recentAlbums == [Self.album])
+        #expect(backend.logged(.albumTap(source: .searchResult, albumId: "a")))
+    }
+
+    @Test func `opening an artist is tracked`() {
+        model.artistTapped(Self.artist)
+
+        #expect(backend.logged(.artistTap(artistId: "ar")))
+    }
 }

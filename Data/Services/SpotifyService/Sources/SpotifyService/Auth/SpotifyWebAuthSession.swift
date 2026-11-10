@@ -12,8 +12,14 @@ import UIKit
 
 /// Drives the ASWebAuthenticationSession OAuth sheet on the main actor and keeps
 /// the session alive for the duration of the flow — the system does not retain it.
+/// Shows the Spotify sign-in sheet and returns the authorization code from the
+/// redirect. A seam so the rest of `SpotifySession.authorize()` can be tested.
+nonisolated protocol SpotifyAuthorizationPresenter: Sendable {
+    func authorize(url: URL, callbackScheme: String) async throws -> String
+}
+
 @MainActor
-final class SpotifyWebAuthSession: NSObject, ASWebAuthenticationPresentationContextProviding {
+final class SpotifyWebAuthSession: NSObject, ASWebAuthenticationPresentationContextProviding, SpotifyAuthorizationPresenter {
     private var activeSession: ASWebAuthenticationSession?
 
     /// Resolved once, at construction, so `presentationAnchor` is total without a

@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 @testable import SpotifyService
 
 /// Returns scripted responses in order and records what it was asked to send.
@@ -115,5 +116,24 @@ actor StubKeychain: SpotifyKeychain {
     func deleteLegacySpotifyTokens() async throws {
         legacyPair = nil
         legacyCleared = true
+    }
+}
+
+/// Stands in for the sign-in sheet: returns a scripted code and records the URL
+/// it was shown. A locked class rather than an actor: actor stubs built in default
+/// arguments trip a Swift 6.4 compiler bug elsewhere in this repo.
+final class StubAuthorizationPresenter: SpotifyAuthorizationPresenter {
+    private let result: Result<String, SpotifyFailure>
+    private let shown = Mutex<[(url: URL, scheme: String)]>([])
+
+    init(result: Result<String, SpotifyFailure> = .success("auth-code")) {
+        self.result = result
+    }
+
+    var presented: [(url: URL, scheme: String)] { shown.withLock { $0 } }
+
+    func authorize(url: URL, callbackScheme: String) async throws -> String {
+        shown.withLock { $0.append((url, callbackScheme)) }
+        return try result.get()
     }
 }

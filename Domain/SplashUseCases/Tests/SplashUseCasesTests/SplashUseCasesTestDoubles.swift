@@ -1,4 +1,5 @@
 import AuthenticationServices
+import FirebaseService
 import CoreApp
 import FirebaseService
 import Foundation
@@ -91,7 +92,11 @@ final class StubLoginRepository: LoginRepositoryProtocol {
     private(set) var signOutCount = 0
 
     func currentFirebaseUserId() async -> String? { firebaseUserId }
-    func setLoginData(authResult: ASAuthorization) async throws -> String { "" }
+    var loginResult: Result<String, StubError> = .success("u")
+    var failsToDeleteAccount = false
+    private(set) var deletedAccounts: [String] = []
+
+    func setLoginData(credential: AppleSignInCredential) async throws -> String { try loginResult.get() }
     func getCurrentNonce() async -> String { nonce }
 
     func getUserProfile(userId: String) async throws -> FirebaseUserProfile? {
@@ -109,7 +114,10 @@ final class StubLoginRepository: LoginRepositoryProtocol {
         if failsToSignOut { throw StubError() }
     }
 
-    func deleteAccount(userId: String, authResult: ASAuthorization) async throws {}
+    func deleteAccount(userId: String, credential: AppleSignInCredential) async throws {
+        if failsToDeleteAccount { throw StubError() }
+        deletedAccounts.append(userId)
+    }
 }
 
 /// Scriptable stand-in for the SwiftData cache, for failure paths an in-memory
@@ -182,7 +190,7 @@ final class StubLoginUseCases: GetLoginUseCaseProtocol, SetLoginUseCaseProtocol 
         return profiles[userId]
     }
 
-    func performCompleteLogin(authResult: ASAuthorization) async throws -> String { "" }
+    func performCompleteLogin(credential: AppleSignInCredential) async throws -> String { "" }
 
     func saveUserProfile(userId: String, profile: FirebaseUserProfile) async throws {
         if failsToSaveProfile { throw StubError() }
@@ -223,4 +231,8 @@ final class StubAppleCredentialStore: AppleCredentialStore {
     func deleteSpotifyTokens() async throws {
         state.withLock { $0.deletedSpotifyTokens = true }
     }
+}
+
+extension AppleSignInCredential {
+    static let fixture = AppleSignInCredential(user: "apple", identityToken: Data("token".utf8), authorizationCode: nil, email: nil, fullName: nil)
 }

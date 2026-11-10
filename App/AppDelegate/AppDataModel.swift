@@ -20,11 +20,25 @@ class AppDataModel {
     private let crashLogger: CrashLogger
     private let getAppUseCase: GetAppUseCaseProtocol
     private let sessionManager: SessionManager
+    private let musicPlayerManager: MusicPlayerManager
+
+    enum RootScreen: Equatable {
+        case splash
+        /// A signed-in user who has not picked a music player yet.
+        case playerPicker
+        case tabs
+    }
+
+    var rootScreen: RootScreen {
+        if showingSplash { return .splash }
+        if isUserLoggedIn && musicPlayerManager.current == nil { return .playerPicker }
+        return .tabs
+    }
 
     var user: User?
     var isUserLoggedIn: Bool = false
     var showingSplash = true
-    var isAskingAnalyticsConsent = AnalyticsManager.shared.consent == nil
+    var isAskingAnalyticsConsent: Bool
 
     var isPresentingLoginPrompt: Bool {
         get { sessionManager.isPresentingLoginPrompt }
@@ -38,11 +52,14 @@ class AppDataModel {
     init(analyticsManager: AnalyticsManager = .shared,
          crashLogger: CrashLogger = .shared,
          sessionManager: SessionManager = .shared,
+         musicPlayerManager: MusicPlayerManager = .shared,
          getAppUseCase: GetAppUseCaseProtocol = GetAppUseCase()) {
+        self.musicPlayerManager = musicPlayerManager
         self.analyticsManager = analyticsManager
         self.crashLogger = crashLogger
         self.getAppUseCase = getAppUseCase
         self.sessionManager = sessionManager
+        self.isAskingAnalyticsConsent = analyticsManager.consent == nil
     }
     
     func trackTabSelected(_ tab: TabBarScreen?) {
@@ -75,27 +92,32 @@ class AppDataModel {
         }
     }
 
-    func startObservingLoginState() {
+    @discardableResult
+    func startObservingLoginState() -> Task<Void, Never> {
         Task {
             for await isLoggedIn in getAppUseCase.observeLoginState() {
-                let wasLoggedOut = !self.isUserLoggedIn
-                self.isUserLoggedIn = isLoggedIn
-                sessionManager.update(isLoggedIn: isLoggedIn)
-
-                if !isLoggedIn {
-                    // Logout or account deletion: stop attributing events to that user.
-                    self.analyticsManager.setUserId(nil)
-                    self.crashLogger.setUserIdentifier(nil)
-                }
-
-                if isLoggedIn && wasLoggedOut {
-                    self.showingSplash = true
-                    Logger.app.debug("User logged in - showing splash screen")
-                }
-
-                Logger.app.debug("Login state changed: \(isLoggedIn)")
+                loginStateChanged(to: isLoggedIn)
             }
         }
+    }
+
+    func loginStateChanged(to isLoggedIn: Bool) {
+        let wasLoggedOut = !isUserLoggedIn
+        isUserLoggedIn = isLoggedIn
+        sessionManager.update(isLoggedIn: isLoggedIn)
+
+        if !isLoggedIn {
+            // Logout or account deletion: stop attributing events to that user.
+            analyticsManager.setUserId(nil)
+            crashLogger.setUserIdentifier(nil)
+        }
+
+        if isLoggedIn && wasLoggedOut {
+            showingSplash = true
+            Logger.app.debug("User logged in - showing splash screen")
+        }
+
+        Logger.app.debug("Login state changed: \(isLoggedIn)")
     }
 
     func checkInitialLoginStatus() async {

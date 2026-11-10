@@ -1,3 +1,4 @@
+import FirebaseService
 import Models
 import Testing
 @testable import LoginUseCases
@@ -10,7 +11,7 @@ struct LoginUseCasesTests {
     private var useCase: SetLoginUseCase { SetLoginUseCase(loginRepository: login, swiftDataManager: cache) }
 
     @Test func `successful sign in is stored locally`() async throws {
-        let userId = try await useCase.completeLogin { "u" }
+        let userId = try await useCase.performCompleteLogin(credential: .fixture)
 
         #expect(userId == "u")
         #expect(cache.loggedInUserIds == ["u"])
@@ -18,8 +19,10 @@ struct LoginUseCasesTests {
     }
 
     @Test func `failed firebase sign in stores nothing`() async {
+        login.loginResult = .failure(StubError())
+
         await #expect(throws: LoginUseCaseError.authenticationFailed) {
-            try await useCase.completeLogin { throw StubError() }
+            try await useCase.performCompleteLogin(credential: .fixture)
         }
         #expect(cache.loggedInUserIds.isEmpty)
     }
@@ -31,7 +34,7 @@ struct LoginUseCasesTests {
         login.failsToSignOut = rollbackFails
 
         await #expect(throws: LoginUseCaseError.localStorageFailed) {
-            try await useCase.completeLogin { "u" }
+            try await useCase.performCompleteLogin(credential: .fixture)
         }
         #expect(login.signOutCount == 1)
     }

@@ -223,11 +223,7 @@ private struct DeleteAccountSheet: View {
                     errorMessage = String(localized: .settingsDeleteAccountError)
                 }
             case .failure(let error):
-                // Cancellation is a normal outcome — leave the sheet open, no error.
-                if let authError = error as? ASAuthorizationError, authError.code == .canceled {
-                    return
-                }
-                errorMessage = String(localized: .settingsDeleteAccountVerifyError)
+                errorMessage = dataModel.verifyErrorMessage(for: error)
             }
         }
     }

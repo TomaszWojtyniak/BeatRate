@@ -15,6 +15,11 @@ import Models
 import AuthenticationServices
 import CryptoKit
 
+enum DeleteAccountError: Error {
+    /// Re-authentication returned something other than a Sign in with Apple credential.
+    case notAppleCredential
+}
+
 @MainActor
 @Observable
 final class SettingsDataModel {
@@ -112,11 +117,27 @@ final class SettingsDataModel {
     }
 
     func deleteAccount(authResult: ASAuthorization) async throws {
+        guard let credential = AppleSignInCredential(authResult) else {
+            throw DeleteAccountError.notAppleCredential
+        }
+        try await deleteAccount(credential: credential)
+    }
+
+    /// What to tell the user when Apple re-authentication fails. Nil on cancel:
+    /// that is a normal outcome, and the sheet just stays open.
+    func verifyErrorMessage(for error: Error) -> String? {
+        if let authError = error as? ASAuthorizationError, authError.code == .canceled {
+            return nil
+        }
+        return String(localized: .settingsDeleteAccountVerifyError)
+    }
+
+    func deleteAccount(credential: AppleSignInCredential) async throws {
         isDeletingAccount = true
         defer { isDeletingAccount = false }
 
         do {
-            try await getSplashUseCase.deleteAccount(authResult: authResult)
+            try await getSplashUseCase.deleteAccount(credential: credential)
             analyticsManager.log(.accountDeleted)
             Logger.settings.info("Account deletion successful")
         } catch {

@@ -50,6 +50,17 @@ public final class SearchDataModel {
         analyticsManager.log(event)
     }
 
+    /// Opening an album from results or recents tracks it and moves it to the top of recents.
+    @discardableResult
+    func albumTapped(_ album: AppleMusicAlbumData, source: AlbumTapSource) -> Task<Void, Never> {
+        analyticsManager.log(.albumTap(source: source, albumId: album.id))
+        return saveRecentAlbum(album)
+    }
+
+    func artistTapped(_ artist: AppleMusicArtistData) {
+        analyticsManager.log(.artistTap(artistId: artist.id))
+    }
+
     public func loadRecentAlbums() async {
         recentAlbums = await getRecentAlbumsUseCase.fetchRecentAlbums()
     }

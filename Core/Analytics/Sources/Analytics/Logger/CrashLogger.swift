@@ -18,7 +18,8 @@ public final class CrashLogger {
     /// Domains already sent by ``report(_:_:to:)`` this launch.
     nonisolated private let reported = Mutex<Set<String>>([])
 
-    nonisolated init(backend: CrashBackend) {
+    /// Test seam: lets other modules record calls instead of sending them.
+    nonisolated public init(backend: CrashBackend) {
         self.backend = backend
     }
     
@@ -87,7 +88,7 @@ public final class CrashLogger {
 }
 
 /// The Crashlytics calls `CrashLogger` makes, so tests can record them instead.
-nonisolated protocol CrashBackend: Sendable {
+nonisolated public protocol CrashBackend: Sendable {
     func setCollectionEnabled(_ enabled: Bool)
     func setUserID(_ userId: String?)
     func record(_ error: Error)

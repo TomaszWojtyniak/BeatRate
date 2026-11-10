@@ -81,4 +81,19 @@ struct MusicPlayerPickerDataModelTests {
         #expect(model.mode == .onboarding)
         #expect(backend.logged(.permissionContinueTap))
     }
+
+    @Test func `choosing a player is tracked with the picker mode`() async {
+        #expect(await model.choose(.spotify))
+
+        #expect(useCases.savedPlayers == [.spotify])
+        #expect(backend.logged(.musicPlayerSelected(player: "spotify", mode: "onboarding")))
+    }
+
+    // Settings pushes the picker; onboarding is swapped out by the app instead.
+    @Test(arguments: [(MusicPlayerPickerMode.onboarding, false), (.change, true)])
+    func `only the settings picker dismisses itself`(mode: MusicPlayerPickerMode, dismisses: Bool) {
+        let model = MusicPlayerPickerDataModel(mode: mode, setSettingsUseCase: useCases, getSettingsUseCase: useCases, musicPlayerManager: player)
+
+        #expect(model.dismissesOnCompletion == dismisses)
+    }
 }
