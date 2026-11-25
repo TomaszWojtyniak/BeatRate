@@ -14,7 +14,9 @@
 		8B1AAAB92E736F4B001D9BC1 /* SwiftDataManager in Frameworks */ = {isa = PBXBuildFile; productRef = 8B1AAAB82E736F4B001D9BC1 /* SwiftDataManager */; };
 		8B1AAABB2E736F51001D9BC1 /* SwiftDataManager in Frameworks */ = {isa = PBXBuildFile; productRef = 8B1AAABA2E736F51001D9BC1 /* SwiftDataManager */; };
 		8B1AAABF2E737978001D9BC1 /* Splash in Frameworks */ = {isa = PBXBuildFile; productRef = 8B1AAABE2E737978001D9BC1 /* Splash */; };
+		C3A021D91E166E0F3E2B104F /* SplashUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9F28FA577035ED6E2F415BBB /* SplashUI */; };
 		8B1AAAC12E73797D001D9BC1 /* Splash in Frameworks */ = {isa = PBXBuildFile; productRef = 8B1AAAC02E73797D001D9BC1 /* Splash */; };
+		5243904A9D18B8F1B9A07AB3 /* SplashUI in Frameworks */ = {isa = PBXBuildFile; productRef = 7BEC2C47293A36ABB0F92F07 /* SplashUI */; };
 		8B567DD62E79D15B007D0AA7 /* AppUseCases in Frameworks */ = {isa = PBXBuildFile; productRef = 8B567DD52E79D15B007D0AA7 /* AppUseCases */; };
 		8B567DD82E79D162007D0AA7 /* AppUseCases in Frameworks */ = {isa = PBXBuildFile; productRef = 8B567DD72E79D162007D0AA7 /* AppUseCases */; };
 		8B7266D82DE7383800681754 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266D72DE7383800681754 /* FirebaseCore */; };
@@ -286,6 +288,7 @@
 				8BED089E2DE645EE00838DD7 /* TabBar in Frameworks */,
 				8B1AAABB2E736F51001D9BC1 /* SwiftDataManager in Frameworks */,
 				8B1AAABF2E737978001D9BC1 /* Splash in Frameworks */,
+				C3A021D91E166E0F3E2B104F /* SplashUI in Frameworks */,
 				8B7266E82DE7464700681754 /* Analytics in Frameworks */,
 				8B7266DA2DE7384400681754 /* FirebaseCore in Frameworks */,
 				8BED089C2DE645E800838DD7 /* Login in Frameworks */,
@@ -310,6 +313,7 @@
 				8BED088D2DE1031900838DD7 /* Login in Frameworks */,
 				8B1AAAB92E736F4B001D9BC1 /* SwiftDataManager in Frameworks */,
 				8B1AAAC12E73797D001D9BC1 /* Splash in Frameworks */,
+				5243904A9D18B8F1B9A07AB3 /* SplashUI in Frameworks */,
 				8B7266E62DE7460100681754 /* Analytics in Frameworks */,
 				8B7266D82DE7383800681754 /* FirebaseCore in Frameworks */,
 				8BED088B2DE100BC00838DD7 /* TabBar in Frameworks */,
@@ -415,6 +419,7 @@
 				8B9E2E2E2DF99A4E00D96333 /* Models */,
 				8B1AAABA2E736F51001D9BC1 /* SwiftDataManager */,
 				8B1AAABE2E737978001D9BC1 /* Splash */,
+				9F28FA577035ED6E2F415BBB /* SplashUI */,
 				8B567DD72E79D162007D0AA7 /* AppUseCases */,
 				E892A2244BD399BBA2DB0335 /* Composition */,
 				E892A2244BD399BBA2DB0336 /* CompositionLive */,
@@ -473,6 +478,7 @@
 				8B9E2E2C2DF99A4900D96333 /* Models */,
 				8B1AAAB82E736F4B001D9BC1 /* SwiftDataManager */,
 				8B1AAAC02E73797D001D9BC1 /* Splash */,
+				7BEC2C47293A36ABB0F92F07 /* SplashUI */,
 				8B567DD52E79D15B007D0AA7 /* AppUseCases */,
 				5897333DE1D73784FDC2E509 /* Composition */,
 				5897333DE1D73784FDC2E50A /* CompositionLive */,
@@ -1189,9 +1195,17 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = Splash;
 		};
+		9F28FA577035ED6E2F415BBB /* SplashUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SplashUI;
+		};
 		8B1AAAC02E73797D001D9BC1 /* Splash */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Splash;
+		};
+		7BEC2C47293A36ABB0F92F07 /* SplashUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SplashUI;
 		};
 		8B567DD52E79D15B007D0AA7 /* AppUseCases */ = {
 			isa = XCSwiftPackageProductDependency;

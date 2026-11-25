@@ -10,6 +10,7 @@ import TabBar
 import Login
 import Models
 import Splash
+import SplashUI
 import Onboarding
 import CoreApp
 
@@ -23,15 +24,13 @@ struct AppView: View {
         Group {
             switch dataModel.rootScreen {
             case .splash:
-                SplashView {
-                    withAnimation {
-                        dataModel.showingSplash = false
-                    }
-                }
-                .transition(.opacity)
-                .task {
-                    await dataModel.getCurrentUser()
-                    dataModel.setUserId()
+                if let splash = dataModel.splash {
+                    SplashView(viewModel: splash)
+                        .transition(.opacity)
+                        .task {
+                            await dataModel.getCurrentUser()
+                            dataModel.setUserId()
+                        }
                 }
             case .playerPicker:
                 NavigationStack {
