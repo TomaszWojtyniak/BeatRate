@@ -37,6 +37,11 @@ struct SessionManagerTests {
         #expect(!session.isPresentingLoginPrompt)
     }
 
+    @Test func `each prompt reason is its own sheet`() {
+        #expect(LoginPromptReason.account.id != LoginPromptReason.rating.id)
+        #expect(LoginPromptReason.rating.id == .rating)
+    }
+
     @Test(arguments: [LoginPromptReason.account, .rating])
     func `guest login request raises the prompt with its reason`(reason: LoginPromptReason) {
         session.requestLogin(reason: reason)

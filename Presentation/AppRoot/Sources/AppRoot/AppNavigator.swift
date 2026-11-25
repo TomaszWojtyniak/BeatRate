@@ -167,8 +167,14 @@ public final class AppNavigator: ViewModel {
     private func startSplash() {
         splash = makeSplash { [weak self] in self?.send(message: .splashFinished) }
         Task { [weak self, getApp] in
-            let user = try? await getApp.getCurrentUser()
-            let userId = user.flatMap { $0.isLoggedIn && !$0.userId.isEmpty ? $0.userId : nil }
+            var userId: String?
+            do {
+                if let user = try await getApp.getCurrentUser(), user.isLoggedIn, !user.userId.isEmpty {
+                    userId = user.userId
+                }
+            } catch {
+                CrashLogger.log("Cant get current user: \(error)", to: .app)
+            }
             self?.send(message: .userLoaded(userId: userId))
         }
     }

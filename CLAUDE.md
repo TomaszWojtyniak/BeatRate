@@ -121,8 +121,13 @@ as JSON and the actions. `./cli` runs the app's root, `BeatRateApp(edges:)`, on 
 files instead of the SDKs; any request without a fixture ends it with exit code 3.
 
 ```bash
-printf 'ls\ndo Continue\nls\n' | ./cli behavior/fixtures/device.guest.json behavior/fixtures/catalog.discovery.json behavior/fixtures/music.undecided.json
+printf 'wait 300\nls\ndo Continue\nwait 300\nls\n' | ./cli behavior/fixtures/device.guest.json behavior/fixtures/catalog.discovery.json behavior/fixtures/music.undecided.json
 ```
+
+Piped commands arrive at once, and effects (loading, the next screen) only run while the
+CLI waits: put `wait <ms>` between a `do` and the `ls` that should see its result. `ok`
+means the action was accepted; `update` may still ignore it (e.g. `Continue` before the
+explainer shows). Journeys in `behavior/` poll instead and need no `wait`.
 
 The Debug app answers the same `ls` / `do <Action> {json}` on 127.0.0.1:7777, and the
 UI follows (`printf 'ls\n' | nc -w 1 127.0.0.1 7777`). Release builds have no server.

@@ -19,13 +19,14 @@ One command per line:
 
 ```
 ls                          # the focused node: name, state JSON, actions
+wait 300                    # let effects run for 300 ms (piped input arrives at once)
 do Continue                 # an action without input
 do AllowAnalytics           # actions of every node on the path are available at the focus
 do dismiss                  # camelCase = lent by a container (the login sheet)
 {"cmd":"ls"}                # JSON lines get one-line JSON answers (what behavior/sdk.mjs uses)
 ```
 
-`printf 'ls\ndo Continue\nls\n' | ./cli …` works for one-shot checks, but effects need time between commands; use a journey for anything that waits. Exit code 3 with `network violation: …` on stderr means a request had no fixture.
+Piped commands arrive at once and effects only run while the CLI waits, so give them time: `printf 'wait 300\nls\ndo Continue\nwait 300\nls\n' | ./cli …`. `wait <ms>` is the CLI's own command. `ok` means the action was accepted, not that it changed anything; `update` decides. For anything longer, write a journey (it polls). Exit code 3 with `network violation: …` on stderr means a request had no fixture.
 
 The Debug app answers the same protocol and the UI follows:
 

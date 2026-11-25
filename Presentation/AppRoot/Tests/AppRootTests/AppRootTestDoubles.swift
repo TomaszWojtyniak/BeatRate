@@ -50,6 +50,7 @@ nonisolated final class StubCrashBackend: CrashBackend {
 final class StubAppUseCase: GetAppUseCaseProtocol {
     var isLoggedIn = false
     var user: User?
+    var failsToLoadUser = false
     private let stream: AsyncStream<Bool>
     private let continuation: AsyncStream<Bool>.Continuation
 
@@ -57,7 +58,10 @@ final class StubAppUseCase: GetAppUseCaseProtocol {
         (stream, continuation) = AsyncStream.makeStream(of: Bool.self)
     }
 
-    func getCurrentUser() async throws -> User? { user }
+    func getCurrentUser() async throws -> User? {
+        if failsToLoadUser { throw StubError() }
+        return user
+    }
     func isUserLoggedIn() async -> Bool { isLoggedIn }
     func observeLoginState() -> AsyncStream<Bool> { stream }
     func push(_ isLoggedIn: Bool) { continuation.yield(isLoggedIn) }

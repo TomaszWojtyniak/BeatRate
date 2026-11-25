@@ -114,10 +114,10 @@ struct AppNavigatorTests {
         #expect(harness.crash.userIDs == ["u1", nil])
     }
 
-    @Test(arguments: [(false, "u1"), (true, "")])
-    func `a guest row is not an identity`(isLoggedIn: Bool, userId: String) async {
+    @Test(arguments: [nil, (false, "u1"), (true, "")] as [(Bool, String)?])
+    func `a guest row is not an identity`(row: (isLoggedIn: Bool, userId: String)?) async {
         let harness = Harness(consent: true)
-        harness.app.user = User(isLoggedIn: isLoggedIn, userId: userId)
+        harness.app.user = row.map { User(isLoggedIn: $0.isLoggedIn, userId: $0.userId) }
         let navigator = harness.navigator()
         try? await Task.sleep(for: .milliseconds(50))
 
@@ -136,6 +136,29 @@ struct AppNavigatorTests {
         #expect(!navigator.state.isAskingAnalyticsConsent)
         #expect(navigator.state.analyticsConsent == granted)
         #expect(harness.analytics.consent == granted)
+    }
+
+    @Test func `an unreadable user leaves the app unattributed`() async {
+        let harness = Harness(consent: true)
+        harness.app.failsToLoadUser = true
+        let navigator = harness.navigator()
+        try? await Task.sleep(for: .milliseconds(50))
+
+        #expect(navigator.state.userId == nil)
+        #expect(harness.crash.userIDs.isEmpty)
+    }
+
+    @Test func `refusing consent attributes nobody`() async {
+        let harness = Harness()
+        harness.app.isLoggedIn = true
+        harness.app.user = User(isLoggedIn: true, userId: "u1")
+        let navigator = harness.navigator()
+        await eventually { navigator.state.userId == "u1" }
+
+        navigator.send(action: .denyAnalytics)
+
+        #expect(harness.backend.userIDs.isEmpty)
+        #expect(harness.crash.userIDs == ["u1"])
     }
 
     @Test func `granting consent identifies a signed-in user`() async {

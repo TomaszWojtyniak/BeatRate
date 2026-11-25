@@ -47,11 +47,12 @@ public struct RootView: View {
             }
         }
         .animation(.default, value: navigator.state.phase)
-        .sheet(isPresented: Binding(
-            get: { navigator.state.loginPrompt != nil },
-            set: { if !$0 { navigator.send(action: .dismissLoginPrompt) } }  // swiped down
-        )) {
-            LoginPromptView(reason: navigator.state.loginPrompt ?? .account)
+        // An item, not a flag: SwiftUI keeps the last reason while the sheet animates out.
+        .sheet(item: Binding(
+            get: { navigator.state.loginPrompt },
+            set: { if $0 == nil { navigator.send(action: .dismissLoginPrompt) } }  // swiped down
+        )) { reason in
+            LoginPromptView(reason: reason)
                 .presentationDragIndicator(.visible)
         }
     }
