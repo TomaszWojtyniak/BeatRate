@@ -34,16 +34,6 @@
          </TestPlanReference>
       </TestPlans>
       <Testables>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "8B0196CC308C012700D96609"
-               BuildableName = "BeatRateDevelopmentTests.xctest"
-               ReferencedContainer = "container:BeatRate.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

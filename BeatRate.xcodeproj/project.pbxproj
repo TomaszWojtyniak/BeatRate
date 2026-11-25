@@ -38,13 +38,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		8B0196D1308C012700D96609 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 8BED07E62DE0D68300838DD7 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 8BED083F2DE0DBFB00838DD7;
-			remoteInfo = "BeatRate Development";
-		};
 		8BED07FC2DE0D68500838DD7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 8BED07E62DE0D68300838DD7 /* Project object */;
@@ -55,7 +48,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		8B0196CD308C012700D96609 /* BeatRateDevelopmentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BeatRateDevelopmentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B7268072DEC8C0500681754 /* ci_post_xcodebuild.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = ci_post_xcodebuild.sh; sourceTree = "<group>"; };
 		8BED07EE2DE0D68300838DD7 /* BeatRate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeatRate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BED07FB2DE0D68500838DD7 /* BeatRateTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BeatRateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -268,13 +260,6 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		8B0196CA308C012700D96609 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		8BED07EB2DE0D68300838DD7 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -363,7 +348,6 @@
 				8BED07EE2DE0D68300838DD7 /* BeatRate.app */,
 				8BED07FB2DE0D68500838DD7 /* BeatRateTests.xctest */,
 				8BED08462DE0DBFB00838DD7 /* BeatRate Development.app */,
-				8B0196CD308C012700D96609 /* BeatRateDevelopmentTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -371,26 +355,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		8B0196CC308C012700D96609 /* BeatRateDevelopmentTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 8B0196D3308C012700D96609 /* Build configuration list for PBXNativeTarget "BeatRateDevelopmentTests" */;
-			buildPhases = (
-				8B0196C9308C012700D96609 /* Sources */,
-				8B0196CA308C012700D96609 /* Frameworks */,
-				8B0196CB308C012700D96609 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				8B0196D2308C012700D96609 /* PBXTargetDependency */,
-			);
-			name = BeatRateDevelopmentTests;
-			packageProductDependencies = (
-			);
-			productName = BeatRateDevelopmentTests;
-			productReference = 8B0196CD308C012700D96609 /* BeatRateDevelopmentTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 		8BED07ED2DE0D68300838DD7 /* BeatRate */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 8BED080F2DE0D68500838DD7 /* Build configuration list for PBXNativeTarget "BeatRate" */;
@@ -505,10 +469,6 @@
 				LastSwiftUpdateCheck = 2710;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
-					8B0196CC308C012700D96609 = {
-						CreatedOnToolsVersion = 27.1;
-						TestTargetID = 8BED083F2DE0DBFB00838DD7;
-					};
 					8BED07ED2DE0D68300838DD7 = {
 						CreatedOnToolsVersion = 16.3;
 					};
@@ -539,19 +499,11 @@
 				8BED07ED2DE0D68300838DD7 /* BeatRate */,
 				8BED083F2DE0DBFB00838DD7 /* BeatRate Development */,
 				8BED07FA2DE0D68500838DD7 /* BeatRateTests */,
-				8B0196CC308C012700D96609 /* BeatRateDevelopmentTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		8B0196CB308C012700D96609 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		8BED07EC2DE0D68300838DD7 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -627,13 +579,6 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		8B0196C9308C012700D96609 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		8BED07EA2DE0D68300838DD7 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -658,11 +603,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		8B0196D2308C012700D96609 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
-			targetProxy = 8B0196D1308C012700D96609 /* PBXContainerItemProxy */;
-		};
 		8BED07FD2DE0D68500838DD7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
@@ -671,54 +611,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		8B0196D4308C012700D96609 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 969V354CHJ;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = tomasz.wojtyniak.beat.rate.development.BeatRateDevelopmentTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BeatRate Development.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BeatRate Development";
-			};
-			name = Debug;
-		};
-		8B0196D5308C012700D96609 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 969V354CHJ;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = tomasz.wojtyniak.beat.rate.development.BeatRateDevelopmentTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BeatRate Development.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BeatRate Development";
-			};
-			name = Release;
-		};
 		8BED080D2DE0D68500838DD7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1124,15 +1016,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		8B0196D3308C012700D96609 /* Build configuration list for PBXNativeTarget "BeatRateDevelopmentTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				8B0196D4308C012700D96609 /* Debug */,
-				8B0196D5308C012700D96609 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		8BED07E92DE0D68300838DD7 /* Build configuration list for PBXProject "BeatRate" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
