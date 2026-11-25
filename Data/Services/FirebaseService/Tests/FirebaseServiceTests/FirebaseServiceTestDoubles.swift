@@ -175,5 +175,5 @@ final class StubDatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
 
 @MainActor
 func makeDatabaseService(_ database: FakeRealtimeDatabase, now: Date = Date(timeIntervalSince1970: 1_000)) -> DatabaseFirebaseService {
-    DatabaseFirebaseService(analyticsManager: makeAnalytics(), crashLogger: .shared, database: database, now: { now })
+    DatabaseFirebaseService(crashLogger: .shared, database: database, now: { now })
 }

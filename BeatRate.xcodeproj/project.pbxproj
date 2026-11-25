@@ -24,7 +24,9 @@
 		8BED089C2DE645E800838DD7 /* Login in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED089B2DE645E800838DD7 /* Login */; };
 		8BED089E2DE645EE00838DD7 /* TabBar in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED089D2DE645EE00838DD7 /* TabBar */; };
 		3F823839C9342738B0354F67 /* Composition in Frameworks */ = {isa = PBXBuildFile; productRef = E892A2244BD399BBA2DB0335 /* Composition */; };
+		3F823839C9342738B0354F68 /* CompositionLive in Frameworks */ = {isa = PBXBuildFile; productRef = E892A2244BD399BBA2DB0336 /* CompositionLive */; };
 		50CDBB6F0606DAE4A6467399 /* Composition in Frameworks */ = {isa = PBXBuildFile; productRef = 5897333DE1D73784FDC2E509 /* Composition */; };
+		50CDBB6F0606DAE4A646739A /* CompositionLive in Frameworks */ = {isa = PBXBuildFile; productRef = 5897333DE1D73784FDC2E50A /* CompositionLive */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -261,6 +263,7 @@
 				8B7266DA2DE7384400681754 /* FirebaseCore in Frameworks */,
 				8BED089C2DE645E800838DD7 /* Login in Frameworks */,
 				3F823839C9342738B0354F67 /* Composition in Frameworks */,
+				3F823839C9342738B0354F68 /* CompositionLive in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -284,6 +287,7 @@
 				8B7266D82DE7383800681754 /* FirebaseCore in Frameworks */,
 				8BED088B2DE100BC00838DD7 /* TabBar in Frameworks */,
 				50CDBB6F0606DAE4A6467399 /* Composition in Frameworks */,
+				50CDBB6F0606DAE4A646739A /* CompositionLive in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -384,6 +388,7 @@
 				8B1AAABE2E737978001D9BC1 /* Splash */,
 				8B567DD72E79D162007D0AA7 /* AppUseCases */,
 				E892A2244BD399BBA2DB0335 /* Composition */,
+				E892A2244BD399BBA2DB0336 /* CompositionLive */,
 			);
 			productName = BeatRate;
 			productReference = 8BED07EE2DE0D68300838DD7 /* BeatRate.app */;
@@ -440,6 +445,7 @@
 				8B1AAAC02E73797D001D9BC1 /* Splash */,
 				8B567DD52E79D15B007D0AA7 /* AppUseCases */,
 				5897333DE1D73784FDC2E509 /* Composition */,
+				5897333DE1D73784FDC2E50A /* CompositionLive */,
 			);
 			productName = BeatRate;
 			productReference = 8BED08462DE0DBFB00838DD7 /* BeatRate Development.app */;
@@ -1203,9 +1209,17 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = Composition;
 		};
+		E892A2244BD399BBA2DB0336 /* CompositionLive */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CompositionLive;
+		};
 		5897333DE1D73784FDC2E509 /* Composition */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Composition;
+		};
+		5897333DE1D73784FDC2E50A /* CompositionLive */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CompositionLive;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

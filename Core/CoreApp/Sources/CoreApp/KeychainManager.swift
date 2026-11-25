@@ -19,7 +19,7 @@ public actor KeychainManager {
 
     private let backend: KeychainBackend
 
-    public init(backend: KeychainBackend = SecItemKeychainBackend()) {
+    public init(backend: KeychainBackend) {
         self.backend = backend
     }
 

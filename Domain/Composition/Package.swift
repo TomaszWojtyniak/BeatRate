@@ -6,8 +6,9 @@ let package = Package(
     name: "Composition",
     platforms: [.iOS(.v27), .macOS(.v27)],
     products: [
-        // One product, so the app still links a single library: the graph and its live edges.
-        .library(name: "Composition", targets: ["Composition", "CompositionLive"]),
+        // Screens link only the graph; the SDK edges are for the app target alone.
+        .library(name: "Composition", targets: ["Composition"]),
+        .library(name: "CompositionLive", targets: ["CompositionLive"]),
     ],
     dependencies: [
         .package(path: "../AccountUseCases"),

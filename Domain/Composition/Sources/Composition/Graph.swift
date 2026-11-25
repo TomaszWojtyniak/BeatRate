@@ -56,7 +56,7 @@ public final class Graph {
         let players = MusicPlayerManager(userDefaultsManager: userDefaults)
         let swiftData = SwiftDataManager(container: edges.modelContainer, appleUserIDStore: keychain)
 
-        let database = DatabaseFirebaseService(analyticsManager: analytics, crashLogger: .shared, database: edges.database)
+        let database = DatabaseFirebaseService(crashLogger: .shared, database: edges.database)
         let auth = AuthFirebaseService(auth: edges.firebaseAuth, analyticsManager: analytics,
                                        databaseService: database, keychainManager: keychain)
         let musicKit = edges.musicKit

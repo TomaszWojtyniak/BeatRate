@@ -28,7 +28,6 @@ let package = Package(
         .target(
             name: "MusicKitService",
             dependencies: [
-                "Analytics",
                 "Models"
             ],
             swiftSettings: [

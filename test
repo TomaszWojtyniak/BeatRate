@@ -10,10 +10,15 @@ PACKAGES=(Core/Models Core/Analytics Core/CoreApp Data/Services/SwiftDataManager
   Domain/Composition)
 if [ $# -gt 0 ]; then PACKAGES=("$@"); fi
 # One scratch path for all of them: a .build per package would hold its own ~1 GB Firebase checkout.
-for package in "${PACKAGES[@]}"; do swift test --package-path "$package" --scratch-path .build/logic; done
+# Keep going past a failing package so one run reports all of them.
+failed=()
+for package in "${PACKAGES[@]}"; do
+  swift test --package-path "$package" --scratch-path .build/logic || failed+=("$package")
+done
 
 # SDK and UI imports belong in …Live targets and App/ only: the logic must keep building headless.
 leaks=$(grep -rnE '^(@preconcurrency |@_exported )?import ((struct|class|enum|protocol|func) )?(SwiftUI|UIKit|MusicKit|Firebase(Core|Auth|Database|Analytics|Crashlytics))(\.| *$)' \
   Core/Models/Sources Core/CoreApp/Sources Core/Analytics/Sources/Analytics Data/*/*/Sources Domain/*/Sources \
   | grep -vE '/Sources/[A-Za-z]*Live/' || true)
-[ -z "$leaks" ] || { echo "SDK or UI import in logic:"; echo "$leaks"; exit 1; }
+[ -z "$leaks" ] || { echo "SDK or UI import in logic:"; echo "$leaks"; failed+=("import guard"); }
+[ ${#failed[@]} -eq 0 ] || { echo "Failed: ${failed[*]}"; exit 1; }
