@@ -17,6 +17,45 @@ struct FixturesTests {
         #expect(merged.value(at: "db/albums/3") == nil)
     }
 
+    @Test func `a null in a later file removes the key`() throws {
+        let merged = try fixtures(#"{"db":{"albums":{"1":{"title":"A"},"2":{"title":"B"}}}}"#, #"{"db":{"albums":{"1":null}}}"#)
+
+        #expect(merged.value(at: "db/albums/1") == nil)
+        #expect(merged.value(at: "db/albums/2/title") as? String == "B")
+    }
+
+    @Test(arguments: [
+        (#"{"http":{}}"#, "http"),
+        (#"{"device":{"appleIdState":"revoked"}}"#, "device/appleIdState"),
+        (#"{"music":{"authorisation":"denied"}}"#, "music/authorisation"),
+        (#"{"dbFailures":{"read":["sections"]}}"#, "dbFailures/read"),
+        (#"{"timing":{"retryDelay":300}}"#, "timing/retryDelay"),
+    ])
+    func `an unknown key is refused by its path`(json: String, path: String) async throws {
+        await #expect { _ = try await Edges.fixtures(try fixtures(json)) } throws: { "\($0)".contains("unknown key \(path)") }
+    }
+
+    @Test(arguments: [
+        (#"{"music":{"authorization":"refused"}}"#, "music/authorization"),
+        (#"{"music":{"answer":"Denied"}}"#, "music/answer"),
+        (#"{"device":{"appleIDState":"gone"}}"#, "device/appleIDState"),
+    ])
+    func `an unknown value is refused by its path`(json: String, path: String) async throws {
+        await #expect { _ = try await Edges.fixtures(try fixtures(json)) } throws: { "\($0)".contains("\(path): unknown value") }
+    }
+
+    @Test(arguments: [
+        (#"{"timing":{"retryDelayMs":"300"}}"#, "timing/retryDelayMs"),
+        (#"{"dbDelayMs":50.5}"#, "dbDelayMs"),
+        (#"{"music":{"subscription":"true"}}"#, "music/subscription"),
+        (#"{"device":{"firebaseUid":1}}"#, "device/firebaseUid"),
+        (#"{"dbFailures":{"reads":"sections"}}"#, "dbFailures/reads"),
+        (#"{"device":{"defaults":[]}}"#, "device/defaults"),
+    ])
+    func `a value of the wrong type is refused by its path`(json: String, path: String) async throws {
+        await #expect { _ = try await Edges.fixtures(try fixtures(json)) } throws: { "\($0)".contains("\(path): expected") }
+    }
+
     @Test func `a file that is not a json object names the file`() {
         let path = fixtureFile("[1, 2]")
 

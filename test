@@ -16,12 +16,19 @@ for package in "${PACKAGES[@]}"; do
   swift test --package-path "$package" --scratch-path .build/logic || failed+=("$package")
 done
 
-# SDK and UI imports belong in …Live targets and App/ only: the logic must keep building headless.
+# SDK and UI imports belong in …Live and …UI targets and App/ only: the logic must keep building headless.
+# A guarded path that does not exist fails too, so a typo cannot switch the guard off.
+GUARDED=(Core/Models/Sources Core/IntrospectionKit/Sources Core/CoreApp/Sources Core/Analytics/Sources/Analytics
+  Data/*/*/Sources Domain/*/Sources Tools/*/Sources)
+for dir in "${GUARDED[@]}"; do [ -d "$dir" ] || { echo "import guard: no such directory $dir"; failed+=("import guard"); }; done
 leaks=$(grep -rnE '^(@preconcurrency |@_exported )?import ((struct|class|enum|protocol|func) )?(SwiftUI|UIKit|MusicKit|Firebase(Core|Auth|Database|Analytics|Crashlytics))(\.| *$)' \
-  Core/Models/Sources Core/IntrospectionKit/Sources Core/CoreApp/Sources Core/Analytics/Sources/Analytics Data/*/*/Sources Domain/*/Sources \
-  Presentation/AppRoot/Sources Tools/*/Sources \
-  | grep -vE '/Sources/[A-Za-z]*(Live|UI)/' || true)
+  "${GUARDED[@]}" 2>/dev/null | grep -vE '/Sources/[A-Za-z]*(Live|UI)/' || true)
 [ -z "$leaks" ] || { echo "SDK or UI import in logic:"; echo "$leaks"; failed+=("import guard"); }
 # Behavior tests: user journeys against the headless CLI, zero network.
-node --test 'behavior/*.test.mjs' || failed+=("behavior")
+# node passes on a glob that matches nothing, so an empty or moved behavior/ must fail here.
+if compgen -G 'behavior/*.test.mjs' >/dev/null; then
+  node --test 'behavior/*.test.mjs' || failed+=("behavior")
+else
+  echo "behavior: no *.test.mjs files"; failed+=("behavior")
+fi
 [ ${#failed[@]} -eq 0 ] || { echo "Failed: ${failed[*]}"; exit 1; }

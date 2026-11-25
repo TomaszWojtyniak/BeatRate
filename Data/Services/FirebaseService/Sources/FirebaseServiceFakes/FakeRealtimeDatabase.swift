@@ -17,8 +17,9 @@ nonisolated public struct FakeDatabaseError: Error, Equatable {
 
 /// In-memory Realtime Database tree with Firebase's write semantics: `nil`,
 /// `NSNull` and empty dictionaries delete a node, and emptied parents vanish.
-/// Paths in `failingReads` / `failingWrites` throw `FakeDatabaseError`; `delay` holds
-/// every call back so a test or the CLI can act while one is in flight.
+/// Paths in `failingReads` / `failingWrites` throw `FakeDatabaseError` (exact paths, not
+/// their children); `delay` holds every call back so a test or the CLI can act while one
+/// is in flight. A multi-path `update` is all-or-nothing, as in Firebase.
 /// Shared by the service tests and the headless CLI.
 public actor FakeRealtimeDatabase: RealtimeDatabase {
     private var root: Any?
@@ -29,7 +30,7 @@ public actor FakeRealtimeDatabase: RealtimeDatabase {
 
     public init(_ tree: DatabaseValue = DatabaseValue(nil), failingReads: Set<String> = [], failingWrites: Set<String> = [],
                 delay: Duration = .zero) {
-        root = tree.raw
+        root = Self.pruned(tree.raw)
         self.failingReads = failingReads
         self.failingWrites = failingWrites
         self.delay = delay
@@ -53,8 +54,12 @@ public actor FakeRealtimeDatabase: RealtimeDatabase {
 
     public func update(_ path: String, with values: [String: DatabaseValue]) async throws {
         updates.append((Self.normalized(path), Set(values.keys.map(Self.normalized))))
+        try await wait()
+        let paths = values.keys.map { Self.normalized("\(path)/\($0)") }
+        if let failing = paths.sorted().first(where: failingWrites.contains) { throw FakeDatabaseError(path: failing) }
+        // No suspension point from here on: readers see the whole update or none of it.
         for (key, value) in values {
-            try await write(value, to: "\(path)/\(key)")
+            root = Self.setting(value.raw, at: Self.keys("\(path)/\(key)")[...], in: root)
         }
     }
 
@@ -79,6 +84,13 @@ public actor FakeRealtimeDatabase: RealtimeDatabase {
         var dictionary = node as? [String: Any] ?? [:]
         dictionary[key] = setting(value, at: keys.dropFirst(), in: dictionary[key])
         return dictionary.isEmpty ? nil : dictionary
+    }
+
+    /// The tree as Firebase would store it: null leaves and empty objects do not exist.
+    private static func pruned(_ node: Any?) -> Any? {
+        guard let dictionary = node as? [String: Any] else { return isEmpty(node) ? nil : node }
+        let children = dictionary.compactMapValues(pruned)
+        return children.isEmpty ? nil : children
     }
 
     private static func isEmpty(_ value: Any?) -> Bool {

@@ -24,34 +24,34 @@ public extension Edges {
     /// | `timing.retryDelayMs` | `retryDelay` |
     static func fixtures(_ fixtures: Fixtures) async throws -> Edges {
         let keychain = FakeKeychainBackend()
-        if let appleUserID = fixtures.value(at: "device/keychain/appleUserID") as? String {
+        if let appleUserID = try fixtures.string("device/keychain/appleUserID") {
             try await KeychainManager(backend: keychain).saveAppleUserID(appleUserID)
         }
         let container = SwiftDataManager.inMemoryContainer()
-        if let userId = fixtures.value(at: "device/loggedInUserId") as? String {
+        if let userId = try fixtures.string("device/loggedInUserId") {
             try await SwiftDataManager(container: container, appleUserIDStore: KeychainManager(backend: keychain))
                 .setUserLoggedIn(userId: userId)
         }
         // Named by a path in the temporary directory: a plain name would leave a plist in ~/Library/Preferences.
         let defaults = UserDefaults(suiteName: FileManager.default.temporaryDirectory.appending(path: "BeatRateCLI.\(UUID())").path)!
-        for (key, value) in fixtures.value(at: "device/defaults") as? [String: Any] ?? [:] {
+        for (key, value) in try fixtures.object("device/defaults") ?? [:] {
             defaults.set(value, forKey: key)
         }
-        let credentialState = appleIDState(fixtures.value(at: "device/appleIDState") as? String)
+        let credentialState = try fixtures.choice("device/appleIDState", appleIDStates) ?? .notFound
 
         return Edges(
             database: FakeRealtimeDatabase(
                 DatabaseValue(fixtures.value(at: "db")),
-                failingReads: Set(fixtures.value(at: "dbFailures/reads") as? [String] ?? []),
-                failingWrites: Set(fixtures.value(at: "dbFailures/writes") as? [String] ?? []),
-                delay: .milliseconds(fixtures.value(at: "dbDelayMs") as? Int ?? 0)
+                failingReads: Set(try fixtures.strings("dbFailures/reads") ?? []),
+                failingWrites: Set(try fixtures.strings("dbFailures/writes") ?? []),
+                delay: .milliseconds(try fixtures.int("dbDelayMs") ?? 0)
             ),
-            firebaseAuth: FakeFirebaseAuth(userId: fixtures.value(at: "device/firebaseUid") as? String),
+            firebaseAuth: FakeFirebaseAuth(userId: try fixtures.string("device/firebaseUid")),
             musicKit: FakeMusicKitService(
-                status: musicAccess(fixtures.value(at: "music/authorization") as? String),
-                answer: musicAccess(fixtures.value(at: "music/answer") as? String),
-                hasSubscription: fixtures.value(at: "music/subscription") as? Bool ?? false,
-                albums: try albums(fixtures.value(at: "music/albums") as? [String: Any] ?? [:])
+                status: try fixtures.choice("music/authorization", musicAccess) ?? .authorized,
+                answer: try fixtures.choice("music/answer", musicAccess) ?? .authorized,
+                hasSubscription: try fixtures.bool("music/subscription") ?? false,
+                albums: try albums(try fixtures.object("music/albums") ?? [:])
             ),
             spotifyTransport: FakeSpotifyTransport(),
             spotifyPresenter: { nil },
@@ -61,28 +61,18 @@ public extension Edges {
             modelContainer: container,
             analytics: FakeAnalyticsBackend(),
             crash: NoCrashBackend(),
-            retryDelay: .milliseconds(fixtures.value(at: "timing/retryDelayMs") as? Int ?? 0)
+            retryDelay: .milliseconds(try fixtures.int("timing/retryDelayMs") ?? 0)
         )
     }
 }
 
-private func musicAccess(_ name: String?) -> MusicAccessStatus {
-    switch name {
-    case "notDetermined": .notDetermined
-    case "denied": .denied
-    case "restricted": .restricted
-    default: .authorized
-    }
-}
+private let musicAccess: [String: MusicAccessStatus] = [
+    "notDetermined": .notDetermined, "denied": .denied, "restricted": .restricted, "authorized": .authorized,
+]
 
-private func appleIDState(_ name: String?) -> ASAuthorizationAppleIDProvider.CredentialState {
-    switch name {
-    case "authorized": .authorized
-    case "revoked": .revoked
-    case "transferred": .transferred
-    default: .notFound
-    }
-}
+private let appleIDStates: [String: ASAuthorizationAppleIDProvider.CredentialState] = [
+    "authorized": .authorized, "revoked": .revoked, "notFound": .notFound, "transferred": .transferred,
+]
 
 private func albums(_ json: [String: Any]) throws -> [String: AppleMusicAlbumData] {
     try json.mapValues { try JSONDecoder().decode(AppleMusicAlbumData.self, from: JSONSerialization.data(withJSONObject: $0)) }
