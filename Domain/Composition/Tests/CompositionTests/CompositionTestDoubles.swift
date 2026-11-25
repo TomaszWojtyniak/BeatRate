@@ -82,7 +82,7 @@ extension Edges {
     /// Every edge stubbed: nobody signed in, nothing stored, nothing reachable.
     @MainActor
     static func stub(
-        defaults: UserDefaults = UserDefaults(suiteName: "Graph.\(UUID())")!,
+        defaults: UserDefaults = UserDefaults(suiteName: FileManager.default.temporaryDirectory.appending(path: "Graph.\(UUID())").path)!,
         analytics: any AnalyticsBackend = StubAnalyticsBackend()
     ) -> Edges {
         Edges(

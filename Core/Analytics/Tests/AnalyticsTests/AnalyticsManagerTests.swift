@@ -5,7 +5,7 @@ import Testing
 @MainActor
 struct AnalyticsManagerTests {
     private let backend = StubAnalyticsBackend()
-    private let defaults = UserDefaults(suiteName: UUID().uuidString)!
+    private let defaults = UserDefaults(suiteName: FileManager.default.temporaryDirectory.appending(path: UUID().uuidString).path)!
 
     private func makeManager(enabled: Bool = false) -> AnalyticsManager {
         let manager = AnalyticsManager(defaults: defaults, backend: backend)

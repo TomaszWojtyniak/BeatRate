@@ -63,8 +63,9 @@ final class FakeKeychainBackend: KeychainBackend {
 }
 
 extension UserDefaults {
-    /// A throwaway suite so tests never touch `.standard` or each other.
+    /// A throwaway suite so tests never touch `.standard` or each other. Named by a path in
+    /// the temporary directory: on macOS a plain name would leave a plist in ~/Library/Preferences.
     static func isolated() -> UserDefaults {
-        UserDefaults(suiteName: UUID().uuidString)!
+        UserDefaults(suiteName: FileManager.default.temporaryDirectory.appending(path: UUID().uuidString).path)!
     }
 }

@@ -21,7 +21,7 @@ final class StubAnalyticsBackend: AnalyticsBackend {
 
 @MainActor
 func makeAnalytics(_ backend: StubAnalyticsBackend = StubAnalyticsBackend()) -> AnalyticsManager {
-    AnalyticsManager(defaults: UserDefaults(suiteName: "FirebaseServiceTests.\(UUID())")!, backend: backend)
+    AnalyticsManager(defaults: UserDefaults(suiteName: FileManager.default.temporaryDirectory.appending(path: "FirebaseServiceTests.\(UUID())").path)!, backend: backend)
 }
 
 /// Scripted Firebase Auth: canned sign-in result and signed-in user; records what the service asks of it.

@@ -13,7 +13,7 @@ struct GraphTests {
     }
 
     @Test func `analytics consent stored in the given defaults is respected`() {
-        let defaults = UserDefaults(suiteName: "Graph.\(UUID())")!
+        let defaults = UserDefaults(suiteName: FileManager.default.temporaryDirectory.appending(path: "Graph.\(UUID())").path)!
         defaults.set(true, forKey: "analyticsConsent")
 
         #expect(Graph(edges: .stub(defaults: defaults)).analytics.consent == true)
