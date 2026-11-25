@@ -1,39 +1,46 @@
 // swift-tools-version: 6.4
-// The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
 let package = Package(
     name: "Splash",
     defaultLocalization: "en",
-    platforms: [.iOS(.v27)],
+    platforms: [.iOS(.v27), .macOS(.v27)],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
-        .library(
-            name: "Splash",
-            targets: ["Splash"]
-        ),
+        .library(name: "Splash", targets: ["Splash"]),
+        .library(name: "SplashUI", targets: ["SplashUI"]),
     ],
     dependencies: [
-        .package(path: "../../Domain/Composition"),
         .package(path: "../../Domain/SplashUseCases"),
         .package(path: "../../Core/Analytics"),
+        .package(path: "../../Core/CoreApp"),
         .package(path: "../../Core/CoreUI"),
+        .package(path: "../../Core/IntrospectionKit"),
         .package(path: "../../Core/Models"),
         .package(path: "../Onboarding")
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
+        // The launch flow as a view model: builds and tests on macOS, drives the CLI.
         .target(
             name: "Splash",
             dependencies: [
-                "Composition",
                 "SplashUseCases",
                 "Analytics",
-                "CoreUI",
-                "Models",
-                "Onboarding"
+                "CoreApp",
+                "IntrospectionKit",
+                "Models"
+            ],
+            swiftSettings: [
+                .defaultIsolation(MainActor.self)
+            ]
+        ),
+        // The SwiftUI views. Every file sits in `#if os(iOS)`, because `swift test` builds every target.
+        .target(
+            name: "SplashUI",
+            dependencies: [
+                "Splash",
+                .product(name: "CoreUI", package: "CoreUI", condition: .when(platforms: [.iOS])),
+                .product(name: "Onboarding", package: "Onboarding", condition: .when(platforms: [.iOS]))
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)

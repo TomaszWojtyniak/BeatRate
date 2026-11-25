@@ -4,6 +4,7 @@ import Foundation
 import Models
 import SplashUseCases
 import SpotifyService
+@testable import Splash
 
 struct StubError: Error {}
 
@@ -33,7 +34,8 @@ final class StubAnalyticsBackend: AnalyticsBackend {
 @MainActor
 func makeAnalytics() -> (AnalyticsManager, StubAnalyticsBackend) {
     let backend = StubAnalyticsBackend()
-    let manager = AnalyticsManager(defaults: UserDefaults(suiteName: "Analytics.\(UUID())")!, backend: backend)
+    let manager = AnalyticsManager(defaults: UserDefaults(
+        suiteName: FileManager.default.temporaryDirectory.appending(path: "Analytics.\(UUID())").path)!, backend: backend)
     manager.setAnalyticsEnabled(true)
     return (manager, backend)
 }
@@ -95,4 +97,22 @@ final class StubSplashUseCase: GetSplashUseCaseProtocol {
 
     func getCurrentNonce() async -> String { "nonce" }
     func deleteAccount(credential: AppleSignInCredential) async throws {}
+}
+
+/// Counts calls, so a test can check `onFinish` ran exactly once.
+@MainActor
+final class Counter {
+    private(set) var count = 0
+    func increment() { count += 1 }
+}
+
+extension SplashViewModel {
+    /// Waits for the running effect and every effect it starts, until none is left.
+    func settled() async {
+        var awaited: Task<Void, Never>?
+        while let effect = pending, effect != awaited {
+            awaited = effect
+            await effect.value
+        }
+    }
 }

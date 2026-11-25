@@ -3,12 +3,13 @@
 //  Splash
 //
 
+#if os(iOS)
 import SwiftUI
 import CoreUI
 
 struct SplashContentView: View {
-    let isRetrying: Bool
-    let errorMessage: String
+    /// Why the sections are being fetched again, or nil on the first attempt.
+    let retryMessage: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -29,11 +30,11 @@ struct SplashContentView: View {
 
             Spacer()
 
-            if isRetrying {
+            if let retryMessage {
                 VStack(spacing: Spacing.xs) {
                     ProgressView()
                         .tint(Color.accentPrimary)
-                    Text(errorMessage)
+                    Text(retryMessage)
                         .textStyle(.caption, color: .primaryTextOnDark)
                         .multilineTextAlignment(.center)
                 }
@@ -50,3 +51,4 @@ struct SplashContentView: View {
         .background(Color.backgroundGradient)
     }
 }
+#endif

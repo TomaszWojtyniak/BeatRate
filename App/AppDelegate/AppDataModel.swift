@@ -12,6 +12,7 @@ import OSLog
 import AppUseCases
 import Models
 import CoreApp
+import Splash
 import TabBar
 
 @Observable
@@ -22,6 +23,11 @@ class AppDataModel {
     private let getAppUseCase: GetAppUseCaseProtocol
     private let sessionManager: SessionManager
     private let musicPlayerManager: MusicPlayerManager
+    private let graph: Graph
+
+    /// The running launch. Made here, not in a view: it starts loading in `init`, so a
+    /// view rebuilding it would check credentials and fetch twice.
+    private(set) var splash: SplashViewModel?
 
     enum RootScreen: Equatable {
         case splash
@@ -54,13 +60,23 @@ class AppDataModel {
          crashLogger: CrashLogger = .shared,
          sessionManager: SessionManager = Graph.current.session,
          musicPlayerManager: MusicPlayerManager = Graph.current.players,
-         getAppUseCase: GetAppUseCaseProtocol = Graph.current.getApp) {
+         getAppUseCase: GetAppUseCaseProtocol = Graph.current.getApp,
+         graph: Graph = Graph.current) {
         self.musicPlayerManager = musicPlayerManager
         self.analyticsManager = analyticsManager
         self.crashLogger = crashLogger
         self.getAppUseCase = getAppUseCase
         self.sessionManager = sessionManager
         self.isAskingAnalyticsConsent = analyticsManager.consent == nil
+        self.graph = graph
+        startSplash()
+    }
+
+    private func startSplash() {
+        splash = SplashViewModel(getSplash: graph.getSplash, players: graph.players, analytics: graph.analytics,
+                                 retryDelay: graph.retryDelay) { [weak self] in
+            withAnimation { self?.showingSplash = false }
+        }
     }
     
     func trackTabSelected(_ tab: TabBarScreen?) {
@@ -115,6 +131,7 @@ class AppDataModel {
 
         if isLoggedIn && wasLoggedOut {
             showingSplash = true
+            startSplash()
             Logger.app.debug("User logged in - showing splash screen")
         }
 
