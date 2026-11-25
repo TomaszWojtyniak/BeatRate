@@ -1,0 +1,16 @@
+{
+  "db": {
+    "sections": {
+      "s1": { "id": "1", "name": "New Releases", "name_pl": "Nowości", "albums": ["1440935467"], "isActive": true }
+    },
+    "albums": {
+      "1440935467": { "artist": "Daft Punk", "title": "Discovery", "avgRating": 8.5, "ratingCount": 2 }
+    },
+    "album_ratings": { "1440935467": { "u2": 8, "u3": 9 } }
+  },
+  "music": {
+    "albums": {
+      "1440935467": { "id": "1440935467", "title": "Discovery", "artist": "Daft Punk", "coverUrl": null, "releaseDate": null, "genre": "Electronic" }
+    }
+  }
+}

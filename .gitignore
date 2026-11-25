@@ -37,6 +37,7 @@ Core/**/Package.resolved
 Data/**/Package.resolved
 Domain/**/Package.resolved
 Presentation/**/Package.resolved
+Tools/**/Package.resolved
 
 # CocoaPods
 #

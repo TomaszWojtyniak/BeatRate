@@ -1,3 +1,4 @@
+import Composition
 import Foundation
 import Testing
 @testable import BeatRateFixtures
@@ -20,5 +21,16 @@ struct FixturesTests {
         let path = fixtureFile("[1, 2]")
 
         #expect { try Fixtures.load([path]) } throws: { "\($0)".contains(path) }
+    }
+
+    @Test func `every behavior fixture builds the edges`() async throws {
+        let directory = URL(filePath: #filePath).deletingLastPathComponent().appending(path: "../../../../behavior/fixtures")
+        let files = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+            .filter { $0.pathExtension == "json" }
+
+        #expect(files.count >= 9)
+        for file in files {
+            _ = try await Edges.fixtures(try Fixtures.load([file.path]))
+        }
     }
 }

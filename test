@@ -19,6 +19,9 @@ done
 # SDK and UI imports belong in …Live targets and App/ only: the logic must keep building headless.
 leaks=$(grep -rnE '^(@preconcurrency |@_exported )?import ((struct|class|enum|protocol|func) )?(SwiftUI|UIKit|MusicKit|Firebase(Core|Auth|Database|Analytics|Crashlytics))(\.| *$)' \
   Core/Models/Sources Core/IntrospectionKit/Sources Core/CoreApp/Sources Core/Analytics/Sources/Analytics Data/*/*/Sources Domain/*/Sources \
-  | grep -vE '/Sources/[A-Za-z]*Live/' || true)
+  Presentation/AppRoot/Sources Tools/*/Sources \
+  | grep -vE '/Sources/[A-Za-z]*(Live|UI)/' || true)
 [ -z "$leaks" ] || { echo "SDK or UI import in logic:"; echo "$leaks"; failed+=("import guard"); }
+# Behavior tests: user journeys against the headless CLI, zero network.
+node --test 'behavior/*.test.mjs' || failed+=("behavior")
 [ ${#failed[@]} -eq 0 ] || { echo "Failed: ${failed[*]}"; exit 1; }
