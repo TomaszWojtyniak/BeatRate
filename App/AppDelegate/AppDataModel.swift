@@ -129,7 +129,9 @@ class AppDataModel {
             crashLogger.setUserIdentifier(nil)
         }
 
-        if isLoggedIn && wasLoggedOut {
+        // Not while a splash runs: restoring a lost login row inside it yields `true` here,
+        // and a second splash would check, authorize and fetch all over again.
+        if isLoggedIn && wasLoggedOut && !showingSplash {
             showingSplash = true
             startSplash()
             Logger.app.debug("User logged in - showing splash screen")

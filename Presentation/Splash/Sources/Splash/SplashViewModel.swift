@@ -92,8 +92,12 @@ public final class SplashViewModel: ViewModel {
             state.phase = .loading
             effect { .cacheChecked(isUsable: await self.prepare()) }
         case .cacheChecked(isUsable: true):
+            Logger.splash.info("Cache is valid, using cached data")
             finish(&state)
-        case .cacheChecked(isUsable: false), .retryDue:
+        case .cacheChecked(isUsable: false):
+            Logger.splash.info("Cache not valid, will fetch fresh data")
+            fetch()
+        case .retryDue:
             fetch()
         case .fetched(let sections) where sections.isEmpty:
             Logger.splash.warning("Fetched sections are empty")
@@ -101,7 +105,9 @@ public final class SplashViewModel: ViewModel {
         case .fetched(let sections):
             effect {
                 do {
+                    Logger.splash.info("Caching \(sections.count) sections")
                     try await self.getSplash.cacheSections(sections)
+                    Logger.splash.info("Data cached successfully")
                 } catch {
                     // Caching failed but we have the data - proceed anyway.
                     Logger.splash.error("Failed to cache sections: \(error.localizedDescription). Proceeding anyway.")
@@ -170,9 +176,14 @@ public final class SplashViewModel: ViewModel {
             Logger.splash.info("Cache is not valid or expired")
             return false
         }
+        Logger.splash.info("Cache validity check passed")
         do {
             let cached = try await getSplash.getCachedSections()
-            Logger.splash.info("Cache has \(cached.count) sections")
+            if cached.isEmpty {
+                Logger.splash.info("Cache is empty")
+            } else {
+                Logger.splash.info("Cache has \(cached.count) sections")
+            }
             return !cached.isEmpty
         } catch {
             Logger.splash.error("Error reading cache: \(error.localizedDescription). Will fetch fresh data.")
@@ -200,12 +211,12 @@ public final class SplashViewModel: ViewModel {
             // splash screen the user cannot leave is worse than an empty one they can.
             // Only the final failure is reported: the retries before it are expected noise offline.
             if reason == .connectionError { CrashLogger.report("SplashFetch", "fetch failed \(maxRetries + 1) times") }
-            CrashLogger.log("Max retries reached, \(reason.rawValue). Entering the app so Home can recover.", to: .splash)
+            CrashLogger.log("Max retries reached, \(reason.exhausted). Entering the app so Home can recover.", to: .splash)
             finish(&state)
             return
         }
         state.retry = State.Retry(attempt: attempt, of: maxRetries, reason: reason)
-        Logger.splash.info("Retry attempt \(attempt) of \(self.maxRetries): \(reason.rawValue)")
+        Logger.splash.info("Retry attempt \(attempt) of \(self.maxRetries): \(reason.logText)")
         effect { [retryDelay] in
             try? await Task.sleep(for: retryDelay)
             return .retryDue
@@ -219,4 +230,10 @@ public final class SplashViewModel: ViewModel {
         // redraw reads `state`, which is still being written until then.
         pending = Task { [onFinish] in onFinish() }
     }
+}
+
+private extension SplashViewModel.State.RetryReason {
+    /// The breadcrumbs' wording from before the migration, so Crashlytics logs read the same.
+    var logText: String { self == .noData ? "No data available" : "Connection error" }
+    var exhausted: String { self == .noData ? "sections still empty" : "network failure" }
 }
