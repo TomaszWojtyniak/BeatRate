@@ -53,6 +53,8 @@ public final class Graph {
         let userDefaults = UserDefaultsManager(defaults: edges.defaults)
         let keychain = KeychainManager(backend: edges.keychain)
         let analytics = AnalyticsManager(defaults: edges.defaults, backend: edges.analytics)
+        // Before anything logs: the root and its splash start before didFinishLaunching.
+        analytics.setAnalyticsEnabled(analytics.consent == true)
         let session = SessionManager()
         let players = MusicPlayerManager(userDefaultsManager: userDefaults)
         let swiftData = SwiftDataManager(container: edges.modelContainer, appleUserIDStore: keychain)

@@ -27,6 +27,18 @@ struct GraphTests {
         #expect(Graph(edges: .stub(defaults: defaults)).analytics.consent == true)
     }
 
+    // The root is built before didFinishLaunching and the splash logs its screen in init.
+    @Test(arguments: [true, false])
+    func `analytics follows the stored consent from the moment the graph exists`(consent: Bool) {
+        let defaults = UserDefaults(suiteName: FileManager.default.temporaryDirectory.appending(path: "Graph.\(UUID())").path)!
+        defaults.set(consent, forKey: "analyticsConsent")
+        let backend = StubAnalyticsBackend()
+
+        Graph(edges: .stub(defaults: defaults, analytics: backend)).analytics.log(.screenView(.splash))
+
+        #expect(backend.events.map(\.name) == (consent ? ["screen_view"] : []))
+    }
+
     @Test func `analytics events reach the backend from the edges`() {
         let backend = StubAnalyticsBackend()
         let graph = Graph(edges: .stub(analytics: backend))

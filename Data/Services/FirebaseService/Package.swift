@@ -47,6 +47,7 @@ let package = Package(
             name: "FirebaseServiceLive",
             dependencies: [
                 "FirebaseService",
+                .product(name: "FirebaseCore", package: "firebase-ios-sdk", condition: .when(platforms: [.iOS])),
                 .product(name: "FirebaseAuth", package: "firebase-ios-sdk", condition: .when(platforms: [.iOS])),
                 .product(name: "FirebaseDatabase", package: "firebase-ios-sdk", condition: .when(platforms: [.iOS]))
             ],

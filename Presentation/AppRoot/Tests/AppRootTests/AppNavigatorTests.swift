@@ -57,6 +57,34 @@ struct AppNavigatorTests {
         #expect(harness.session.isLoggedIn)
     }
 
+    @Test(arguments: [true, false])
+    func `the launch login state is mirrored into the session`(isLoggedIn: Bool) async {
+        let harness = Harness()
+        harness.app.isLoggedIn = isLoggedIn
+        harness.session.update(isLoggedIn: !isLoggedIn)
+        let navigator = harness.navigator()
+
+        await eventually { harness.session.isLoggedIn == isLoggedIn }
+
+        #expect(navigator.state.isLoggedIn == isLoggedIn)
+        #expect(harness.session.isLoggedIn == isLoggedIn)
+    }
+
+    @Test func `staying signed in does not replay the splash`() async {
+        let harness = Harness()
+        let navigator = harness.navigator()
+        harness.finishSplash()
+        await eventually { navigator.state.phase == .tabs }
+        harness.app.push(true)
+        await eventually { navigator.state.phase == .splash }
+        harness.finishSplash()
+
+        harness.app.push(true)
+        try? await Task.sleep(for: .milliseconds(50))
+
+        #expect(harness.splashes.count == 2)
+    }
+
     // Restoring a lost login row inside the splash reports a login; a second splash
     // would check, authorize and fetch all over again.
     @Test func `a login while the splash runs does not start another splash`() async {
