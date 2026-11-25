@@ -1,3 +1,4 @@
+import FirebaseServiceFakes
 import Foundation
 import Models
 import Testing
@@ -38,7 +39,7 @@ struct DatabaseReadTests {
     @Test func `read failure is passed on`() async {
         let database = FakeRealtimeDatabase(failingReads: ["sections"])
 
-        await #expect(throws: StubError.self) { try await makeDatabaseService(database).fetchSections() }
+        await #expect(throws: FakeDatabaseError.self) { try await makeDatabaseService(database).fetchSections() }
     }
 
     @Test func `album community data decodes from its node`() async throws {

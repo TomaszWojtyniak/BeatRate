@@ -1,0 +1,9 @@
+{
+  "device": {
+    "firebaseUid": "u1",
+    "keychain": { "appleUserID": "apple-1" },
+    "appleIDState": "authorized",
+    "loggedInUserId": "u1",
+    "defaults": { "analyticsConsent": true, "mainMusicPlayer.u1": "appleMusic" }
+  }
+}

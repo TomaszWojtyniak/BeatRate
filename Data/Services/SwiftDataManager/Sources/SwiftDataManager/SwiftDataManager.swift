@@ -82,10 +82,12 @@ public final class SwiftDataManager: SwiftDataManagerProtocol {
     /// A manager over a throwaway in-memory store that never touches the
     /// Keychain — for previews and for other modules' tests.
     public static func inMemory() -> SwiftDataManager {
-        SwiftDataManager(
-            container: try! ModelContainer(for: schema, configurations: ModelConfiguration(isStoredInMemoryOnly: true)),
-            appleUserIDStore: NoAppleUserIDStore()
-        )
+        SwiftDataManager(container: inMemoryContainer(), appleUserIDStore: NoAppleUserIDStore())
+    }
+
+    /// A throwaway in-memory store with the app's schema, for hosts that build their own manager.
+    public static func inMemoryContainer() -> ModelContainer {
+        try! ModelContainer(for: schema, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
     }
 
     static let schema = Schema([CachedAlbum.self, CachedSection.self, User.self, RecentAlbum.self])

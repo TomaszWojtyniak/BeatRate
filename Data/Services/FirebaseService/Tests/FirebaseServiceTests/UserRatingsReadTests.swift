@@ -1,3 +1,4 @@
+import FirebaseServiceFakes
 import Foundation
 import Testing
 @testable import FirebaseService

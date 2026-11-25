@@ -1,3 +1,4 @@
+import FirebaseServiceFakes
 import Foundation
 import Models
 import Testing

@@ -17,6 +17,10 @@ let package = Package(
             name: "FirebaseServiceLive",
             targets: ["FirebaseServiceLive"]
         ),
+        .library(
+            name: "FirebaseServiceFakes",
+            targets: ["FirebaseServiceFakes"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "11.13.0"),
@@ -50,9 +54,17 @@ let package = Package(
                 .defaultIsolation(MainActor.self)
             ]
         ),
+        // An in-memory RTDB tree for the service tests and the headless CLI.
+        .target(
+            name: "FirebaseServiceFakes",
+            dependencies: ["FirebaseService"],
+            swiftSettings: [
+                .defaultIsolation(MainActor.self)
+            ]
+        ),
         .testTarget(
             name: "FirebaseServiceTests",
-            dependencies: ["FirebaseService"]
+            dependencies: ["FirebaseService", "FirebaseServiceFakes"]
         ),
     ]
 )

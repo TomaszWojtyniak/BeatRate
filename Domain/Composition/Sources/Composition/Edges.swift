@@ -26,6 +26,8 @@ public struct Edges {
     public var modelContainer: ModelContainer
     public var analytics: any AnalyticsBackend
     public var crash: any CrashBackend
+    /// The pause between the splash's fetch attempts; the CLI sets it from a fixture.
+    public var retryDelay: Duration
 
     public init(
         database: any RealtimeDatabase,
@@ -38,7 +40,8 @@ public struct Edges {
         defaults: UserDefaults,
         modelContainer: ModelContainer,
         analytics: any AnalyticsBackend,
-        crash: any CrashBackend
+        crash: any CrashBackend,
+        retryDelay: Duration = .seconds(2)
     ) {
         self.database = database
         self.firebaseAuth = firebaseAuth
@@ -51,5 +54,6 @@ public struct Edges {
         self.modelContainer = modelContainer
         self.analytics = analytics
         self.crash = crash
+        self.retryDelay = retryDelay
     }
 }
