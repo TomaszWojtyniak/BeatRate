@@ -26,6 +26,14 @@ struct LoginDataModelTests {
         #expect(!model.isLoading)
     }
 
+    @Test func `the prepared nonce is the SHA-256 of the repository nonce`() async {
+        login.nonce = "abc"
+
+        await model.prepareNonce()
+
+        #expect(model.hashedNonce == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
+    }
+
     @Test func `failed login is passed on and stops loading`() async {
         login.failsToLogIn = true
 
@@ -68,9 +76,7 @@ struct LoginDataModelTests {
         #expect(model.sha256("abc") == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
     }
 
-    @Test func `nonce and events go through the model`() async {
-        #expect(await model.getCurrentNonce() == "nonce")
-
+    @Test func `events go through the model`() {
         model.track(.signInAppleTap)
 
         #expect(backend.logged(.signInAppleTap))

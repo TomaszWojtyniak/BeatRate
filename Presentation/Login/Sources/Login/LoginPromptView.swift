@@ -77,6 +77,10 @@ public struct LoginPromptView: View {
                 }
                 .frame(maxWidth: .infinity, minHeight: Size.signInButton, maxHeight: Size.signInButton)
                 .padding(Spacing.md)
+            } else if dataModel.hashedNonce == nil {
+                ProgressView()
+                    .tint(.white)
+                    .frame(maxWidth: .infinity, minHeight: Size.signInButton, maxHeight: Size.signInButton)
             } else {
                 signInButton
             }
@@ -101,16 +105,14 @@ public struct LoginPromptView: View {
         .background(Color.backgroundGradient)
         .presentationDetents([.large])
         .onAppear { dataModel.track(.screenView(.loginPrompt)) }
+        .task { await dataModel.prepareNonce() }
     }
 
     private var signInButton: some View {
         SignInWithAppleButton(onRequest: { request in
             dataModel.track(.signInAppleTap)
-            Task {
-                let nonce = await self.dataModel.getCurrentNonce()
-                request.requestedScopes = [.fullName, .email]
-                request.nonce = self.dataModel.sha256(nonce)
-            }
+            request.requestedScopes = [.fullName, .email]
+            request.nonce = dataModel.hashedNonce
         }, onCompletion: { result in
             Task {
                 switch result {
