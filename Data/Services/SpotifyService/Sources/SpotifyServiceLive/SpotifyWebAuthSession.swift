@@ -1,25 +1,21 @@
 //
 //  SpotifyWebAuthSession.swift
-//  SpotifyService
+//  SpotifyServiceLive
 //
 //  Created by Tomasz Wojtyniak on 10/06/2026.
 //
 
+#if os(iOS)
 import Foundation
 import AuthenticationServices
 import Analytics
+import SpotifyService
 import UIKit
 
 /// Drives the ASWebAuthenticationSession OAuth sheet on the main actor and keeps
 /// the session alive for the duration of the flow — the system does not retain it.
-/// Shows the Spotify sign-in sheet and returns the authorization code from the
-/// redirect. A seam so the rest of `SpotifySession.authorize()` can be tested.
-nonisolated protocol SpotifyAuthorizationPresenter: Sendable {
-    func authorize(url: URL, callbackScheme: String) async throws -> String
-}
-
 @MainActor
-final class SpotifyWebAuthSession: NSObject, ASWebAuthenticationPresentationContextProviding, SpotifyAuthorizationPresenter {
+public final class SpotifyWebAuthSession: NSObject, ASWebAuthenticationPresentationContextProviding, SpotifyAuthorizationPresenter {
     private var activeSession: ASWebAuthenticationSession?
 
     /// Resolved once, at construction, so `presentationAnchor` is total without a
@@ -33,7 +29,7 @@ final class SpotifyWebAuthSession: NSObject, ASWebAuthenticationPresentationCont
 
     /// Nil when there is no window scene to present on. A factory rather than a
     /// failable `init?()`, which cannot override `NSObject.init()`.
-    static func make() -> SpotifyWebAuthSession? {
+    public static func make() -> SpotifyWebAuthSession? {
         let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
         guard let scene = scenes.first(where: { $0.activationState == .foregroundActive }) ?? scenes.first else {
             return nil
@@ -49,14 +45,14 @@ final class SpotifyWebAuthSession: NSObject, ASWebAuthenticationPresentationCont
 
     /// Presents the authorization sheet and returns the `code` query item from
     /// the redirect callback.
-    func authorize(url: URL, callbackScheme: String) async throws -> String {
+    public func authorize(url: URL, callbackScheme: String) async throws -> String {
         defer { activeSession = nil }
         return try await withCheckedThrowingContinuation { continuation in
             let session = ASWebAuthenticationSession(
                 url: url,
                 callback: .customScheme(callbackScheme)
             ) { callbackURL, error in
-                continuation.resume(with: Self.authorizationCode(from: callbackURL, error: error))
+                continuation.resume(with: SpotifyAuthorizationCallback.authorizationCode(from: callbackURL, error: error))
             }
             session.presentationContextProvider = self
             session.prefersEphemeralWebBrowserSession = false
@@ -71,34 +67,8 @@ final class SpotifyWebAuthSession: NSObject, ASWebAuthenticationPresentationCont
         }
     }
 
-    nonisolated static func authorizationCode(
-        from callbackURL: URL?,
-        error: Error?
-    ) -> Result<String, Error> {
-        if let error {
-            // Dismissing the sheet is a choice, not a failure — callers must not
-            // surface it as an error.
-            let isCancellation = (error as? ASWebAuthenticationSessionError)?.code == .canceledLogin
-            if isCancellation {
-                CrashLogger.log("Sign-in sheet dismissed by the user", to: .spotifyService, level: .info)
-            } else {
-                CrashLogger.log("Sign-in sheet failed: \(error)", to: .spotifyService)
-            }
-            return .failure(isCancellation ? SpotifyFailure.authCancelled : SpotifyFailure.authorizationFailed)
-        }
-        let queryItems = callbackURL.flatMap {
-            URLComponents(url: $0, resolvingAgainstBaseURL: false)?.queryItems
-        } ?? []
-        guard let code = queryItems.first(where: { $0.name == SpotifyAPI.Param.code })?.value else {
-            // Spotify reports a declined consent screen as `?error=access_denied`.
-            let spotifyError = queryItems.first(where: { $0.name == "error" })?.value ?? "none"
-            CrashLogger.log("Callback without authorization code (callback: \(callbackURL != nil), error: \(spotifyError))", to: .spotifyService)
-            return .failure(SpotifyFailure.authorizationFailed)
-        }
-        return .success(code)
-    }
-
-    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+    public func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
         anchor
     }
 }
+#endif

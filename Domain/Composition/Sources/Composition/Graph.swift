@@ -20,6 +20,7 @@ import SearchUse
 import SettingUseCases
 import SplashUseCases
 import SpotifyService
+import SpotifyServiceLive
 import SwiftDataManager
 
 /// Builds the app's objects once: one instance of every service, repository and
@@ -64,7 +65,7 @@ public final class Graph {
         let auth = AuthFirebaseService(auth: FirebaseAuthProvider(), analyticsManager: analytics,
                                        databaseService: database, keychainManager: keychain)
         let musicKit = MusicKitService()
-        let spotify = SpotifyService(keychainManager: keychain)
+        let spotify = SpotifyService(keychainManager: keychain, makePresenter: { @MainActor in SpotifyWebAuthSession.make() })
 
         let music = MusicRepository(musicKitService: musicKit, spotifyService: spotify)
         let home = HomeRepository(databaseFirebaseService: database, musicRepository: music, swiftDataManager: swiftData)

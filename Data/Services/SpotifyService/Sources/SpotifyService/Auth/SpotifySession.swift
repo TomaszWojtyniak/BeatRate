@@ -30,7 +30,7 @@ actor SpotifySession {
         clientId: String,
         redirectUri: URL? = nil,
         callbackScheme: String? = nil,
-        makePresenter: @escaping @Sendable () async -> (any SpotifyAuthorizationPresenter)? = { @MainActor in SpotifyWebAuthSession.make() }
+        makePresenter: @escaping @Sendable () async -> (any SpotifyAuthorizationPresenter)?
     ) {
         self.makePresenter = makePresenter
         self.tokenStore = tokenStore

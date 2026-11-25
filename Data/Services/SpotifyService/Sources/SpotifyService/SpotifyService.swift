@@ -20,7 +20,8 @@ public actor SpotifyService: SpotifyServiceProtocol {
     public init(
         clientId: String = AppEnvironment.current.spotifyClientId,
         redirectUri: String = AppEnvironment.current.spotifyRedirectUri,
-        keychainManager: KeychainManager
+        keychainManager: KeychainManager,
+        makePresenter: @escaping @Sendable () async -> (any SpotifyAuthorizationPresenter)?
     ) {
         guard let url = URL(string: redirectUri), let scheme = url.scheme else {
             preconditionFailure("Invalid Spotify redirect URI: \(redirectUri)")
@@ -31,7 +32,8 @@ public actor SpotifyService: SpotifyServiceProtocol {
             transport: transport,
             clientId: clientId,
             redirectUri: url,
-            callbackScheme: scheme
+            callbackScheme: scheme,
+            makePresenter: makePresenter
         )
         self.client = SpotifyClient(transport: transport)
     }
