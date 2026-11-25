@@ -15,6 +15,13 @@
   "testTargets" : [
     {
       "target" : {
+        "containerPath" : "container:Domain\/Composition",
+        "identifier" : "CompositionTests",
+        "name" : "CompositionTests"
+      }
+    },
+    {
+      "target" : {
         "containerPath" : "container:Presentation\/Account",
         "identifier" : "AccountTests",
         "name" : "Missing Target"

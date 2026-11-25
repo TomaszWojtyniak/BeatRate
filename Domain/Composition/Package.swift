@@ -6,7 +6,8 @@ let package = Package(
     name: "Composition",
     platforms: [.iOS(.v27)],
     products: [
-        .library(name: "Composition", targets: ["Composition"]),
+        // One product, so the app still links a single library: the graph and its live edges.
+        .library(name: "Composition", targets: ["Composition", "CompositionLive"]),
     ],
     dependencies: [
         .package(path: "../AccountUseCases"),
@@ -31,6 +32,7 @@ let package = Package(
         .package(path: "../../Core/Models"),
     ],
     targets: [
+        // The object graph, built only from the logic packages.
         .target(
             name: "Composition",
             dependencies: [
@@ -48,20 +50,39 @@ let package = Package(
                 "MusicRepository",
                 "SearchRepository",
                 "FirebaseService",
-                .product(name: "FirebaseServiceLive", package: "FirebaseService"),
                 "MusicKitService",
-                .product(name: "MusicKitServiceLive", package: "MusicKitService"),
                 "SpotifyService",
-                .product(name: "SpotifyServiceLive", package: "SpotifyService"),
                 "SwiftDataManager",
                 "Analytics",
-                .product(name: "AnalyticsFirebase", package: "Analytics"),
                 "CoreApp",
                 "Models",
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)
             ]
+        ),
+        // `Edges.live()`: the SDK implementations the app plugs into the graph.
+        .target(
+            name: "CompositionLive",
+            dependencies: [
+                "Composition",
+                "CoreApp",
+                "SwiftDataManager",
+                "SplashUseCases",
+                "SpotifyService",
+                "FirebaseService",
+                .product(name: "FirebaseServiceLive", package: "FirebaseService", condition: .when(platforms: [.iOS])),
+                .product(name: "MusicKitServiceLive", package: "MusicKitService", condition: .when(platforms: [.iOS])),
+                .product(name: "SpotifyServiceLive", package: "SpotifyService", condition: .when(platforms: [.iOS])),
+                .product(name: "AnalyticsFirebase", package: "Analytics", condition: .when(platforms: [.iOS])),
+            ],
+            swiftSettings: [
+                .defaultIsolation(MainActor.self)
+            ]
+        ),
+        .testTarget(
+            name: "CompositionTests",
+            dependencies: ["Composition"]
         ),
     ]
 )

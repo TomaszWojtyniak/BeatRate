@@ -21,12 +21,12 @@ public actor SpotifyService: SpotifyServiceProtocol {
         clientId: String = AppEnvironment.current.spotifyClientId,
         redirectUri: String = AppEnvironment.current.spotifyRedirectUri,
         keychainManager: KeychainManager,
+        transport: any SpotifyTransport,
         makePresenter: @escaping @Sendable () async -> (any SpotifyAuthorizationPresenter)?
     ) {
         guard let url = URL(string: redirectUri), let scheme = url.scheme else {
             preconditionFailure("Invalid Spotify redirect URI: \(redirectUri)")
         }
-        let transport = URLSessionTransport()
         self.session = SpotifySession(
             tokenStore: SpotifyTokenStore(keychain: keychainManager),
             transport: transport,

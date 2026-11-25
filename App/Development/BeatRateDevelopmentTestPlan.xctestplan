@@ -15,6 +15,13 @@
   "testTargets" : [
     {
       "target" : {
+        "containerPath" : "container:Domain\/Composition",
+        "identifier" : "CompositionTests",
+        "name" : "CompositionTests"
+      }
+    },
+    {
+      "target" : {
         "containerPath" : "container:Data\/Repositories\/MusicRepository",
         "identifier" : "MusicRepositoryTests",
         "name" : "MusicRepositoryTests"

@@ -2,25 +2,21 @@ import Foundation
 import AccountRepository
 import AccountUseCases
 import Analytics
-import AnalyticsFirebase
 import AppUseCases
 import ArtistUseCase
 import CoreApp
 import FirebaseService
-import FirebaseServiceLive
 import HomeRepository
 import HomeUseCases
 import LoginRepository
 import LoginUseCases
 import MusicKitService
-import MusicKitServiceLive
 import MusicRepository
 import SearchRepository
 import SearchUse
 import SettingUseCases
 import SplashUseCases
 import SpotifyService
-import SpotifyServiceLive
 import SwiftDataManager
 
 /// Builds the app's objects once: one instance of every service, repository and
@@ -51,21 +47,21 @@ public final class Graph {
     public let setSettings: any SetSettingsUseCaseProtocol
     public let getSplash: any GetSplashUseCaseProtocol
 
-    public init() {
-        CrashLogger.shared.use(FirebaseCrashBackend())
-        let userDefaults = UserDefaultsManager(defaults: .standard)
-        let keychain = KeychainManager()
-        let analytics = AnalyticsManager(defaults: .standard, backend: FirebaseAnalyticsBackend())
+    public init(edges: Edges) {
+        CrashLogger.shared.use(edges.crash)
+        let userDefaults = UserDefaultsManager(defaults: edges.defaults)
+        let keychain = KeychainManager(backend: edges.keychain)
+        let analytics = AnalyticsManager(defaults: edges.defaults, backend: edges.analytics)
         let session = SessionManager()
         let players = MusicPlayerManager(userDefaultsManager: userDefaults)
-        let swiftData = SwiftDataManager(container: SwiftDataManager.makeContainer(), appleUserIDStore: keychain)
+        let swiftData = SwiftDataManager(container: edges.modelContainer, appleUserIDStore: keychain)
 
-        let database = DatabaseFirebaseService(analyticsManager: analytics, crashLogger: .shared,
-                                               database: FirebaseRealtimeDatabase(url: AppEnvironment.current.firebaseDatabaseUrl))
-        let auth = AuthFirebaseService(auth: FirebaseAuthProvider(), analyticsManager: analytics,
+        let database = DatabaseFirebaseService(analyticsManager: analytics, crashLogger: .shared, database: edges.database)
+        let auth = AuthFirebaseService(auth: edges.firebaseAuth, analyticsManager: analytics,
                                        databaseService: database, keychainManager: keychain)
-        let musicKit = MusicKitService()
-        let spotify = SpotifyService(keychainManager: keychain, makePresenter: { @MainActor in SpotifyWebAuthSession.make() })
+        let musicKit = edges.musicKit
+        let spotify = SpotifyService(keychainManager: keychain, transport: edges.spotifyTransport,
+                                     makePresenter: edges.spotifyPresenter)
 
         let music = MusicRepository(musicKitService: musicKit, spotifyService: spotify)
         let home = HomeRepository(databaseFirebaseService: database, musicRepository: music, swiftDataManager: swiftData)
@@ -100,6 +96,7 @@ public final class Graph {
                                               swiftDataManager: swiftData, musicPlayerManager: players)
         self.getSplash = GetSplashUseCase(musicRepository: music, homeRepository: home, loginRepository: login,
                                           swiftDataManager: swiftData, getLoginUseCase: getLogin, sessionManager: session,
-                                          musicPlayerManager: players, userDefaultsManager: userDefaults, keychainManager: keychain)
+                                          musicPlayerManager: players, userDefaultsManager: userDefaults,
+                                          credentialStore: keychain, credentialState: edges.appleIDCredentialState)
     }
 }
