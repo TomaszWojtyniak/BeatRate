@@ -5,10 +5,12 @@
 //  Created by Tomasz Wojtyniak on 30/06/2025.
 //
 
+#if os(iOS)
 import Analytics
 import OSLog
 import MusicKit
 import Models
+import MusicKitService
 
 public actor MusicKitService: MusicKitServiceProtocol {
 
@@ -42,7 +44,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
         CrashLogger.setValue("\(status)", forKey: "apple_music_auth")
 
         guard status == .authorized else {
-            return await MusicAuthorizationResult(status: status, hasSubscription: false)
+            return await MusicAuthorizationResult(status: MusicAccessStatus(status), hasSubscription: false)
         }
 
         if let subscription = await currentSubscription(timeout: Constants.subscriptionTimeout) {
@@ -53,7 +55,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
         }
         CrashLogger.setValue("\(canPlayAppleMusic)", forKey: "apple_music_subscription")
 
-        return await MusicAuthorizationResult(status: status, hasSubscription: canPlayAppleMusic)
+        return await MusicAuthorizationResult(status: MusicAccessStatus(status), hasSubscription: canPlayAppleMusic)
     }
 
     /// First value from `MusicSubscription.subscriptionUpdates`, or nil when none
@@ -291,3 +293,4 @@ extension MusicItemCollection: PagedBatch {
         try await nextBatch()
     }
 }
+#endif

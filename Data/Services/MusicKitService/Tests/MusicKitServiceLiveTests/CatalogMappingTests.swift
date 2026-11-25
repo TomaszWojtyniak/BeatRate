@@ -1,8 +1,10 @@
+#if os(iOS)
 import Foundation
 import Models
 import MusicKit
 import Testing
-@testable import MusicKitService
+import MusicKitService
+@testable import MusicKitServiceLive
 
 @MainActor
 struct CatalogMappingTests {
@@ -79,3 +81,4 @@ struct CatalogMappingTests {
         #expect(!result.hasSubscription)
     }
 }
+#endif

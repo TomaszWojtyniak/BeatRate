@@ -108,9 +108,6 @@ public actor MusicRepository: MusicRepositoryProtocol {
         case .denied:
             Logger.musicRepository.info("Error getting Apple Music Authorization: Denied")
             isAuthorized = false
-        default:
-            Logger.musicRepository.info("Error getting Apple Music Authorization: Unknown (New case)")
-            isAuthorized = false
         }
 
         return await MusicAuthorizationInfo(

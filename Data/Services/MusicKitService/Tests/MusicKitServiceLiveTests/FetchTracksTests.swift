@@ -1,6 +1,8 @@
+#if os(iOS)
 import Foundation
 import Testing
-@testable import MusicKitService
+import MusicKitService
+@testable import MusicKitServiceLive
 
 @MainActor
 struct FetchTracksTests {
@@ -66,3 +68,4 @@ struct FetchTracksTests {
         #expect(try await service.search(searchTerm: "") == .empty)
     }
 }
+#endif

@@ -1,7 +1,7 @@
 import Foundation
 import Models
-import MusicKit
 import SpotifyService
+import MusicKitService
 import Testing
 @testable import MusicRepository
 
@@ -29,8 +29,8 @@ struct MusicRepositoryTests {
         #expect(musicKit.authorizationRequests == 1)
     }
 
-    @Test(arguments: [MusicAuthorization.Status.denied, .restricted, .notDetermined])
-    func `refused access is reported and asked again next time`(status: MusicAuthorization.Status) async {
+    @Test(arguments: [MusicAccessStatus.denied, .restricted, .notDetermined])
+    func `refused access is reported and asked again next time`(status: MusicAccessStatus) async {
         musicKit.authorizationStatus = status
         let repository = repository
 

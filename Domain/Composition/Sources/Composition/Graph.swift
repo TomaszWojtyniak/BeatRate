@@ -13,6 +13,7 @@ import HomeUseCases
 import LoginRepository
 import LoginUseCases
 import MusicKitService
+import MusicKitServiceLive
 import MusicRepository
 import SearchRepository
 import SearchUse

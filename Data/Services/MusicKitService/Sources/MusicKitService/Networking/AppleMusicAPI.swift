@@ -11,14 +11,14 @@ import Foundation
 /// uses. Most requests go through MusicKit's typed layer; these exist only for
 /// the calls that bypass it. Force-unwraps of known-valid URL literals live
 /// only in this file.
-nonisolated enum AppleMusicAPI {
+nonisolated package enum AppleMusicAPI {
 
     // MARK: - Endpoints
 
     private static let base = URL(string: "https://api.music.apple.com")!
 
     /// `albums/{id}/tracks` relationship endpoint, first page.
-    static func albumTracks(storefront: String, albumId: String) -> URL {
+    package static func albumTracks(storefront: String, albumId: String) -> URL {
         base.appending(path: "v1/catalog/\(storefront)/albums/\(albumId)/tracks")
             .appending(queryItems: [
                 URLQueryItem(name: Param.limit, value: String(Limit.trackPage))
@@ -26,7 +26,7 @@ nonisolated enum AppleMusicAPI {
     }
 
     /// Pagination `next` values are server-relative paths ("/v1/catalog/...").
-    static func nextPage(_ path: String) -> URL? {
+    package static func nextPage(_ path: String) -> URL? {
         URL(string: path, relativeTo: base)
     }
 

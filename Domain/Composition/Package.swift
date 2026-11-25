@@ -50,6 +50,7 @@ let package = Package(
                 "FirebaseService",
                 .product(name: "FirebaseServiceLive", package: "FirebaseService"),
                 "MusicKitService",
+                .product(name: "MusicKitServiceLive", package: "MusicKitService"),
                 "SpotifyService",
                 "SwiftDataManager",
                 "Analytics",

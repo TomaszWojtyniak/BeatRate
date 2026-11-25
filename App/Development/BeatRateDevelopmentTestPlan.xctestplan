@@ -57,6 +57,13 @@
     },
     {
       "target" : {
+        "containerPath" : "container:Data\/Services\/MusicKitService",
+        "identifier" : "MusicKitServiceLiveTests",
+        "name" : "MusicKitServiceLiveTests"
+      }
+    },
+    {
+      "target" : {
         "containerPath" : "container:Presentation\/Login",
         "identifier" : "LoginTests",
         "name" : "LoginTests"

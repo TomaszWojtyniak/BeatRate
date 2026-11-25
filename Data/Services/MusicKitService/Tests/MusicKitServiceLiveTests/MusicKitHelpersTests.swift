@@ -1,6 +1,8 @@
+#if os(iOS)
 import Foundation
 import Testing
-@testable import MusicKitService
+import MusicKitService
+@testable import MusicKitServiceLive
 
 /// A page of numbers; `next` builds the following page, nil when it fails to load.
 struct StubPage: PagedBatch, Sendable {
@@ -82,3 +84,4 @@ struct MusicKitHelpersTests {
         await #expect(throws: StubError.self) { try await MusicKitService.allBatches(of: first, maxBatches: 4) }
     }
 }
+#endif
