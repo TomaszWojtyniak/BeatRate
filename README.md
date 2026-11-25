@@ -80,3 +80,13 @@ Your app is organized into Swift Packages:
 - ✅ Multi-tier caching for optimal performance
 - ✅ Error handling with proper logging and crash reporting
 - ✅ Dependency injection for loose coupling
+
+## Running the app without UI
+
+Migrated screens are Reflex view models: their state and actions are reachable without SwiftUI.
+
+- `./cli` runs the app's root, `BeatRateApp(edges:)`, on fixture files from `behavior/fixtures` instead of Firebase and MusicKit, one `ls` / `do <Action>` command per line. A request without a fixture ends it with exit code 3.
+- `./test` runs the logic packages on macOS, the import guard, and the behavior journeys in `behavior/*.test.mjs` against `./cli`.
+- In Debug, the running app answers the same commands on `127.0.0.1:7777` (`nc -w 1 127.0.0.1 7777`), and the UI follows.
+
+The `reflex` skill (`.claude/skills/reflex/SKILL.md`) covers fixtures, journeys and migrating a screen.

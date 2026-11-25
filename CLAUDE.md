@@ -43,7 +43,11 @@ this has succeeded. The flow is:
 
 Prefer the MCP over CLI `xcodebuild` — it's faster (uses the already-open Xcode
 window). The MCP does sometimes fail to connect at session start
-(`CONNECTION_CLOSED`); fall back to the CLI below when it does.
+(`CONNECTION_CLOSED`); fall back to the CLI below when it does. It builds the scheme
+selected in Xcode only; build the other one from the CLI.
+
+Then run `./test` with the packages you touched (`./test Presentation/Splash`): the
+guard and the behavior journeys run every time.
 
 ### Building the App
 
@@ -95,17 +99,35 @@ xcrun simctl create "iPhone 17" \
 
 ### Logic tests on macOS — `./test`
 
-The logic — `Core/Models`, `Core/CoreApp`, `Core/Analytics`, `Data/*` and `Domain/*` —
-builds and tests on macOS with `swift test`, no simulator. `./test` runs all of those
-packages and then the architecture guard (no SDK or UI import in logic); pass package
-paths to run just those, e.g. `./test Domain/HomeUseCases`. The packages share one
-scratch path, `.build/logic`, because each package's own `.build` would hold its own
-copy of the Firebase SDK. `Presentation/*`, `Core/CoreUI` and the `…Live` targets are
-tested with the Xcode test plan on the simulator.
+The logic — `Core/Models`, `Core/CoreApp`, `Core/Analytics`, `Core/IntrospectionKit`,
+`Data/*`, `Domain/*`, the migrated screens (`Presentation/Splash`, `Presentation/AppRoot`)
+and `Tools/BeatRateCLI` — builds and tests on macOS with `swift test`, no simulator.
+`./test` runs all of those packages, the architecture guard (no SDK or UI import in
+logic), then builds `beatrate-cli` and runs the behavior journeys (`node --test
+'behavior/*.test.mjs'`). Pass package paths to run just those packages, e.g.
+`./test Domain/HomeUseCases`; the guard and the journeys always run. The packages share
+one scratch path, `.build/logic`, because each package's own `.build` would hold its own
+copy of the Firebase SDK. Legacy `Presentation/*` screens, `Core/CoreUI`, the `…UI` and
+the `…Live` targets are tested with the Xcode test plan on the simulator.
 
 ```bash
 ./test
 ```
+
+### The app without UI — `./cli` and `nc localhost 7777`
+
+Migrated screens are Reflex view models with an introspection node: a name, the state
+as JSON and the actions. `./cli` runs the app's root, `BeatRateApp(edges:)`, on fixture
+files instead of the SDKs; any request without a fixture ends it with exit code 3.
+
+```bash
+printf 'ls\ndo Continue\nls\n' | ./cli behavior/fixtures/device.guest.json behavior/fixtures/catalog.discovery.json behavior/fixtures/music.undecided.json
+```
+
+The Debug app answers the same `ls` / `do <Action> {json}` on 127.0.0.1:7777, and the
+UI follows (`printf 'ls\n' | nc -w 1 127.0.0.1 7777`). Release builds have no server.
+Fixtures, journeys and the node rules are in the `reflex` skill
+(`.claude/skills/reflex/SKILL.md`).
 
 ## Architecture
 
@@ -156,7 +178,7 @@ Core/
 
 **Actor-Based Concurrency**: All repositories and services are actors for thread-safe data access. Use `await` when calling repository/service methods.
 
-**Dependency Injection**: `Graph(edges:)` in `Domain/Composition` builds every service, repository and use case exactly once, and `AppDelegate` sets `Graph.current = Graph(edges: .live())`. The only singleton left is `CrashLogger.shared`. Legacy DataModels take their default dependencies from `Graph.current`; new code receives them through `init`.
+**Dependency Injection**: `Graph(edges:)` in `Domain/Composition` builds every service, repository and use case exactly once. The root, `BeatRateApp(edges:)` in `Presentation/AppRoot`, builds it and sets `Graph.current`; the iOS app passes `Edges.live()` (from `BeatRateMain.init`, before `didFinishLaunching`), the CLI `Edges.fixtures(_:)`. The only singleton left is `CrashLogger.shared`. Legacy DataModels take their default dependencies from `Graph.current`; new code receives them through `init`.
 
 **SDK code lives in `…Live` targets**: Firebase, MusicKit and UIKit are imported only by the `…Live` targets (`AnalyticsFirebase`, `FirebaseServiceLive`, `MusicKitServiceLive`, `SpotifyServiceLive`, `CompositionLive`) and by `App/`. Every file in a `…Live` target sits inside `#if os(iOS)` and its SDK dependencies carry `condition: .when(platforms: [.iOS])`, because `swift test` builds every target of a package. `./test` fails on an SDK or UI import in logic.
 
@@ -207,18 +229,33 @@ Both are actors - use `await` when calling methods.
 
 ## Common Development Patterns
 
-### Adding a New Feature Screen
+### Adding a New Feature Screen (Reflex)
 
-1. Create new Swift Package in `Presentation/FeatureName/`
-2. Add Package.swift with dependencies (usually CoreUI, Models, CoreApp)
-3. Create View + DataModel (Observable class). **Build the View entirely from
-   design-system tokens** — `Spacing.*`, `Radius.*`, `Size.*`, `.textStyle(...)`,
-   `.appShadow(...)`, `.roundedMaterialBackground()`, `.meshBackground()`,
-   `AppAnimation.*`. See [Core/CoreUI/DesignSystem.md](Core/CoreUI/DesignSystem.md)
-   for recipes (section card, stat tile, primary CTA pill, list row, etc.).
-4. Create Use Case in `Domain/FeatureUseCases/`
-5. Update Repository if new data source needed
-6. Link package in main Xcode project
+New screens, and screens being migrated, are Reflex view models (see the `reflex` skill
+and `Presentation/Splash` as the reference):
+
+1. **A journey first** in `behavior/` against `./cli`, with the fixtures it needs.
+2. **The view model** in the package's logic target `<Feature>`: `State` (Encodable,
+   everything the screen shows, meanings not texts), public `Action`, internal `Message`,
+   and `update(state:message:)` as the only writer of state. Copy the 10-line internal
+   `ViewModel` protocol into the module. Loading starts in `init`; effects are `Task`s
+   that report back with `send(message:)`. `update` never calls back into anything that
+   can read this view model's state (a parent's callback, `withAnimation`) — do that
+   from an effect.
+3. **The node** in `<Name>ViewModel+Introspection.swift`: PascalCase actions, one per
+   `Action` case, always listed; edge cases are decided in `update`, never in the node.
+4. **The route**: the parent (today `AppNavigator` in `Presentation/AppRoot`) creates
+   the view model — never a view, since it loads in `init`.
+5. **The view** in the `<Feature>UI` target (every file in `#if os(iOS)`, iOS-only
+   dependencies with `.when(platforms: [.iOS])`): reads `state`, sends actions, nothing
+   else. **Build it entirely from design-system tokens** — `Spacing.*`, `Radius.*`,
+   `Size.*`, `.textStyle(...)`, `.appShadow(...)`, `.roundedMaterialBackground()`,
+   `.meshBackground()`, `AppAnimation.*`. See
+   [Core/CoreUI/DesignSystem.md](Core/CoreUI/DesignSystem.md) for recipes.
+6. **Tests of `update`** in Swift Testing: transitions and no-ops; add the package to
+   `./test` and its logic `Sources` to the guard.
+
+New packages are created by the user in Xcode; use cases and repositories as before.
 
 ### Modifying Repository Logic
 
@@ -264,6 +301,9 @@ module's non-view code (views are out of scope, see below). A change is not done
   test that. Don't force it: purely presentational branches (`if let image`,
   `isLoading ? … : …`) stay in the view and are simply excluded from the
   coverage target — don't create a view model just to make a line testable.
+- **Reflex view models**: test `update` transitions directly (`viewModel.update(state:
+  &state, message:)`), including the no-ops; test effects through stubs and by waiting
+  for the view model to settle. Whole user paths belong in `behavior/` journeys.
 - **Parameterize** (`@Test(arguments:)`) instead of copy-pasting tests that
   differ only by input.
 - **Tests must be parallel-safe**: no shared mutable state, no real
@@ -281,6 +321,8 @@ module's non-view code (views are out of scope, see below). A change is not done
     on them. This is the default double.
   - `Fake<Protocol>` — a working lightweight implementation (in-memory store).
   - No separate `Mock`/`Spy` types; recording lives on the `Stub`.
+  - The CLI's edges are `Fake…` too (`Tools/BeatRateCLI/Sources/BeatRateFixtures`),
+    built from fixture files by `Edges.fixtures(_:)`.
 - A double is an `actor` when the protocol is used from actors / is `Sendable`,
   otherwise a `final class` (main-actor by default isolation).
 - Inject doubles through the init; never swap a `.shared` singleton in tests.
