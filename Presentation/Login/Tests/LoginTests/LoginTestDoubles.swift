@@ -42,9 +42,10 @@ func makeAnalytics() -> (AnalyticsManager, StubAnalyticsBackend) {
 @MainActor
 final class StubLoginUseCases: GetLoginUseCaseProtocol, SetLoginUseCaseProtocol {
     var failsToLogIn = false
+    var nonce = "nonce"
     private(set) var loggedInUsers: [String] = []
 
-    func getCurrentNonce() async -> String { "nonce" }
+    func getCurrentNonce() async -> String { nonce }
     func getUserProfile(userId: String) async throws -> FirebaseUserProfile? { nil }
     func performCompleteLogin(credential: AppleSignInCredential) async throws -> String {
         if failsToLogIn { throw LoginUseCaseError.authenticationFailed }
