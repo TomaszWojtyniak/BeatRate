@@ -540,19 +540,20 @@ Zmiany w `CLAUDE.md`:
 
 ## Wyniki fazy 0
 
-Uzupełnia wykonawca zadań 0.1–0.3.
-
-**Spike A**
+**Spike A:** po dodaniu macOS do 10 pakietów `swift build Domain/HomeUseCases` przeszedł za pierwszym razem (75 s). Cały łańcuch zbudował się razem z Firebase 11.15.0 skompilowanym na macOS. `swift test`: HomeUseCases 7/7, HomeRepository 23/23. Firebase i MusicKit kompilują się na macOS, więc opcja B pytania 7 była wykonalna. Zostajemy przy opcji A, bo trzyma Firebase poza buildami `./test` i daje gwarancję w czasie kompilacji.
 
 | Pakiet | Plik:linia | Błąd | Naprawia zadanie |
 | --- | --- | --- | --- |
+| SpotifyService | `SpotifyWebAuthSession.swift:37` | UIKit, `UIApplication.shared` | 1.6 |
 
-**Spike B:** linia `NONCE-CHECK …` i decyzja, czy zadanie 0.4 jest potrzebne.
+**Spike B:** `NONCE-CHECK present=false matches=false` (Debug, symulator iPhone Duo, świeża instalacja). Log AuthKit pokazuje w samym żądaniu `nonce: (null)` i puste `requestedScopes`: `Task {}` w `onRequest` ustawia je dopiero po wysłaniu żądania. Firebase przyjął token mimo to. **Zadanie 0.4 jest potrzebne.**
+
+Przy okazji: na symulatorze `getCredentialState` zaraz po zalogowaniu zwraca `AKAuthenticationError -7084` i splash wylogowuje użytkownika. Tak samo jest na `development`, więc to ograniczenie symulatora, nie regresja. Części G1 z logowaniem trzeba przejść na fizycznym iPhonie.
 
 **Pomiar bazowy**
 
 | Pomiar | Czas | Testy |
 | --- | ---: | ---: |
-| `xcodebuild test`, plan Development, drugi przebieg bez zmian | | |
-| `xcodebuild test` po zmianie w `GetHomeUseCase.swift` | | |
-| `swift test --package-path Core/Models`, drugi przebieg | | |
+| `xcodebuild test`, plan Development, drugi przebieg bez zmian | 213 s | 584 |
+| `xcodebuild test` po zmianie w `GetHomeUseCase.swift` | 198 s | 584 |
+| `swift test --package-path Core/Models`, drugi przebieg (po zadaniu 1.1) | 1,1 s | 46 |
