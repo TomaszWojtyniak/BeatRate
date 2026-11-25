@@ -1,0 +1,19 @@
+#!/bin/bash
+# Logic packages on macOS, then the architecture guard. `./test Core/Models` runs one package.
+set -euo pipefail
+cd "$(dirname "$0")"
+PACKAGES=(Core/Models Core/Analytics Core/CoreApp Data/Services/SwiftDataManager Data/Services/FirebaseService
+  Data/Services/MusicKitService Data/Services/SpotifyService Data/Repositories/MusicRepository
+  Data/Repositories/SearchRepository Data/Repositories/HomeRepository Data/Repositories/LoginRepository
+  Data/Repositories/AccountRepository Domain/AppUseCases Domain/ArtistUseCase Domain/HomeUseCases
+  Domain/LoginUseCases Domain/SearchUse Domain/AccountUseCases Domain/SettingUseCases Domain/SplashUseCases
+  Domain/Composition)
+if [ $# -gt 0 ]; then PACKAGES=("$@"); fi
+# One scratch path for all of them: a .build per package would hold its own ~1 GB Firebase checkout.
+for package in "${PACKAGES[@]}"; do swift test --package-path "$package" --scratch-path .build/logic; done
+
+# SDK and UI imports belong in …Live targets and App/ only: the logic must keep building headless.
+leaks=$(grep -rnE '^(@preconcurrency |@_exported )?import ((struct|class|enum|protocol|func) )?(SwiftUI|UIKit|MusicKit|Firebase(Core|Auth|Database|Analytics|Crashlytics))(\.| *$)' \
+  Core/Models/Sources Core/CoreApp/Sources Core/Analytics/Sources/Analytics Data/*/*/Sources Domain/*/Sources \
+  | grep -vE '/Sources/[A-Za-z]*Live/' || true)
+[ -z "$leaks" ] || { echo "SDK or UI import in logic:"; echo "$leaks"; exit 1; }

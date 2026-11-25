@@ -5,7 +5,7 @@
 //  Created by Tomasz Wojtyniak on 11/09/2025.
 //
 
-import SwiftUI
+import Foundation
 import MusicRepository
 import SpotifyService
 import HomeRepository

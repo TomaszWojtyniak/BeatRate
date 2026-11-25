@@ -5,7 +5,7 @@
 //  Created by Tomasz Wojtyniak on 30/06/2025.
 //
 
-import SwiftUI
+import Foundation
 import MusicKitService
 import SwiftDataManager
 

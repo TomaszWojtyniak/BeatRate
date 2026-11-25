@@ -5,7 +5,7 @@
 //  Created by Tomasz Wojtyniak on 09/01/2026.
 //
 
-import SwiftUI
+import Foundation
 import Models
 import AccountRepository
 import SwiftDataManager

@@ -71,7 +71,7 @@ open BeatRate.xcodeproj
 
 ### Running Tests
 
-Tests run against an **iOS Simulator** only. Prefer the Xcode MCP
+The Xcode test plans run on an **iOS Simulator**. Prefer the Xcode MCP
 (`mcp__xcode__RunAllTests` / `mcp__xcode__RunSomeTests`, with
 `mcp__xcode__GetTestList` to see what exists) for the same reasons as
 `BuildProject`.
@@ -93,20 +93,19 @@ xcrun simctl create "iPhone 17" \
   com.apple.CoreSimulator.SimRuntime.iOS-27-0
 ```
 
-> **`swift test` does not work in this repo** — don't reach for it. Two
-> independent reasons:
->
-> 1. `Core/Models` declares `platforms: [.iOS(.v27)]` and no macOS, so SwiftPM
->    builds it for the host at `macos12.0`, where SwiftData's `PersistentModel`
->    conformance fails to compile. This hits every package that depends on
->    Models — which is nearly all of them.
-> 2. Local `.package(path:)` references under `Data/` are off by one directory
->    (`../../Core/Models` from `Data/Services/X` resolves to `Data/Core/Models`).
->    Xcode resolves these by package name and builds fine; SwiftPM resolves
->    strictly by path and fails.
->
-> To run a single package's tests, use its own scheme with an iOS Simulator
-> destination rather than `swift test`.
+### Logic tests on macOS — `./test`
+
+The logic — `Core/Models`, `Core/CoreApp`, `Core/Analytics`, `Data/*` and `Domain/*` —
+builds and tests on macOS with `swift test`, no simulator. `./test` runs all of those
+packages and then the architecture guard (no SDK or UI import in logic); pass package
+paths to run just those, e.g. `./test Domain/HomeUseCases`. The packages share one
+scratch path, `.build/logic`, because each package's own `.build` would hold its own
+copy of the Firebase SDK. `Presentation/*`, `Core/CoreUI` and the `…Live` targets are
+tested with the Xcode test plan on the simulator.
+
+```bash
+./test
+```
 
 ## Architecture
 
@@ -157,7 +156,9 @@ Core/
 
 **Actor-Based Concurrency**: All repositories and services are actors for thread-safe data access. Use `await` when calling repository/service methods.
 
-**Dependency Injection**: Services use singleton pattern (`.shared`) with protocol-based abstractions for testability. Constructor injection is used throughout.
+**Dependency Injection**: `Graph(edges:)` in `Domain/Composition` builds every service, repository and use case exactly once, and `AppDelegate` sets `Graph.current = Graph(edges: .live())`. The only singleton left is `CrashLogger.shared`. Legacy DataModels take their default dependencies from `Graph.current`; new code receives them through `init`.
+
+**SDK code lives in `…Live` targets**: Firebase, MusicKit and UIKit are imported only by the `…Live` targets (`AnalyticsFirebase`, `FirebaseServiceLive`, `MusicKitServiceLive`, `SpotifyServiceLive`, `CompositionLive`) and by `App/`. Every file in a `…Live` target sits inside `#if os(iOS)` and its SDK dependencies carry `condition: .when(platforms: [.iOS])`, because `swift test` builds every target of a package. `./test` fails on an SDK or UI import in logic.
 
 **Three-Tier Caching Strategy** (HomeRepository pattern):
 1. SwiftData local cache (24-hour validity) - fastest
@@ -176,7 +177,7 @@ All modules are Swift Packages with defined dependencies in `Package.swift` file
 
 ### Critical Implementation Details
 
-**SwiftData Setup**: The `SwiftDataManager.shared` is injected as both an `@EnvironmentObject` and `.modelContainer()` in `BeatRateApp.swift:22-23`.
+**SwiftData Setup**: `Graph` builds the one `SwiftDataManager` from `Edges.modelContainer`, which `Edges.live()` fills with `SwiftDataManager.makeContainer()`. Views don't read it.
 
 **Firebase Configuration**: Two separate `GoogleService-Info.plist` files exist:
 - `App/Development/GoogleService-Info.plist` - for Development scheme
@@ -195,7 +196,7 @@ MusicKit requires user authorization. The `MusicRepository` handles:
 - Album searches and lookups
 - Catalog data retrieval
 
-Access via `MusicRepository.shared` (actor).
+`Graph` builds the one `MusicRepository` (an actor); legacy DataModels reach it through use cases from `Graph.current`.
 
 ## Firebase Services
 
@@ -301,6 +302,18 @@ xcodebuild test -scheme "BeatRate Development" -project BeatRate.xcodeproj \
 
 ```bash
 xcrun xccov view --report --only-targets /tmp/CoreApp.xcresult
+```
+
+A logic package runs on macOS instead — its tests, then its line coverage:
+
+```bash
+./test Core/CoreApp
+```
+
+```bash
+swift test --package-path Core/CoreApp --scratch-path .build/logic --enable-code-coverage && \
+jq -r '.data[0].files[] | select(.filename | contains("/Sources/")) | "\(.summary.lines.percent | floor)% \(.filename)"' \
+  "$(swift test --package-path Core/CoreApp --scratch-path .build/logic --show-codecov-path)"
 ```
 
 Anything left uncovered must be named in the hand-back with the reason (e.g.

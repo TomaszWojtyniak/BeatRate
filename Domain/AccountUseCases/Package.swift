@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "AccountUseCases",
-    platforms: [.iOS(.v27)],
+    platforms: [.iOS(.v27), .macOS(.v27)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(

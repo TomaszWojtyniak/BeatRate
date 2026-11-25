@@ -5,7 +5,7 @@
 //  Created by Tomasz Wojtyniak on 11/06/2025.
 //
 
-import SwiftUI
+import Foundation
 import LoginRepository
 // Re-exported so Presentation can build the credential without depending on Data.
 @_exported import struct FirebaseService.AppleSignInCredential

@@ -5,7 +5,7 @@
 //  Created by Tomasz Wojtyniak on 27/05/2025.
 //
 
-import SwiftUI
+import Foundation
 import OSLog
 import Analytics
 import FirebaseService
