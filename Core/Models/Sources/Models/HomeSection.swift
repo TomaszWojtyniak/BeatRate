@@ -5,9 +5,9 @@
 //  Created by Tomasz Wojtyniak on 26/06/2025.
 //
 
-import SwiftUI
+import Foundation
 
-public struct HomeSection: Identifiable, Hashable, Sendable {
+public struct HomeSection: Identifiable, Hashable, Sendable, Encodable {
     public let id = UUID()
     /// Base title: English for Firebase sections, already localized for the
     /// sections the app builds itself (Account, Artist).

@@ -14,6 +14,7 @@ let package = Package(
             targets: ["Home"])
     ],
     dependencies: [
+        .package(path: "../../Domain/Composition"),
         .package(path: "../../Core/Analytics"),
         .package(path: "../../Core/CoreUI"),
         .package(path: "../../Core/CoreApp"),
@@ -28,6 +29,7 @@ let package = Package(
         .target(
             name: "Home",
             dependencies: [
+                "Composition",
                 "Analytics",
                 "CoreUI",
                 "Models",

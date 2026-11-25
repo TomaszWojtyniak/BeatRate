@@ -5,7 +5,7 @@
 //  Created by Tomasz Wojtyniak on 29/07/2025.
 //
 
-import SwiftUI
+import Foundation
 
 public struct FirebaseAlbumSection: Codable, Identifiable, Sendable {
     public let id: String

@@ -39,6 +39,34 @@ struct CrashLoggerTests {
         #expect(backend.calls.breadcrumbs == [breadcrumb])
     }
 
+    @Test func `a backend installed later receives the logs`() {
+        let first = StubCrashBackend(), second = StubCrashBackend()
+        let logger = CrashLogger(backend: first)
+
+        logger.use(second)
+        logger.log("boom", to: nil, level: .error, file: "Module/File.swift")
+
+        #expect(first.calls.breadcrumbs.isEmpty)
+        #expect(second.calls.breadcrumbs == ["[Module] boom"])
+    }
+
+    // The app's call sites use the statics, so they must follow `use(_:)` on `shared`.
+    // The only test in this target that touches `shared`, so it races with nothing.
+    // `shared` reports each domain once per process, so a repeated run needs a fresh one.
+    @Test func `static calls go to the backend installed on the shared logger`() {
+        let backend = StubCrashBackend()
+        CrashLogger.shared.use(backend)
+        let domain = "Shared\(UUID().uuidString.filter(\.isLetter))"
+
+        CrashLogger.log("cache miss", file: "Home/HomeRepository.swift")
+        CrashLogger.setValue("guest", forKey: "auth")
+        CrashLogger.report(domain, "denied")
+
+        #expect(backend.calls.breadcrumbs == ["[Home] cache miss", "[\(domain)] denied"])
+        #expect(backend.calls.customValues == ["auth": "guest"])
+        #expect(backend.calls.errors.map(\.domain) == ["BeatRate.\(domain)"])
+    }
+
     @Test func `custom value is forwarded to crashlytics`() {
         logger.setValue("guest", forKey: "auth")
 

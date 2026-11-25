@@ -5,10 +5,9 @@
 //  Created by Tomasz Wojtyniak on 27/05/2025.
 //
 
-import SwiftUI
+import Foundation
 import LoginRepository
 import Models
-import AuthenticationServices
 
 public protocol GetLoginUseCaseProtocol: Sendable {
     func getCurrentNonce() async -> String
@@ -18,7 +17,7 @@ public protocol GetLoginUseCaseProtocol: Sendable {
 public actor GetLoginUseCase: GetLoginUseCaseProtocol {
     private let loginRepository: LoginRepositoryProtocol
 
-    public init(loginRepository: LoginRepositoryProtocol = LoginRepository.shared) {
+    public init(loginRepository: LoginRepositoryProtocol) {
         self.loginRepository = loginRepository
     }
 

@@ -1,13 +1,15 @@
+#if os(iOS)
 import Foundation
 import Models
 import MusicKit
 import Testing
-@testable import MusicKitService
+import MusicKitService
+@testable import MusicKitServiceLive
 
 @MainActor
 struct CatalogMappingTests {
 
-    private var service: MusicKitService { MusicKitService(analyticsManager: .shared, dataSource: StubAppleMusicDataSource()) }
+    private var service: MusicKitService { MusicKitService(dataSource: StubAppleMusicDataSource()) }
 
     private static func decode<T: Decodable>(_ type: T.Type, _ json: String) throws -> T {
         try JSONDecoder().decode(T.self, from: Data(json.utf8))
@@ -79,3 +81,4 @@ struct CatalogMappingTests {
         #expect(!result.hasSubscription)
     }
 }
+#endif

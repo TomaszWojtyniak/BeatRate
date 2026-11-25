@@ -15,6 +15,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(path: "../../Domain/Composition"),
         .package(path: "../../Core/Models"),
         .package(path: "../../Core/CoreUI"),
         .package(path: "../../Core/Analytics"),
@@ -26,6 +27,7 @@ let package = Package(
         .target(
             name: "ArtistDetails",
             dependencies: [
+                "Composition",
                 "Models",
                 "CoreUI",
                 "Analytics",

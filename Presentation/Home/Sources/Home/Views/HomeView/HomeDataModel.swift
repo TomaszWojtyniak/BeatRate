@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Composition
 import Analytics
 import OSLog
 import Models
@@ -22,10 +23,10 @@ final class HomeDataModel {
     var homeSections: [HomeSection] = []
     var state: HomeState = .loading
     
-    init(analyticsManager: AnalyticsManager = .shared,
+    init(analyticsManager: AnalyticsManager = Graph.current.analytics,
          crashLogger: CrashLogger = .shared,
-         getHomeUseCase: GetHomeUseCaseProtocol = GetHomeUseCase(),
-         setHomeUseCase: SetHomeUseCaseProtocol = SetHomeUseCase()) {
+         getHomeUseCase: GetHomeUseCaseProtocol = Graph.current.getHome,
+         setHomeUseCase: SetHomeUseCaseProtocol = Graph.current.setHome) {
         self.analyticsManager = analyticsManager
         self.crashLogger = crashLogger
         self.getHomeUseCase = getHomeUseCase

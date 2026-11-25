@@ -1,16 +1,17 @@
 import Foundation
 import Models
-import MusicKit
 import MusicKitService
 import SpotifyService
 
 struct StubError: Error {}
 
 /// Main-actor classes because the service protocols inherit their packages'
-/// default main-actor isolation.
+/// default main-actor isolation. MusicKitServiceProtocol is the exception — it is
+/// nonisolated so the Live actor can conform — so its witnesses say @MainActor
+/// themselves, or Swift would infer them nonisolated.
 @MainActor
 final class StubMusicKitService: MusicKitServiceProtocol {
-    var authorizationStatus: MusicAuthorization.Status = .authorized
+    var authorizationStatus: MusicAccessStatus = .authorized
     var hasSubscription = true
     var albums: [String: AppleMusicAlbumData] = [:]
     var artist: AppleMusicArtistData?
@@ -23,25 +24,25 @@ final class StubMusicKitService: MusicKitServiceProtocol {
     private(set) var authorizationRequests = 0
     private(set) var searchedTerms: [String] = []
 
-    func requestMusicAuthorization() async -> MusicAuthorizationResult {
+    @MainActor func requestMusicAuthorization() async -> MusicAuthorizationResult {
         authorizationRequests += 1
         return MusicAuthorizationResult(status: authorizationStatus, hasSubscription: hasSubscription)
     }
 
-    func isAuthorized() async -> Bool { authorized }
-    func isAuthorizationDetermined() async -> Bool { determined }
-    func fetchAlbumData(by id: String) async throws -> AppleMusicAlbumData? { albums[id] }
-    func fetchArtistData(byId artistId: String) async throws -> AppleMusicArtistData? { artist }
-    func fetchArtistData(forAlbumId albumId: String) async throws -> AppleMusicArtistData? { artist }
-    func search(searchTerm: String) async throws -> MusicSearchResults { searchResults }
+    @MainActor func isAuthorized() async -> Bool { authorized }
+    @MainActor func isAuthorizationDetermined() async -> Bool { determined }
+    @MainActor func fetchAlbumData(by id: String) async throws -> AppleMusicAlbumData? { albums[id] }
+    @MainActor func fetchArtistData(byId artistId: String) async throws -> AppleMusicArtistData? { artist }
+    @MainActor func fetchArtistData(forAlbumId albumId: String) async throws -> AppleMusicArtistData? { artist }
+    @MainActor func search(searchTerm: String) async throws -> MusicSearchResults { searchResults }
 
-    func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData] {
+    @MainActor func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData] {
         searchedTerms.append(searchTerm)
         if failingSearchTerms.contains(searchTerm) { throw StubError() }
         return catalogMatches[searchTerm] ?? []
     }
 
-    func fetchRecentlyPlayedAlbums() async throws -> [AppleMusicAlbumData] {
+    @MainActor func fetchRecentlyPlayedAlbums() async throws -> [AppleMusicAlbumData] {
         try recentlyPlayed.get()
     }
 }

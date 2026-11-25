@@ -13,7 +13,6 @@ import OSLog
 /// Facade over `SpotifySession` (tokens) and `SpotifyClient` (endpoints).
 /// Callers above this layer see one small surface and never touch either.
 public actor SpotifyService: SpotifyServiceProtocol {
-    public static let shared = SpotifyService()
 
     private let session: SpotifySession
     private let client: SpotifyClient
@@ -21,18 +20,20 @@ public actor SpotifyService: SpotifyServiceProtocol {
     public init(
         clientId: String = AppEnvironment.current.spotifyClientId,
         redirectUri: String = AppEnvironment.current.spotifyRedirectUri,
-        keychainManager: KeychainManager = .shared
+        keychainManager: KeychainManager,
+        transport: any SpotifyTransport,
+        makePresenter: @escaping @Sendable () async -> (any SpotifyAuthorizationPresenter)?
     ) {
         guard let url = URL(string: redirectUri), let scheme = url.scheme else {
             preconditionFailure("Invalid Spotify redirect URI: \(redirectUri)")
         }
-        let transport = URLSessionTransport()
         self.session = SpotifySession(
             tokenStore: SpotifyTokenStore(keychain: keychainManager),
             transport: transport,
             clientId: clientId,
             redirectUri: url,
-            callbackScheme: scheme
+            callbackScheme: scheme,
+            makePresenter: makePresenter
         )
         self.client = SpotifyClient(transport: transport)
     }

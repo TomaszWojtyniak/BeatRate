@@ -6,7 +6,8 @@ import Testing
 struct AuthProfileTests {
 
     private func service(_ database: StubDatabaseFirebaseService) -> AuthFirebaseService {
-        AuthFirebaseService(databaseService: database)
+        AuthFirebaseService(auth: StubFirebaseAuth(), analyticsManager: makeAnalytics(), databaseService: database,
+                            keychainManager: .init(backend: StubKeychainBackend(failing: false)))
     }
 
     @Test func `first sign in creates a profile from apple's details`() async {

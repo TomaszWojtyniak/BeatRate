@@ -6,7 +6,6 @@
 //
 
 import SwiftData
-import SwiftUI
 
 @Model
 public final class User {

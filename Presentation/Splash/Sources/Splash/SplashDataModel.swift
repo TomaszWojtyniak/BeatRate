@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Composition
 import SplashUseCases
 import Analytics
 import OSLog
@@ -33,9 +34,9 @@ final class SplashDataModel {
         retryCount > 0
     }
 
-    init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase(),
-         musicPlayerManager: MusicPlayerManager = .shared,
-         analyticsManager: AnalyticsManager = .shared,
+    init(getSplashUseCase: GetSplashUseCaseProtocol = Graph.current.getSplash,
+         musicPlayerManager: MusicPlayerManager = Graph.current.players,
+         analyticsManager: AnalyticsManager = Graph.current.analytics,
          retryDelay: Duration = .seconds(2)) {
         self.retryDelay = retryDelay
         self.getSplashUseCase = getSplashUseCase

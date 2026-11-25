@@ -1,5 +1,7 @@
+#if os(iOS)
 import Foundation
-@testable import MusicKitService
+import MusicKitService
+@testable import MusicKitServiceLive
 
 struct StubError: Error {}
 
@@ -38,3 +40,4 @@ enum TracksFixture {
         return Data(#"{"data":[\#(resources.joined(separator: ","))]\#(nextField)}"#.utf8)
     }
 }
+#endif

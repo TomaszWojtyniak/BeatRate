@@ -24,17 +24,16 @@ public protocol AccountRepositoryProtocol: Sendable {
 }
 
 public actor AccountRepository: AccountRepositoryProtocol {
-    public static let shared = AccountRepository()
 
     private let homeRepository: HomeRepositoryProtocol
     private let musicRepository: MusicRepositoryProtocol
     private let databaseFirebaseService: DatabaseFirebaseServiceProtocol
     private let swiftDataManager: SwiftDataManagerProtocol
 
-    public init(homeRepository: HomeRepositoryProtocol = HomeRepository.shared,
-                musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
-                databaseFirebaseService: DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared,
-                swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared) {
+    public init(homeRepository: HomeRepositoryProtocol,
+                musicRepository: MusicRepositoryProtocol,
+                databaseFirebaseService: DatabaseFirebaseServiceProtocol,
+                swiftDataManager: SwiftDataManagerProtocol) {
         self.homeRepository = homeRepository
         self.musicRepository = musicRepository
         self.databaseFirebaseService = databaseFirebaseService

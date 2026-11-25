@@ -77,6 +77,6 @@ final class StubLoginUseCases: GetLoginUseCaseProtocol, SetLoginUseCaseProtocol 
 /// Player state over a throwaway defaults suite, so tests never touch `.standard`.
 @MainActor
 func makePlayerManager() -> (MusicPlayerManager, UserDefaultsManager) {
-    let defaults = UserDefaultsManager(defaults: UserDefaults(suiteName: "SettingUseCasesTests.\(UUID())")!)
+    let defaults = UserDefaultsManager(defaults: UserDefaults(suiteName: FileManager.default.temporaryDirectory.appending(path: "SettingUseCasesTests.\(UUID())").path)!)
     return (MusicPlayerManager(userDefaultsManager: defaults), defaults)
 }

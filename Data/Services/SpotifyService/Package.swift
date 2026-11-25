@@ -6,12 +6,16 @@ import PackageDescription
 let package = Package(
     name: "SpotifyService",
     defaultLocalization: "en",
-    platforms: [.iOS(.v27)],
+    platforms: [.iOS(.v27), .macOS(.v27)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "SpotifyService",
             targets: ["SpotifyService"]
+        ),
+        .library(
+            name: "SpotifyServiceLive",
+            targets: ["SpotifyServiceLive"]
         ),
     ],
     dependencies: [
@@ -26,6 +30,17 @@ let package = Package(
                 "Models",
                 "Analytics",
                 "CoreApp"
+            ],
+            swiftSettings: [
+                .defaultIsolation(MainActor.self)
+            ]
+        ),
+        // The OAuth sheet (UIKit), kept apart so the logic above builds and tests on macOS.
+        .target(
+            name: "SpotifyServiceLive",
+            dependencies: [
+                "SpotifyService",
+                "Analytics"
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)

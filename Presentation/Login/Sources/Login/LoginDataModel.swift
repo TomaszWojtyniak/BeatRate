@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Composition
 import LoginUseCases
 import Analytics
 import AuthenticationServices
@@ -24,10 +25,13 @@ final class LoginDataModel {
     var errorTitle: String = "Sign In Failed"
     var errorMessage: String = "An error occurred. Please try again."
     var isLoading: Bool = false
+    /// SHA-256 of the repository nonce. Ready before the Apple button shows, because
+    /// `onRequest` must set it synchronously — set later, the request goes without it.
+    private(set) var hashedNonce: String?
     
-    init(getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),
-         postLoginUseCase: SetLoginUseCaseProtocol = SetLoginUseCase(),
-         analyticsManager: AnalyticsManager = .shared,
+    init(getLoginUseCase: GetLoginUseCaseProtocol = Graph.current.getLogin,
+         postLoginUseCase: SetLoginUseCaseProtocol = Graph.current.setLogin,
+         analyticsManager: AnalyticsManager = Graph.current.analytics,
          crashLogger: CrashLogger = .shared) {
         self.getLoginUseCase = getLoginUseCase
         self.postLoginUseCase = postLoginUseCase
@@ -126,8 +130,8 @@ final class LoginDataModel {
         self.isShowingErrorAlert = true
     }
     
-    func getCurrentNonce() async -> String {
-        await self.getLoginUseCase.getCurrentNonce()
+    func prepareNonce() async {
+        hashedNonce = sha256(await getLoginUseCase.getCurrentNonce())
     }
     
     func track(_ event: AnalyticsEvent) {

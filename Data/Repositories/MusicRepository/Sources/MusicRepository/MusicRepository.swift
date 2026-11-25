@@ -69,7 +69,6 @@ public protocol MusicRepositoryProtocol: Sendable {
 // MARK: - MusicRepository
 
 public actor MusicRepository: MusicRepositoryProtocol {
-    public static let shared = MusicRepository()
 
     let musicKitService: MusicKitServiceProtocol
     let spotifyService: SpotifyServiceProtocol
@@ -78,8 +77,8 @@ public actor MusicRepository: MusicRepositoryProtocol {
     private var cachedHasSubscription: Bool = false
 
     public init(
-        musicKitService: MusicKitServiceProtocol = MusicKitService.shared,
-        spotifyService: SpotifyServiceProtocol = SpotifyService.shared
+        musicKitService: MusicKitServiceProtocol,
+        spotifyService: SpotifyServiceProtocol
     ) {
         self.musicKitService = musicKitService
         self.spotifyService = spotifyService
@@ -108,9 +107,6 @@ public actor MusicRepository: MusicRepositoryProtocol {
             isAuthorized = false
         case .denied:
             Logger.musicRepository.info("Error getting Apple Music Authorization: Denied")
-            isAuthorized = false
-        default:
-            Logger.musicRepository.info("Error getting Apple Music Authorization: Unknown (New case)")
             isAuthorized = false
         }
 

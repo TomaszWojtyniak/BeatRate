@@ -1,6 +1,8 @@
+#if os(iOS)
 import Foundation
 import Testing
-@testable import MusicKitService
+import MusicKitService
+@testable import MusicKitServiceLive
 
 @MainActor
 struct FetchTracksTests {
@@ -10,7 +12,7 @@ struct FetchTracksTests {
     private static let secondPage = AppleMusicAPI.nextPage(nextPath)!
 
     private func service(_ dataSource: StubAppleMusicDataSource) -> MusicKitService {
-        MusicKitService(analyticsManager: .shared, dataSource: dataSource)
+        MusicKitService(dataSource: dataSource)
     }
 
     @Test func `tracks from a single page come back in order`() async throws {
@@ -66,3 +68,4 @@ struct FetchTracksTests {
         #expect(try await service.search(searchTerm: "") == .empty)
     }
 }
+#endif

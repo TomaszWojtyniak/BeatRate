@@ -15,6 +15,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(path: "../../Domain/Composition"),
         .package(path: "../../Domain/SplashUseCases"),
         .package(path: "../../Core/Analytics"),
         .package(path: "../../Core/CoreUI"),
@@ -27,6 +28,7 @@ let package = Package(
         .target(
             name: "Splash",
             dependencies: [
+                "Composition",
                 "SplashUseCases",
                 "Analytics",
                 "CoreUI",

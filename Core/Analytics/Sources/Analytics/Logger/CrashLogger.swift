@@ -7,34 +7,44 @@
 
 import Foundation
 import OSLog
-import FirebaseCrashlytics
 import Synchronization
 
 @MainActor
 public final class CrashLogger {
-    nonisolated public static let shared = CrashLogger(backend: FirebaseCrashBackend())
+    /// Writes to OSLog only until the app installs Crashlytics with ``use(_:)``.
+    nonisolated public static let shared = CrashLogger(backend: NoCrashBackend())
 
-    nonisolated private let backend: CrashBackend
+    nonisolated private let backend: Mutex<any CrashBackend>
     /// Domains already sent by ``report(_:_:to:)`` this launch.
     nonisolated private let reported = Mutex<Set<String>>([])
 
-    /// Test seam: lets other modules record calls instead of sending them.
-    nonisolated public init(backend: CrashBackend) {
-        self.backend = backend
+    /// Tests pass a recording stub; the app installs Crashlytics on `shared` with ``use(_:)``.
+    nonisolated public init(backend: any CrashBackend) {
+        self.backend = Mutex(backend)
+    }
+
+    /// Sends everything logged from now on to `backend`.
+    nonisolated public func use(_ backend: any CrashBackend) {
+        self.backend.withLock { $0 = backend }
+    }
+
+    /// Read under the lock, called outside it, so a backend never runs while holding it.
+    nonisolated private var current: any CrashBackend {
+        backend.withLock { $0 }
     }
     
     public func configure() {
-        backend.setCollectionEnabled(true)
+        current.setCollectionEnabled(true)
     }
     
     /// Pass nil on logout so later reports aren't attributed to that user.
     public func setUserIdentifier(_ identifier: String?) {
-        backend.setUserID(identifier)
+        current.setUserID(identifier)
         Logger.crashLogger.info("User identifier set: \(identifier ?? "nil")")
     }
 
     public func reportToCrashlytics(error: Error) {
-        backend.record(error)
+        current.record(error)
     }
 
     /// Writes `message` to `logger` and leaves it as a Crashlytics breadcrumb,
@@ -69,17 +79,17 @@ public final class CrashLogger {
 
     nonisolated func log(_ message: String, to logger: Logger?, level: OSLogType, file: String) {
         logger?.log(level: level, "\(message, privacy: .public)")
-        backend.log("[\(file.prefix { $0 != "/" })] \(message)")
+        current.log("[\(file.prefix { $0 != "/" })] \(message)")
     }
 
     nonisolated func setValue(_ value: String, forKey key: String) {
-        backend.setCustomValue(value, forKey: key)
+        current.setCustomValue(value, forKey: key)
     }
 
     nonisolated func report(_ domain: String, _ reason: String, to logger: Logger?) {
         log(reason, to: logger, level: .error, file: domain)  // tagged [domain] instead of [module]
         guard reported.withLock({ $0.insert(domain).inserted }) else { return }
-        backend.record(NSError(
+        current.record(NSError(
             domain: "BeatRate.\(domain)",
             code: 0,
             userInfo: [NSLocalizedDescriptionKey: reason]
@@ -96,24 +106,12 @@ nonisolated public protocol CrashBackend: Sendable {
     func setCustomValue(_ value: String, forKey key: String)
 }
 
-nonisolated struct FirebaseCrashBackend: CrashBackend {
-    func setCollectionEnabled(_ enabled: Bool) {
-        Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(enabled)
-    }
-
-    func setUserID(_ userId: String?) {
-        Crashlytics.crashlytics().setUserID(userId)
-    }
-
-    func record(_ error: Error) {
-        Crashlytics.crashlytics().record(error: error)
-    }
-
-    func log(_ message: String) {
-        Crashlytics.crashlytics().log(message)
-    }
-
-    func setCustomValue(_ value: String, forKey key: String) {
-        Crashlytics.crashlytics().setCustomValue(value, forKey: key)
-    }
+/// Until the app installs Crashlytics there is nowhere else to send anything:
+/// `CrashLogger` writes to OSLog itself.
+nonisolated struct NoCrashBackend: CrashBackend {
+    func setCollectionEnabled(_ enabled: Bool) {}
+    func setUserID(_ userId: String?) {}
+    func record(_ error: Error) {}
+    func log(_ message: String) {}
+    func setCustomValue(_ value: String, forKey key: String) {}
 }

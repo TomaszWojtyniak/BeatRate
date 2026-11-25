@@ -21,8 +21,8 @@ public actor GetAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol {
     let homeRepository: HomeRepositoryProtocol
     let musicRepository: MusicRepositoryProtocol
 
-    public init(homeRepository: HomeRepositoryProtocol = HomeRepository.shared,
-                musicRepository: MusicRepositoryProtocol = MusicRepository.shared) {
+    public init(homeRepository: HomeRepositoryProtocol,
+                musicRepository: MusicRepositoryProtocol) {
         self.homeRepository = homeRepository
         self.musicRepository = musicRepository
     }

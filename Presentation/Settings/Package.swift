@@ -14,6 +14,7 @@ let package = Package(
             targets: ["Settings"]),
     ],
     dependencies: [
+        .package(path: "../../Domain/Composition"),
         .package(path: "../../Domain/SplashUseCases"),
         .package(path: "../../Domain/SettingUseCases"),
         .package(path: "../../Core/Analytics"),
@@ -28,6 +29,7 @@ let package = Package(
         .target(
             name: "Settings",
             dependencies: [
+                "Composition",
                 "SplashUseCases",
                 "SettingUseCases",
                 "Analytics",

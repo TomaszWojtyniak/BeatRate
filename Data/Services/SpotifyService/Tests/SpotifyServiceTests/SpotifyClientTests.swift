@@ -10,7 +10,8 @@ struct SpotifyClientTests {
                 accessToken: "tok", refreshToken: "r1", expiresAt: .distantFuture
             )),
             transport: transport,
-            clientId: "cid"
+            clientId: "cid",
+            makePresenter: { nil }
         )
     }
 

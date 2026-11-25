@@ -6,12 +6,16 @@ import PackageDescription
 let package = Package(
     name: "FirebaseService",
     defaultLocalization: "en",
-    platforms: [.iOS(.v27)],
+    platforms: [.iOS(.v27), .macOS(.v27)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "FirebaseService",
             targets: ["FirebaseService"]
+        ),
+        .library(
+            name: "FirebaseServiceLive",
+            targets: ["FirebaseServiceLive"]
         ),
     ],
     dependencies: [
@@ -26,11 +30,21 @@ let package = Package(
         .target(
             name: "FirebaseService",
             dependencies: [
-                .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
-                .product(name: "FirebaseDatabase", package: "firebase-ios-sdk"),
                 "Analytics",
                 "Models",
                 "CoreApp"
+            ],
+            swiftSettings: [
+                .defaultIsolation(MainActor.self)
+            ]
+        ),
+        // The Firebase SDK adapters, kept apart so the logic above builds and tests on macOS.
+        .target(
+            name: "FirebaseServiceLive",
+            dependencies: [
+                "FirebaseService",
+                .product(name: "FirebaseAuth", package: "firebase-ios-sdk", condition: .when(platforms: [.iOS])),
+                .product(name: "FirebaseDatabase", package: "firebase-ios-sdk", condition: .when(platforms: [.iOS]))
             ],
             swiftSettings: [
                 .defaultIsolation(MainActor.self)

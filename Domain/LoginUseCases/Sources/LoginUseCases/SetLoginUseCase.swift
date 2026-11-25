@@ -5,7 +5,7 @@
 //  Created by Tomasz Wojtyniak on 11/06/2025.
 //
 
-import SwiftUI
+import Foundation
 import LoginRepository
 // Re-exported so Presentation can build the credential without depending on Data.
 @_exported import struct FirebaseService.AppleSignInCredential
@@ -37,8 +37,8 @@ public actor SetLoginUseCase: SetLoginUseCaseProtocol {
     private let loginRepository: LoginRepositoryProtocol
     private let swiftDataManager: SwiftDataManagerProtocol
     
-    public init(loginRepository: LoginRepositoryProtocol = LoginRepository.shared,
-                swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared) {
+    public init(loginRepository: LoginRepositoryProtocol,
+                swiftDataManager: SwiftDataManagerProtocol) {
         self.loginRepository = loginRepository
         self.swiftDataManager = swiftDataManager
     }

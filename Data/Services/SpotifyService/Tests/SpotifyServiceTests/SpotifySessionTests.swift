@@ -21,7 +21,7 @@ struct SpotifySessionTests {
     @Test func freshTokenIsReturnedWithoutHittingTheNetwork() async throws {
         let store = StubTokenStore(tokens: freshTokens())
         let transport = StubTransport()
-        let session = SpotifySession(tokenStore: store, transport: transport, clientId: "cid")
+        let session = SpotifySession(tokenStore: store, transport: transport, clientId: "cid", makePresenter: { nil })
 
         let token = try await session.validAccessToken(at: now)
 
@@ -34,7 +34,7 @@ struct SpotifySessionTests {
         let transport = StubTransport(scripted: [
             .init(status: 200, body: refreshBody(accessToken: "renewed", refreshToken: "r2"))
         ])
-        let session = SpotifySession(tokenStore: store, transport: transport, clientId: "cid")
+        let session = SpotifySession(tokenStore: store, transport: transport, clientId: "cid", makePresenter: { nil })
 
         let token = try await session.validAccessToken(at: now)
 
@@ -47,7 +47,7 @@ struct SpotifySessionTests {
         let transport = StubTransport(scripted: [
             .init(status: 200, body: refreshBody(accessToken: "renewed"))
         ])
-        let session = SpotifySession(tokenStore: store, transport: transport, clientId: "cid")
+        let session = SpotifySession(tokenStore: store, transport: transport, clientId: "cid", makePresenter: { nil })
 
         _ = try await session.validAccessToken(at: now)
 
@@ -58,7 +58,8 @@ struct SpotifySessionTests {
         let session = SpotifySession(
             tokenStore: StubTokenStore(tokens: nil),
             transport: StubTransport(),
-            clientId: "cid"
+            clientId: "cid",
+            makePresenter: { nil }
         )
 
         await #expect(throws: SpotifyFailure.noSession) {
@@ -71,7 +72,7 @@ struct SpotifySessionTests {
         let transport = StubTransport(scripted: [
             .init(status: 400, body: Data(#"{"error":"invalid_grant"}"#.utf8))
         ])
-        let session = SpotifySession(tokenStore: store, transport: transport, clientId: "cid")
+        let session = SpotifySession(tokenStore: store, transport: transport, clientId: "cid", makePresenter: { nil })
 
         await #expect(throws: SpotifyFailure.sessionExpired) {
             _ = try await session.validAccessToken(at: now)
@@ -82,7 +83,7 @@ struct SpotifySessionTests {
     @Test func offlineRefreshIsTransientAndKeepsTokens() async {
         let store = StubTokenStore(tokens: freshTokens(10))
         let transport = StubTransport(transportError: URLError(.notConnectedToInternet))
-        let session = SpotifySession(tokenStore: store, transport: transport, clientId: "cid")
+        let session = SpotifySession(tokenStore: store, transport: transport, clientId: "cid", makePresenter: { nil })
 
         await #expect(throws: SpotifyFailure.transient) {
             _ = try await session.validAccessToken(at: now)
@@ -97,7 +98,7 @@ struct SpotifySessionTests {
         let transport = StubTransport(scripted: [
             .init(status: 200, body: refreshBody(accessToken: "renewed", refreshToken: "r2"))
         ])
-        let session = SpotifySession(tokenStore: store, transport: transport, clientId: "cid")
+        let session = SpotifySession(tokenStore: store, transport: transport, clientId: "cid", makePresenter: { nil })
 
         async let first = session.validAccessToken(at: now)
         async let second = session.validAccessToken(at: now)
@@ -109,8 +110,8 @@ struct SpotifySessionTests {
     }
 
     @Test func hasStoredSessionReflectsTheStoreWithoutNetwork() async {
-        let empty = SpotifySession(tokenStore: StubTokenStore(tokens: nil), transport: StubTransport(), clientId: "cid")
-        let populated = SpotifySession(tokenStore: StubTokenStore(tokens: freshTokens()), transport: StubTransport(), clientId: "cid")
+        let empty = SpotifySession(tokenStore: StubTokenStore(tokens: nil), transport: StubTransport(), clientId: "cid", makePresenter: { nil })
+        let populated = SpotifySession(tokenStore: StubTokenStore(tokens: freshTokens()), transport: StubTransport(), clientId: "cid", makePresenter: { nil })
 
         #expect(await empty.hasStoredSession() == false)
         #expect(await populated.hasStoredSession() == true)

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Composition
 import Models
 import SearchUse
 import Analytics
@@ -29,8 +30,8 @@ final class FavoritesManagerModel {
     var canAddMore: Bool { working.count < AccountDataModel.maxFavorites }
 
     init(initial: [AlbumModel],
-         getSearchUseCase: GetSearchUseCaseProtocol = GetSearchUseCase(),
-         analyticsManager: AnalyticsManager = .shared,
+         getSearchUseCase: GetSearchUseCaseProtocol = Graph.current.getSearch,
+         analyticsManager: AnalyticsManager = Graph.current.analytics,
          debounce: Duration = .milliseconds(500)) {
         self.debounce = debounce
         self.working = initial

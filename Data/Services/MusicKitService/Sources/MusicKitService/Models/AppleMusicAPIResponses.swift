@@ -9,9 +9,9 @@ import Foundation
 import Models
 
 /// Minimal shape of one page of the Apple Music API `albums/{id}/tracks` payload.
-nonisolated struct AppleMusicTracksPage: Decodable, Sendable {
+nonisolated package struct AppleMusicTracksPage: Decodable, Sendable {
     let data: [Resource]
-    let next: String?
+    package let next: String?
 
     struct Resource: Decodable, Sendable {
         let id: String
@@ -29,7 +29,7 @@ nonisolated struct AppleMusicTracksPage: Decodable, Sendable {
 
 nonisolated extension AppleMusicTracksPage {
     /// Tracks on this page, in release order, mapped to the app model.
-    var tracks: [Track] {
+    package var tracks: [Track] {
         data.map { resource in
             Track(
                 id: resource.id,

@@ -6,7 +6,7 @@
 //
 
 import SwiftData
-import SwiftUI
+import Foundation
 import Models
 import CoreApp
 import Analytics
@@ -42,7 +42,7 @@ public protocol SwiftDataManagerProtocol: Sendable {
 }
 
 /// The one Keychain call logout needs, so tests don't touch the real Keychain.
-nonisolated protocol AppleUserIDStore: Sendable {
+nonisolated public protocol AppleUserIDStore: Sendable {
     func deleteAppleUserID() async throws
 }
 
@@ -54,8 +54,7 @@ private nonisolated struct NoAppleUserIDStore: AppleUserIDStore {
 
 @Observable
 @MainActor
-public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol {
-    public static let shared = SwiftDataManager(container: makeContainer())
+public final class SwiftDataManager: SwiftDataManagerProtocol {
     public let container: ModelContainer
     private let appleUserIDStore: any AppleUserIDStore
     private let now: @Sendable () -> Date
@@ -63,9 +62,9 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
     private let loginStateStream: AsyncStream<Bool>
     private let loginStateContinuation: AsyncStream<Bool>.Continuation
 
-    init(
+    public init(
         container: ModelContainer,
-        appleUserIDStore: any AppleUserIDStore = KeychainManager.shared,
+        appleUserIDStore: any AppleUserIDStore,
         now: @escaping @Sendable () -> Date = Date.init
     ) {
         self.container = container
@@ -103,7 +102,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
     /// Keychain Apple ID plus Firebase's own session, both of which outlive this
     /// store. Any future model holding state that is not recoverable from
     /// elsewhere must not live in this container.
-    static func makeContainer(
+    public static func makeContainer(
         open: (Schema) throws -> ModelContainer = { try ModelContainer(for: $0) },
         destroyStore: () -> Void = destroyStore
     ) -> ModelContainer {
@@ -127,7 +126,7 @@ public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol 
     }
 
     /// Removes the default store and its write-ahead log siblings.
-    nonisolated private static func destroyStore() {
+    @usableFromInline nonisolated static func destroyStore() {
         let store = URL.applicationSupportDirectory.appending(path: "default.store")
         for path in [store.path, store.path + "-shm", store.path + "-wal"] {
             try? FileManager.default.removeItem(atPath: path)

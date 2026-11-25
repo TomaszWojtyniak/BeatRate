@@ -5,9 +5,9 @@
 //  Created by Tomasz Wojtyniak on 26/06/2025.
 //
 
-import SwiftUI
+import Foundation
 
-public struct AlbumModel: Identifiable, Hashable, Sendable {
+public struct AlbumModel: Identifiable, Hashable, Sendable, Encodable {
     public var id: String
     public let appleMusicAlbumData: AppleMusicAlbumData
     public let firebaseAlbumData: FirebaseAlbumData?

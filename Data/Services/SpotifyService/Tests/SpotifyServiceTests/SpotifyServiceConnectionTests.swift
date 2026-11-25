@@ -10,7 +10,7 @@ struct SpotifyServiceConnectionTests {
     private func service(tokens: SpotifyTokens? = fresh, scripted: [StubTransport.Scripted]) -> (SpotifyService, StubTokenStore) {
         let store = StubTokenStore(tokens: tokens)
         let transport = StubTransport(scripted: scripted)
-        let session = SpotifySession(tokenStore: store, transport: transport, clientId: "cid")
+        let session = SpotifySession(tokenStore: store, transport: transport, clientId: "cid", makePresenter: { nil })
         return (SpotifyService(session: session, client: SpotifyClient(transport: transport, retryDelay: { _ in })), store)
     }
 

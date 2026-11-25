@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Composition
 import SwiftUI
 import HomeUseCases
 import OSLog
@@ -33,10 +34,10 @@ final class AlbumDetailsDataModel {
 
     init(
         album: AlbumModel,
-        sessionManager: SessionManager = .shared,
-        musicPlayerManager: MusicPlayerManager = .shared,
-        getAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol = GetAlbumDetailsUseCase(),
-        analyticsManager: AnalyticsManager = .shared
+        sessionManager: SessionManager = Graph.current.session,
+        musicPlayerManager: MusicPlayerManager = Graph.current.players,
+        getAlbumDetailsUseCase: GetAlbumDetailsUseCaseProtocol = Graph.current.getAlbumDetails,
+        analyticsManager: AnalyticsManager = Graph.current.analytics
     ) {
         self.album = album
         self.getAlbumDetailsUseCase = getAlbumDetailsUseCase

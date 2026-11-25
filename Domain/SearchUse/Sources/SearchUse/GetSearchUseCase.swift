@@ -16,7 +16,7 @@ public protocol GetSearchUseCaseProtocol: Sendable {
 public actor GetSearchUseCase: GetSearchUseCaseProtocol {
     let musicRepository: MusicRepositoryProtocol
 
-    public init(musicRepository: MusicRepositoryProtocol = MusicRepository.shared) {
+    public init(musicRepository: MusicRepositoryProtocol) {
         self.musicRepository = musicRepository
     }
 

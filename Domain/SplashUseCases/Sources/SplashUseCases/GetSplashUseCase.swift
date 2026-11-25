@@ -5,7 +5,7 @@
 //  Created by Tomasz Wojtyniak on 11/09/2025.
 //
 
-import SwiftUI
+import Foundation
 import MusicRepository
 import SpotifyService
 import HomeRepository
@@ -38,7 +38,7 @@ public protocol GetSplashUseCaseProtocol: Sendable {
 }
 
 /// The Keychain calls splash makes, so tests don't touch the real Keychain.
-nonisolated protocol AppleCredentialStore: Sendable {
+nonisolated public protocol AppleCredentialStore: Sendable {
     func loadAppleUserID() async throws -> String?
     func deleteAppleUserID() async throws
     func deleteSpotifyTokens() async throws
@@ -59,31 +59,6 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
     private let userDefaultsManager: UserDefaultsManager
 
     public init(
-        musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
-        homeRepository: HomeRepositoryProtocol = HomeRepository.shared,
-        loginRepository: LoginRepositoryProtocol = LoginRepository.shared,
-        swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared,
-        getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),
-        sessionManager: SessionManager = .shared,
-        musicPlayerManager: MusicPlayerManager = .shared,
-        userDefaultsManager: UserDefaultsManager = .shared,
-        keychainManager: KeychainManager = .shared
-    ) {
-        self.init(
-            musicRepository: musicRepository,
-            homeRepository: homeRepository,
-            loginRepository: loginRepository,
-            swiftDataManager: swiftDataManager,
-            getLoginUseCase: getLoginUseCase,
-            sessionManager: sessionManager,
-            musicPlayerManager: musicPlayerManager,
-            userDefaultsManager: userDefaultsManager,
-            credentialStore: keychainManager,
-            credentialState: Self.fetchAppleIDCredentialState
-        )
-    }
-
-    init(
         musicRepository: MusicRepositoryProtocol,
         homeRepository: HomeRepositoryProtocol,
         loginRepository: LoginRepositoryProtocol,
@@ -293,7 +268,7 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
         }
     }
     
-    private nonisolated static func fetchAppleIDCredentialState(for userId: String) async -> ASAuthorizationAppleIDProvider.CredentialState {
+    public nonisolated static func fetchAppleIDCredentialState(for userId: String) async -> ASAuthorizationAppleIDProvider.CredentialState {
         await withCheckedContinuation { continuation in
             let provider = ASAuthorizationAppleIDProvider()
             provider.getCredentialState(forUserID: userId) { state, _ in

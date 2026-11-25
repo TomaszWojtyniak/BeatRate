@@ -10,6 +10,8 @@ import FirebaseCore
 import Analytics
 import FirebaseDatabase
 import CoreApp
+import Composition
+import CompositionLive
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     
@@ -21,9 +23,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         // Set cache size (10MB)
         database.persistenceCacheSizeBytes = 10 * 1024 * 1024
-        
+
+        Graph.current = Graph(edges: .live())
+
         Task {
-            AnalyticsManager.shared.setAnalyticsEnabled(AnalyticsManager.shared.consent == true)
+            Graph.current.analytics.setAnalyticsEnabled(Graph.current.analytics.consent == true)
             CrashLogger.shared.configure()
         }
         

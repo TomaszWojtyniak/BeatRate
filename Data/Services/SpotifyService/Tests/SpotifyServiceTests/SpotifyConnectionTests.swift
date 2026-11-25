@@ -46,7 +46,7 @@ struct SpotifyConnectionTests {
 struct SpotifyAuthorizationCodeTests {
 
     @Test func `code is read from the redirect`() throws {
-        let result = SpotifyWebAuthSession.authorizationCode(from: URL(string: "beatrate://spotify-callback?code=abc&state=x"), error: nil)
+        let result = SpotifyAuthorizationCallback.authorizationCode(from: URL(string: "beatrate://spotify-callback?code=abc&state=x"), error: nil)
 
         #expect(try result.get() == "abc")
     }
@@ -54,20 +54,20 @@ struct SpotifyAuthorizationCodeTests {
     @Test func `dismissing the sheet is a cancellation, not a failure`() {
         let error = ASWebAuthenticationSessionError(.canceledLogin)
 
-        let result = SpotifyWebAuthSession.authorizationCode(from: nil, error: error)
+        let result = SpotifyAuthorizationCallback.authorizationCode(from: nil, error: error)
 
         #expect(throws: SpotifyFailure.authCancelled) { try result.get() }
     }
 
     @Test func `any other sheet error fails authorization`() {
-        let result = SpotifyWebAuthSession.authorizationCode(from: nil, error: URLError(.notConnectedToInternet))
+        let result = SpotifyAuthorizationCallback.authorizationCode(from: nil, error: URLError(.notConnectedToInternet))
 
         #expect(throws: SpotifyFailure.authorizationFailed) { try result.get() }
     }
 
     @Test(arguments: ["beatrate://spotify-callback?error=access_denied", "beatrate://spotify-callback"])
     func `redirect without a code fails authorization`(callback: String) {
-        let result = SpotifyWebAuthSession.authorizationCode(from: URL(string: callback), error: nil)
+        let result = SpotifyAuthorizationCallback.authorizationCode(from: URL(string: callback), error: nil)
 
         #expect(throws: SpotifyFailure.authorizationFailed) { try result.get() }
     }
