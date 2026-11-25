@@ -10,7 +10,7 @@ struct FetchTracksTests {
     private static let secondPage = AppleMusicAPI.nextPage(nextPath)!
 
     private func service(_ dataSource: StubAppleMusicDataSource) -> MusicKitService {
-        MusicKitService(analyticsManager: .init(defaults: UserDefaults(suiteName: "MusicKitServiceTests.\(UUID())")!), dataSource: dataSource)
+        MusicKitService(dataSource: dataSource)
     }
 
     @Test func `tracks from a single page come back in order`() async throws {

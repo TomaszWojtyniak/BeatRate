@@ -1,8 +1,26 @@
+import Analytics
 import Foundation
 import Models
 @testable import FirebaseService
 
 struct StubError: Error {}
+
+/// Records every analytics event instead of sending it to Firebase.
+final class StubAnalyticsBackend: AnalyticsBackend {
+    private(set) var events: [(name: String, parameters: [String: Any]?)] = []
+
+    func setConsent(analyticsGranted: Bool) {}
+    func setCollectionEnabled(_ enabled: Bool) {}
+    func resetData() {}
+    func setUserProperty(_ value: String?, forName name: String) {}
+    func logEvent(_ name: String, parameters: [String: Any]?) { events.append((name, parameters)) }
+    func setUserID(_ userId: String?) {}
+}
+
+@MainActor
+func makeAnalytics() -> AnalyticsManager {
+    AnalyticsManager(defaults: UserDefaults(suiteName: "FirebaseServiceTests.\(UUID())")!, backend: StubAnalyticsBackend())
+}
 
 /// In-memory Realtime Database tree with Firebase's write semantics: `nil`,
 /// `NSNull` and empty dictionaries delete a node, and emptied parents vanish.
@@ -104,5 +122,5 @@ final class StubDatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
 
 @MainActor
 func makeDatabaseService(_ database: FakeRealtimeDatabase, now: Date = Date(timeIntervalSince1970: 1_000)) -> DatabaseFirebaseService {
-    DatabaseFirebaseService(analyticsManager: .init(defaults: UserDefaults(suiteName: "FirebaseServiceTests.\(UUID())")!), crashLogger: .shared, database: database, now: { now })
+    DatabaseFirebaseService(analyticsManager: makeAnalytics(), crashLogger: .shared, database: database, now: { now })
 }

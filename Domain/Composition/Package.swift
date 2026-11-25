@@ -52,6 +52,7 @@ let package = Package(
                 "SpotifyService",
                 "SwiftDataManager",
                 "Analytics",
+                .product(name: "AnalyticsFirebase", package: "Analytics"),
                 "CoreApp",
                 "Models",
             ],

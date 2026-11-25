@@ -2,6 +2,7 @@ import Foundation
 import AccountRepository
 import AccountUseCases
 import Analytics
+import AnalyticsFirebase
 import AppUseCases
 import ArtistUseCase
 import CoreApp
@@ -48,16 +49,17 @@ public final class Graph {
     public let getSplash: any GetSplashUseCaseProtocol
 
     public init() {
+        CrashLogger.shared.use(FirebaseCrashBackend())
         let userDefaults = UserDefaultsManager(defaults: .standard)
         let keychain = KeychainManager()
-        let analytics = AnalyticsManager(defaults: .standard)
+        let analytics = AnalyticsManager(defaults: .standard, backend: FirebaseAnalyticsBackend())
         let session = SessionManager()
         let players = MusicPlayerManager(userDefaultsManager: userDefaults)
         let swiftData = SwiftDataManager(container: SwiftDataManager.makeContainer(), appleUserIDStore: keychain)
 
         let database = DatabaseFirebaseService(analyticsManager: analytics)
         let auth = AuthFirebaseService(analyticsManager: analytics, databaseService: database, keychainManager: keychain)
-        let musicKit = MusicKitService(analyticsManager: analytics)
+        let musicKit = MusicKitService()
         let spotify = SpotifyService(keychainManager: keychain)
 
         let music = MusicRepository(musicKitService: musicKit, spotifyService: spotify)

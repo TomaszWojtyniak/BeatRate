@@ -12,19 +12,17 @@ import Models
 
 public actor MusicKitService: MusicKitServiceProtocol {
 
-    let analyticsManager: AnalyticsManager
     private let dataSource: any AppleMusicDataSource
 
     private var canPlayAppleMusic: Bool = false
     /// The user's storefront country code, cached for the actor's lifetime.
     private var cachedStorefront: String?
 
-    public init(analyticsManager: AnalyticsManager) {
-        self.init(analyticsManager: analyticsManager, dataSource: MusicKitDataSource())
+    public init() {
+        self.init(dataSource: MusicKitDataSource())
     }
 
-    init(analyticsManager: AnalyticsManager, dataSource: any AppleMusicDataSource) {
-        self.analyticsManager = analyticsManager
+    init(dataSource: any AppleMusicDataSource) {
         self.dataSource = dataSource
     }
 

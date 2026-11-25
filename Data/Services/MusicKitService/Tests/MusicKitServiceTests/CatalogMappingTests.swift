@@ -7,7 +7,7 @@ import Testing
 @MainActor
 struct CatalogMappingTests {
 
-    private var service: MusicKitService { MusicKitService(analyticsManager: .init(defaults: UserDefaults(suiteName: "MusicKitServiceTests.\(UUID())")!), dataSource: StubAppleMusicDataSource()) }
+    private var service: MusicKitService { MusicKitService(dataSource: StubAppleMusicDataSource()) }
 
     private static func decode<T: Decodable>(_ type: T.Type, _ json: String) throws -> T {
         try JSONDecoder().decode(T.self, from: Data(json.utf8))

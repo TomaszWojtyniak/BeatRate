@@ -6,7 +6,7 @@
 //
 
 import SwiftData
-import SwiftUI
+import Foundation
 import Models
 import CoreApp
 import Analytics
@@ -54,7 +54,7 @@ private nonisolated struct NoAppleUserIDStore: AppleUserIDStore {
 
 @Observable
 @MainActor
-public final class SwiftDataManager: ObservableObject, SwiftDataManagerProtocol {
+public final class SwiftDataManager: SwiftDataManagerProtocol {
     public let container: ModelContainer
     private let appleUserIDStore: any AppleUserIDStore
     private let now: @Sendable () -> Date
