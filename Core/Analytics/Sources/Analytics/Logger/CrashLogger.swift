@@ -107,11 +107,12 @@ nonisolated public protocol CrashBackend: Sendable {
 }
 
 /// Until the app installs Crashlytics there is nowhere else to send anything:
-/// `CrashLogger` writes to OSLog itself.
-nonisolated struct NoCrashBackend: CrashBackend {
-    func setCollectionEnabled(_ enabled: Bool) {}
-    func setUserID(_ userId: String?) {}
-    func record(_ error: Error) {}
-    func log(_ message: String) {}
-    func setCustomValue(_ value: String, forKey key: String) {}
+/// `CrashLogger` writes to OSLog itself. The headless CLI keeps it for good.
+nonisolated public struct NoCrashBackend: CrashBackend {
+    public init() {}
+    public func setCollectionEnabled(_ enabled: Bool) {}
+    public func setUserID(_ userId: String?) {}
+    public func record(_ error: Error) {}
+    public func log(_ message: String) {}
+    public func setCustomValue(_ value: String, forKey key: String) {}
 }

@@ -7,7 +7,7 @@ PACKAGES=(Core/Models Core/IntrospectionKit Core/Analytics Core/CoreApp Data/Ser
   Data/Repositories/SearchRepository Data/Repositories/HomeRepository Data/Repositories/LoginRepository
   Data/Repositories/AccountRepository Domain/AppUseCases Domain/ArtistUseCase Domain/HomeUseCases
   Domain/LoginUseCases Domain/SearchUse Domain/AccountUseCases Domain/SettingUseCases Domain/SplashUseCases
-  Domain/Composition)
+  Domain/Composition Tools/BeatRateCLI)
 if [ $# -gt 0 ]; then PACKAGES=("$@"); fi
 # One scratch path for all of them: a .build per package would hold its own ~1 GB Firebase checkout.
 # Keep going past a failing package so one run reports all of them.

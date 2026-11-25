@@ -12,6 +12,14 @@ struct GraphTests {
         #expect(await graph.getApp.isUserLoggedIn() == false)
     }
 
+    @Test func `the splash retries two seconds apart unless the edges say otherwise`() {
+        var edges = Edges.stub()
+        #expect(Graph(edges: edges).retryDelay == .seconds(2))
+
+        edges.retryDelay = .zero
+        #expect(Graph(edges: edges).retryDelay == .zero)
+    }
+
     @Test func `analytics consent stored in the given defaults is respected`() {
         let defaults = UserDefaults(suiteName: FileManager.default.temporaryDirectory.appending(path: "Graph.\(UUID())").path)!
         defaults.set(true, forKey: "analyticsConsent")

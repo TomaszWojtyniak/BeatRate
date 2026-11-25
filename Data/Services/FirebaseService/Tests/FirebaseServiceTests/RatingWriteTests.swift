@@ -1,3 +1,4 @@
+import FirebaseServiceFakes
 import Foundation
 import Testing
 @testable import FirebaseService
@@ -84,7 +85,7 @@ struct RatingWriteTests {
     @Test func `failed stats write fails the rating`() async {
         let database = FakeRealtimeDatabase(failingWrites: ["albums/a/ratingCount"])
 
-        await #expect(throws: StubError.self) {
+        await #expect(throws: FakeDatabaseError.self) {
             try await makeDatabaseService(database).saveUserRating(userId: "u", albumId: "a", rating: 8, albumMetadata: nil)
         }
     }

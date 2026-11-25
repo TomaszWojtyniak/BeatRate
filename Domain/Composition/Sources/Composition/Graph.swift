@@ -46,6 +46,7 @@ public final class Graph {
     public let getSettings: any GetSettingsUseCaseProtocol
     public let setSettings: any SetSettingsUseCaseProtocol
     public let getSplash: any GetSplashUseCaseProtocol
+    public let retryDelay: Duration
 
     public init(edges: Edges) {
         CrashLogger.shared.use(edges.crash)
@@ -73,6 +74,7 @@ public final class Graph {
         let getLogin = GetLoginUseCase(loginRepository: login)
         let setLogin = SetLoginUseCase(loginRepository: login, swiftDataManager: swiftData)
 
+        self.retryDelay = edges.retryDelay
         self.analytics = analytics
         self.session = session
         self.players = players
