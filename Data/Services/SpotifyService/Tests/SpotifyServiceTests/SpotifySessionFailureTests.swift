@@ -6,7 +6,7 @@ struct SpotifySessionFailureTests {
     private let now = Date(timeIntervalSince1970: 2_000_000)
 
     private func session(_ store: StubTokenStore, scripted: [StubTransport.Scripted] = []) -> SpotifySession {
-        SpotifySession(tokenStore: store, transport: StubTransport(scripted: scripted), clientId: "cid")
+        SpotifySession(tokenStore: store, transport: StubTransport(scripted: scripted), clientId: "cid", makePresenter: { nil })
     }
 
     private var staleTokens: SpotifyTokens {

@@ -1,8 +1,79 @@
+import Analytics
+import CoreApp
 import Foundation
 import Models
+import Security
 @testable import FirebaseService
 
 struct StubError: Error {}
+
+/// Records every analytics event instead of sending it to Firebase.
+final class StubAnalyticsBackend: AnalyticsBackend {
+    private(set) var events: [(name: String, parameters: [String: Any]?)] = []
+
+    func setConsent(analyticsGranted: Bool) {}
+    func setCollectionEnabled(_ enabled: Bool) {}
+    func resetData() {}
+    func setUserProperty(_ value: String?, forName name: String) {}
+    func logEvent(_ name: String, parameters: [String: Any]?) { events.append((name, parameters)) }
+    func setUserID(_ userId: String?) {}
+}
+
+@MainActor
+func makeAnalytics(_ backend: StubAnalyticsBackend = StubAnalyticsBackend()) -> AnalyticsManager {
+    AnalyticsManager(defaults: UserDefaults(suiteName: FileManager.default.temporaryDirectory.appending(path: "FirebaseServiceTests.\(UUID())").path)!, backend: backend)
+}
+
+/// Scripted Firebase Auth: canned sign-in result and signed-in user; records what the service asks of it.
+actor StubFirebaseAuth: FirebaseAuthProviding {
+    private let signInResult: FirebaseSignIn
+    private let currentUser: String?
+    private let revokeError: (any Error)?
+    private let signOutError: (any Error)?
+    private(set) var signOutCount = 0
+    private(set) var deleteCount = 0
+    private(set) var revokedCodes: [String] = []
+    private(set) var reauthenticatedTokens: [String] = []
+
+    init(signInResult: FirebaseSignIn = .init(userId: "u1", email: nil, isNewUser: false), currentUser: String? = "u1",
+         revokeError: (any Error)? = nil, signOutError: (any Error)? = nil) {
+        self.signInResult = signInResult
+        self.currentUser = currentUser
+        self.revokeError = revokeError
+        self.signOutError = signOutError
+    }
+
+    func currentUserId() -> String? { currentUser }
+    func signIn(idToken: String, rawNonce: String, fullName: PersonNameComponents?) -> FirebaseSignIn { signInResult }
+
+    func signOut() throws {
+        signOutCount += 1
+        if let signOutError { throw signOutError }
+    }
+
+    func reauthenticate(idToken: String, rawNonce: String, fullName: PersonNameComponents?) {
+        reauthenticatedTokens.append(idToken)
+    }
+
+    func revokeToken(authorizationCode: String) throws {
+        revokedCodes.append(authorizationCode)
+        if let revokeError { throw revokeError }
+    }
+
+    func deleteCurrentUser() { deleteCount += 1 }
+}
+
+/// Keychain that stores nothing; with `failing`, every write and delete fails with `errSecIO`.
+struct StubKeychainBackend: KeychainBackend {
+    let failing: Bool
+
+    private var status: OSStatus { failing ? errSecIO : errSecSuccess }
+
+    func update(_ query: [String: Any], attributes: [String: Any]) -> OSStatus { status }
+    func add(_ attributes: [String: Any]) -> OSStatus { status }
+    func copyMatching(_ query: [String: Any]) -> (OSStatus, AnyObject?) { (errSecItemNotFound, nil) }
+    func delete(_ query: [String: Any]) -> OSStatus { status }
+}
 
 /// In-memory Realtime Database tree with Firebase's write semantics: `nil`,
 /// `NSNull` and empty dictionaries delete a node, and emptied parents vanish.
@@ -104,5 +175,5 @@ final class StubDatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
 
 @MainActor
 func makeDatabaseService(_ database: FakeRealtimeDatabase, now: Date = Date(timeIntervalSince1970: 1_000)) -> DatabaseFirebaseService {
-    DatabaseFirebaseService(analyticsManager: .shared, crashLogger: .shared, database: database, now: { now })
+    DatabaseFirebaseService(crashLogger: .shared, database: database, now: { now })
 }

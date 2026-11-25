@@ -21,7 +21,7 @@ public protocol GetArtistDetailsUseCaseProtocol: Sendable {
 public actor GetArtistDetailsUseCase: GetArtistDetailsUseCaseProtocol {
     private let musicRepository: MusicRepositoryProtocol
 
-    public init(musicRepository: MusicRepositoryProtocol = MusicRepository.shared) {
+    public init(musicRepository: MusicRepositoryProtocol) {
         self.musicRepository = musicRepository
     }
 

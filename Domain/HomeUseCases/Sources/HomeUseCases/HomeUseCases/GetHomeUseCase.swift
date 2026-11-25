@@ -5,7 +5,7 @@
 //  Created by Tomasz Wojtyniak on 30/06/2025.
 //
 
-import SwiftUI
+import Foundation
 import Models
 import HomeRepository
 
@@ -16,7 +16,7 @@ public protocol GetHomeUseCaseProtocol: Sendable {
 public actor GetHomeUseCase: GetHomeUseCaseProtocol {
     private let homeRepository: HomeRepositoryProtocol
     
-    public init(homeRepository: HomeRepositoryProtocol = HomeRepository.shared) {
+    public init(homeRepository: HomeRepositoryProtocol) {
         self.homeRepository = homeRepository
     }
     

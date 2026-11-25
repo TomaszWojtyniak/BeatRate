@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Composition
 import MusicKit
 import CoreUI
 import Analytics
@@ -59,7 +60,7 @@ private struct MusicAccessUnavailableView: View {
                 .textStyle(.body, color: .secondaryText)
         } actions: {
             Button(String(localized: .musicAccessOpenSettings)) {
-                AnalyticsManager.shared.log(.openSystemSettingsTap)
+                Graph.current.analytics.log(.openSystemSettingsTap)
                 guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
                 openURL(url)
             }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Composition
 import SplashUseCases
 import SettingUseCases
 import Analytics
@@ -51,11 +52,11 @@ final class SettingsDataModel {
     /// Drives the footer under the player row; nil means nothing to report.
     var spotifyNotice: String?
 
-    init(getSplashUseCase: GetSplashUseCaseProtocol = GetSplashUseCase(),
-         getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase(),
-         musicPlayerManager: MusicPlayerManager = .shared,
-         analyticsManager: AnalyticsManager = .shared,
-         sessionManager: SessionManager = .shared) {
+    init(getSplashUseCase: GetSplashUseCaseProtocol = Graph.current.getSplash,
+         getSettingsUseCase: GetSettingsUseCaseProtocol = Graph.current.getSettings,
+         musicPlayerManager: MusicPlayerManager = Graph.current.players,
+         analyticsManager: AnalyticsManager = Graph.current.analytics,
+         sessionManager: SessionManager = Graph.current.session) {
         self.getSplashUseCase = getSplashUseCase
         self.getSettingsUseCase = getSettingsUseCase
         self.musicPlayerManager = musicPlayerManager

@@ -15,6 +15,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(path: "../../Domain/Composition"),
         .package(path: "../../Core/Analytics"),
         .package(path: "../../Presentation/Settings"),
         .package(path: "../../Presentation/AlbumDetails"),
@@ -31,6 +32,7 @@ let package = Package(
         .target(
             name: "Account",
             dependencies: [
+                "Composition",
                 "Analytics",
                 "Settings",
                 "AlbumDetails",

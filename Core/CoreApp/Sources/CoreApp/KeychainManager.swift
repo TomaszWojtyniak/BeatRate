@@ -16,11 +16,10 @@ public enum KeychainError: Error {
 }
 
 public actor KeychainManager {
-    public static let shared = KeychainManager()
 
     private let backend: KeychainBackend
 
-    init(backend: KeychainBackend = SecItemKeychainBackend()) {
+    public init(backend: KeychainBackend) {
         self.backend = backend
     }
 
@@ -147,29 +146,31 @@ public actor KeychainManager {
 
 /// The four `SecItem` calls `KeychainManager` makes, so tests can run against
 /// an in-memory store and force the failure statuses.
-nonisolated protocol KeychainBackend: Sendable {
+nonisolated public protocol KeychainBackend: Sendable {
     func update(_ query: [String: Any], attributes: [String: Any]) -> OSStatus
     func add(_ attributes: [String: Any]) -> OSStatus
     func copyMatching(_ query: [String: Any]) -> (OSStatus, AnyObject?)
     func delete(_ query: [String: Any]) -> OSStatus
 }
 
-nonisolated struct SecItemKeychainBackend: KeychainBackend {
-    func update(_ query: [String: Any], attributes: [String: Any]) -> OSStatus {
+nonisolated public struct SecItemKeychainBackend: KeychainBackend {
+    public init() {}
+
+    public func update(_ query: [String: Any], attributes: [String: Any]) -> OSStatus {
         SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
     }
 
-    func add(_ attributes: [String: Any]) -> OSStatus {
+    public func add(_ attributes: [String: Any]) -> OSStatus {
         SecItemAdd(attributes as CFDictionary, nil)
     }
 
-    func copyMatching(_ query: [String: Any]) -> (OSStatus, AnyObject?) {
+    public func copyMatching(_ query: [String: Any]) -> (OSStatus, AnyObject?) {
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         return (status, result)
     }
 
-    func delete(_ query: [String: Any]) -> OSStatus {
+    public func delete(_ query: [String: Any]) -> OSStatus {
         SecItemDelete(query as CFDictionary)
     }
 }

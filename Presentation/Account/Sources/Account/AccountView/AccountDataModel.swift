@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Composition
 import LoginUseCases
 import AccountUseCases
 import CoreApp
@@ -84,12 +85,12 @@ final class AccountDataModel {
         return "?"
     }
 
-    init(getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),
-         setLoginUseCase: SetLoginUseCaseProtocol = SetLoginUseCase(),
-         getAccountUseCase: GetAccountUseCaseProtocol = GetAccountUseCase(),
-         setAccountUseCase: SetAccountUseCaseProtocol = SetAccountUseCase(),
-         musicPlayerManager: MusicPlayerManager = .shared,
-         analyticsManager: AnalyticsManager = .shared) {
+    init(getLoginUseCase: GetLoginUseCaseProtocol = Graph.current.getLogin,
+         setLoginUseCase: SetLoginUseCaseProtocol = Graph.current.setLogin,
+         getAccountUseCase: GetAccountUseCaseProtocol = Graph.current.getAccount,
+         setAccountUseCase: SetAccountUseCaseProtocol = Graph.current.setAccount,
+         musicPlayerManager: MusicPlayerManager = Graph.current.players,
+         analyticsManager: AnalyticsManager = Graph.current.analytics) {
         self.getLoginUseCase = getLoginUseCase
         self.setLoginUseCase = setLoginUseCase
         self.getAccountUseCase = getAccountUseCase

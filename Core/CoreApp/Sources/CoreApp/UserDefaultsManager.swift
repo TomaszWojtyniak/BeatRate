@@ -7,7 +7,6 @@ import Foundation
 import Models
 
 public nonisolated final class UserDefaultsManager: Sendable {
-    public static let shared = UserDefaultsManager()
 
     /// `nonisolated(unsafe)` is sound here on two grounds: `UserDefaults` is documented
     /// thread-safe, and this property is set once during `init` and never reassigned —

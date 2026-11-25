@@ -3,8 +3,6 @@
 //  Analytics
 //
 
-import FirebaseAnalytics
-
 /// Screen names sent as `screen_name` on `screen_view`, and as the `screen`
 /// param on events shared between screens (retry, pull to refresh).
 nonisolated public enum AnalyticsScreen: String, Sendable {
@@ -91,7 +89,7 @@ nonisolated public enum AnalyticsEvent: Sendable {
 
     public var name: String {
         switch self {
-        case .screenView: AnalyticsEventScreenView
+        case .screenView: "screen_view"
         case .tabSelected: "tab_selected"
         case .albumTap: "album_tap"
         case .retryTap: "retry_tap"
@@ -103,7 +101,7 @@ nonisolated public enum AnalyticsEvent: Sendable {
         case .rateLoginRequiredTap: "rate_login_required_tap"
         case .guestSignInTap: "guest_sign_in_tap"
         case .openSystemSettingsTap: "open_system_settings_tap"
-        case .search: AnalyticsEventSearch
+        case .search: "search"
         case .searchScopeChanged: "search_scope_changed"
         case .artistTap: "artist_tap"
         case .recentClearConfirm: "recent_clear_confirm"
@@ -119,8 +117,8 @@ nonisolated public enum AnalyticsEvent: Sendable {
         case .favoritesShareImageTap: "favorites_share_image_tap"
         case .logoutTap: "logout_tap"
         case .deleteAccountConfirm: "delete_account_confirm"
-        case .signUp: AnalyticsEventSignUp
-        case .login: AnalyticsEventLogin
+        case .signUp: "sign_up"
+        case .login: "login"
         case .loginFailed: "login_failed"
         case .logout: "logout"
         case .accountDeleted: "account_deleted"
@@ -134,8 +132,8 @@ nonisolated public enum AnalyticsEvent: Sendable {
             // hosting controller, and GA's default "Pages and screens" report
             // groups by class, so every row read as the same unnamed screen.
             return extra.merging([
-                AnalyticsParameterScreenName: screen.rawValue,
-                AnalyticsParameterScreenClass: screen.rawValue,
+                "screen_name": screen.rawValue,
+                "screen_class": screen.rawValue,
             ]) { $1 }
         case let .tabSelected(tab):
             return ["tab": tab]
@@ -166,7 +164,7 @@ nonisolated public enum AnalyticsEvent: Sendable {
         case let .favoritesSaved(count):
             return ["count": count]
         case .signUp, .login:
-            return [AnalyticsParameterMethod: "apple"]
+            return ["method": "apple"]
         case let .loginFailed(errorType):
             return ["error_type": errorType]
         default:

@@ -8,7 +8,7 @@
 import Foundation
 
 /// Combined catalog search results for albums and artists.
-public struct MusicSearchResults: Hashable, Sendable {
+public struct MusicSearchResults: Hashable, Sendable, Encodable {
     public let albums: [AppleMusicAlbumData]
     public let artists: [AppleMusicArtistData]
 

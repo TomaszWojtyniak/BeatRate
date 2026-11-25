@@ -5,7 +5,7 @@
 //  Created by Tomasz Wojtyniak on 27/05/2025.
 //
 
-import SwiftUI
+import Foundation
 import OSLog
 import Analytics
 import FirebaseService
@@ -26,15 +26,14 @@ public protocol LoginRepositoryProtocol: Sendable {
 }
 
 public actor LoginRepository: LoginRepositoryProtocol {
-    public static let shared = LoginRepository()
 
     let authFirebaseService: AuthFirebaseServiceProtocol
     let databaseFirebaseService: DatabaseFirebaseServiceProtocol
 
     var currentNonce: String?
 
-    init(authFirebaseService: AuthFirebaseServiceProtocol = AuthFirebaseService.shared,
-         databaseFirebaseService: DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared) {
+    public init(authFirebaseService: AuthFirebaseServiceProtocol,
+         databaseFirebaseService: DatabaseFirebaseServiceProtocol) {
         self.authFirebaseService = authFirebaseService
         self.databaseFirebaseService = databaseFirebaseService
     }

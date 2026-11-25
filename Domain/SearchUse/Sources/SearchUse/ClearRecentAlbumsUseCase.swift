@@ -16,7 +16,7 @@ public protocol ClearRecentAlbumsUseCaseProtocol: Sendable {
 public actor ClearRecentAlbumsUseCase: ClearRecentAlbumsUseCaseProtocol {
     private let searchRepository: SearchRepositoryProtocol
 
-    public init(searchRepository: SearchRepositoryProtocol = SearchRepository.shared) {
+    public init(searchRepository: SearchRepositoryProtocol) {
         self.searchRepository = searchRepository
     }
 

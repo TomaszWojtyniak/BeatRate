@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Composition
 import Models
 import HomeUseCases
 import Analytics
@@ -18,8 +19,8 @@ public struct AlbumDetailsContainer: View {
 
     public init(
         albumId: String,
-        getAlbumByIdUseCase: GetAlbumByIdUseCaseProtocol = GetAlbumByIdUseCase(),
-        analyticsManager: AnalyticsManager = .shared
+        getAlbumByIdUseCase: GetAlbumByIdUseCaseProtocol = Graph.current.getAlbumById,
+        analyticsManager: AnalyticsManager = Graph.current.analytics
     ) {
         self._dataModel = State(initialValue: AlbumDetailsContainerDataModel(
             albumId: albumId,

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Composition
 import LoginUseCases
 import Analytics
 import AuthenticationServices
@@ -25,9 +26,9 @@ final class LoginDataModel {
     var errorMessage: String = "An error occurred. Please try again."
     var isLoading: Bool = false
     
-    init(getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),
-         postLoginUseCase: SetLoginUseCaseProtocol = SetLoginUseCase(),
-         analyticsManager: AnalyticsManager = .shared,
+    init(getLoginUseCase: GetLoginUseCaseProtocol = Graph.current.getLogin,
+         postLoginUseCase: SetLoginUseCaseProtocol = Graph.current.setLogin,
+         analyticsManager: AnalyticsManager = Graph.current.analytics,
          crashLogger: CrashLogger = .shared) {
         self.getLoginUseCase = getLoginUseCase
         self.postLoginUseCase = postLoginUseCase

@@ -73,15 +73,16 @@ final class StubHomeRepository: HomeRepositoryProtocol {
 }
 
 /// `SetHomeUseCase` keeps a MusicKit service it never calls; this one only satisfies the init.
+/// The protocol is nonisolated, so each witness says @MainActor or Swift infers it nonisolated.
 @MainActor
 final class StubMusicKitService: MusicKitServiceProtocol {
-    func requestMusicAuthorization() async -> MusicAuthorizationResult { MusicAuthorizationResult(status: .authorized, hasSubscription: true) }
-    func isAuthorized() async -> Bool { true }
-    func isAuthorizationDetermined() async -> Bool { true }
-    func fetchAlbumData(by id: String) async throws -> AppleMusicAlbumData? { nil }
-    func fetchArtistData(byId artistId: String) async throws -> AppleMusicArtistData? { nil }
-    func fetchArtistData(forAlbumId albumId: String) async throws -> AppleMusicArtistData? { nil }
-    func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData] { [] }
-    func search(searchTerm: String) async throws -> MusicSearchResults { .empty }
-    func fetchRecentlyPlayedAlbums() async throws -> [AppleMusicAlbumData] { [] }
+    @MainActor func requestMusicAuthorization() async -> MusicAuthorizationResult { MusicAuthorizationResult(status: .authorized, hasSubscription: true) }
+    @MainActor func isAuthorized() async -> Bool { true }
+    @MainActor func isAuthorizationDetermined() async -> Bool { true }
+    @MainActor func fetchAlbumData(by id: String) async throws -> AppleMusicAlbumData? { nil }
+    @MainActor func fetchArtistData(byId artistId: String) async throws -> AppleMusicArtistData? { nil }
+    @MainActor func fetchArtistData(forAlbumId albumId: String) async throws -> AppleMusicArtistData? { nil }
+    @MainActor func searchAlbums(searchTerm: String) async throws -> [AppleMusicAlbumData] { [] }
+    @MainActor func search(searchTerm: String) async throws -> MusicSearchResults { .empty }
+    @MainActor func fetchRecentlyPlayedAlbums() async throws -> [AppleMusicAlbumData] { [] }
 }

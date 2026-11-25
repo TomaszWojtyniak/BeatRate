@@ -11,13 +11,12 @@ import OSLog
 @Observable
 @MainActor
 public final class MusicPlayerManager {
-    public static let shared = MusicPlayerManager()
 
     public private(set) var current: MusicPlayer?
 
     private let userDefaultsManager: UserDefaultsManager
 
-    public init(userDefaultsManager: UserDefaultsManager = .shared) {
+    public init(userDefaultsManager: UserDefaultsManager) {
         self.userDefaultsManager = userDefaultsManager
     }
 

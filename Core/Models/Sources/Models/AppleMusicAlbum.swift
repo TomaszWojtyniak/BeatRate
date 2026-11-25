@@ -5,7 +5,7 @@
 //  Created by Tomasz Wojtyniak on 28/09/2025.
 //
 
-import SwiftUI
+import Foundation
 
 public struct AppleMusicAlbumData: Codable, Hashable, Identifiable, Sendable {
     public let id: String

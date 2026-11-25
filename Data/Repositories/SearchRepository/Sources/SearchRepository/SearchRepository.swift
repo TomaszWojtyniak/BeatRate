@@ -16,11 +16,10 @@ public protocol SearchRepositoryProtocol: Sendable {
 }
 
 public actor SearchRepository: SearchRepositoryProtocol {
-    public static let shared = SearchRepository()
 
     private let swiftDataManager: SwiftDataManager
 
-    public init(swiftDataManager: SwiftDataManager = .shared) {
+    public init(swiftDataManager: SwiftDataManager) {
         self.swiftDataManager = swiftDataManager
     }
 

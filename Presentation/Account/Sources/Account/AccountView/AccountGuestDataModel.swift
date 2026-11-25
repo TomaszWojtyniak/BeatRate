@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import Composition
 import CoreApp
 import Analytics
 
@@ -15,8 +16,8 @@ final class AccountGuestDataModel {
     let sessionManager: SessionManager
     private let analyticsManager: AnalyticsManager
     
-    init(sessionManager: SessionManager = .shared,
-         analyticsManager: AnalyticsManager = .shared) {
+    init(sessionManager: SessionManager = Graph.current.session,
+         analyticsManager: AnalyticsManager = Graph.current.analytics) {
         self.sessionManager = sessionManager
         self.analyticsManager = analyticsManager
     }

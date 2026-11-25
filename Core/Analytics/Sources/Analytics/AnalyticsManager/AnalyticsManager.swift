@@ -5,13 +5,11 @@
 //  Created by Tomasz Wojtyniak on 28/05/2025.
 //
 
-import FirebaseAnalytics
-import SwiftUI
+import Foundation
 import OSLog
 
 @MainActor
 public final class AnalyticsManager {
-    public static let shared = AnalyticsManager()
     
     // Off until the user opts in: GDPR needs consent before any analytics
     // identifier is stored. Info.plist's FIREBASE_ANALYTICS_COLLECTION_ENABLED
@@ -22,11 +20,7 @@ public final class AnalyticsManager {
     private let defaults: UserDefaults
     private let backend: AnalyticsBackend
 
-    convenience init(defaults: UserDefaults = .standard) {
-        self.init(defaults: defaults, backend: FirebaseAnalyticsBackend())
-    }
-
-    /// Test seam: lets other modules record events instead of sending them.
+    /// The app passes `FirebaseAnalyticsBackend`; tests pass a recording stub.
     public init(defaults: UserDefaults, backend: AnalyticsBackend) {
         self.defaults = defaults
         self.backend = backend
@@ -89,38 +83,4 @@ public protocol AnalyticsBackend {
     func setUserProperty(_ value: String?, forName name: String)
     func logEvent(_ name: String, parameters: [String: Any]?)
     func setUserID(_ userId: String?)
-}
-
-struct FirebaseAnalyticsBackend: AnalyticsBackend {
-    func setConsent(analyticsGranted: Bool) {
-        // BeatRate serves no ads and runs against an EU database, so the three
-        // ad consents stay denied — granting them would put ad-related data
-        // collection on the App Privacy label for data we never collect.
-        Analytics.setConsent([
-          .analyticsStorage: analyticsGranted ? .granted : .denied,
-          .adStorage: .denied,
-          .adUserData: .denied,
-          .adPersonalization: .denied,
-        ])
-    }
-
-    func setCollectionEnabled(_ enabled: Bool) {
-        Analytics.setAnalyticsCollectionEnabled(enabled)
-    }
-
-    func resetData() {
-        Analytics.resetAnalyticsData()
-    }
-
-    func setUserProperty(_ value: String?, forName name: String) {
-        Analytics.setUserProperty(value, forName: name)
-    }
-
-    func logEvent(_ name: String, parameters: [String: Any]?) {
-        Analytics.logEvent(name, parameters: parameters)
-    }
-
-    func setUserID(_ userId: String?) {
-        Analytics.setUserID(userId)
-    }
 }

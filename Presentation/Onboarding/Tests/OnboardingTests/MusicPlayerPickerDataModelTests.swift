@@ -92,7 +92,8 @@ struct MusicPlayerPickerDataModelTests {
     // Settings pushes the picker; onboarding is swapped out by the app instead.
     @Test(arguments: [(MusicPlayerPickerMode.onboarding, false), (.change, true)])
     func `only the settings picker dismisses itself`(mode: MusicPlayerPickerMode, dismisses: Bool) {
-        let model = MusicPlayerPickerDataModel(mode: mode, setSettingsUseCase: useCases, getSettingsUseCase: useCases, musicPlayerManager: player)
+        let model = MusicPlayerPickerDataModel(mode: mode, setSettingsUseCase: useCases, getSettingsUseCase: useCases,
+                                               musicPlayerManager: player, analyticsManager: makeAnalytics().0)
 
         #expect(model.dismissesOnCompletion == dismisses)
     }

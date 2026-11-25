@@ -13,7 +13,7 @@ struct SplashTestHarness {
     let cache = StubSwiftDataManager()
     let loginUseCases = StubLoginUseCases()
     let session = SessionManager()
-    let defaults = UserDefaultsManager(defaults: UserDefaults(suiteName: "SplashUseCasesTests.\(UUID())")!)
+    let defaults = UserDefaultsManager(defaults: UserDefaults(suiteName: FileManager.default.temporaryDirectory.appending(path: "SplashUseCasesTests.\(UUID())").path)!)
     let player: MusicPlayerManager
     let keychain: StubAppleCredentialStore
     let useCase: GetSplashUseCase

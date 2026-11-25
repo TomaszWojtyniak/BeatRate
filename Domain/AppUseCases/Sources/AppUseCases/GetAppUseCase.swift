@@ -19,7 +19,7 @@ public protocol GetAppUseCaseProtocol: Sendable {
 public actor GetAppUseCase: GetAppUseCaseProtocol {
     let swiftDataManager: SwiftDataManagerProtocol
 
-    public init(swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared) {
+    public init(swiftDataManager: SwiftDataManagerProtocol) {
         self.swiftDataManager = swiftDataManager
     }
 
