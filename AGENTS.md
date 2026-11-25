@@ -22,6 +22,12 @@ Usage notes:
 <available_skills>
 
 <skill>
+<name>reflex</name>
+<description>Use when exploring, testing or changing BeatRate's Reflex screens — run the headless app (./cli, ls/do), add fixtures, migrate a DataModel to a view model with an introspection node, write behavior journeys, or drive the Debug app over localhost:7777.</description>
+<location>project</location>
+</skill>
+
+<skill>
 <name>swift-concurrency</name>
 <description>'Expert guidance on Swift Concurrency best practices, patterns, and implementation. Use when developers mention: (1) Swift Concurrency, async/await, actors, or tasks, (2) "use Swift Concurrency" or "modern concurrency patterns", (3) migrating to Swift 6, (4) data races or thread safety issues, (5) refactoring closures to async/await, (6) @MainActor, Sendable, or actor isolation, (7) concurrent code architecture or performance optimization.'</description>
 <location>project</location>

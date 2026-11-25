@@ -75,13 +75,14 @@ public struct Fixtures {
         }
     }
 
+    /// `null` removes a key — also deep inside an object no earlier file had.
     private static func merge(_ base: [String: Any], _ override: [String: Any]) -> [String: Any] {
         var merged = base
         for (key, new) in override {
             if new is NSNull {
                 merged[key] = nil
-            } else if let old = merged[key] as? [String: Any], let new = new as? [String: Any] {
-                merged[key] = merge(old, new)
+            } else if let new = new as? [String: Any] {
+                merged[key] = merge(merged[key] as? [String: Any] ?? [:], new)
             } else {
                 merged[key] = new
             }

@@ -11,34 +11,33 @@
 		3F823839C9342738B0354F68 /* CompositionLive in Frameworks */ = {isa = PBXBuildFile; productRef = E892A2244BD399BBA2DB0336 /* CompositionLive */; };
 		50CDBB6F0606DAE4A6467399 /* Composition in Frameworks */ = {isa = PBXBuildFile; productRef = 5897333DE1D73784FDC2E509 /* Composition */; };
 		50CDBB6F0606DAE4A646739A /* CompositionLive in Frameworks */ = {isa = PBXBuildFile; productRef = 5897333DE1D73784FDC2E50A /* CompositionLive */; };
+		5243904A9D18B8F1B9A07AB3 /* SplashUI in Frameworks */ = {isa = PBXBuildFile; productRef = 7BEC2C47293A36ABB0F92F07 /* SplashUI */; };
+		82CFA5100129A3FCD5AA6B69 /* AppRoot in Frameworks */ = {isa = PBXBuildFile; productRef = 5B4C85E564B0F67AEBC00738 /* AppRoot */; };
 		8B1AAAB92E736F4B001D9BC1 /* SwiftDataManager in Frameworks */ = {isa = PBXBuildFile; productRef = 8B1AAAB82E736F4B001D9BC1 /* SwiftDataManager */; };
 		8B1AAABB2E736F51001D9BC1 /* SwiftDataManager in Frameworks */ = {isa = PBXBuildFile; productRef = 8B1AAABA2E736F51001D9BC1 /* SwiftDataManager */; };
 		8B1AAABF2E737978001D9BC1 /* Splash in Frameworks */ = {isa = PBXBuildFile; productRef = 8B1AAABE2E737978001D9BC1 /* Splash */; };
-		C3A021D91E166E0F3E2B104F /* SplashUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9F28FA577035ED6E2F415BBB /* SplashUI */; };
 		8B1AAAC12E73797D001D9BC1 /* Splash in Frameworks */ = {isa = PBXBuildFile; productRef = 8B1AAAC02E73797D001D9BC1 /* Splash */; };
-		5243904A9D18B8F1B9A07AB3 /* SplashUI in Frameworks */ = {isa = PBXBuildFile; productRef = 7BEC2C47293A36ABB0F92F07 /* SplashUI */; };
 		8B567DD62E79D15B007D0AA7 /* AppUseCases in Frameworks */ = {isa = PBXBuildFile; productRef = 8B567DD52E79D15B007D0AA7 /* AppUseCases */; };
 		8B567DD82E79D162007D0AA7 /* AppUseCases in Frameworks */ = {isa = PBXBuildFile; productRef = 8B567DD72E79D162007D0AA7 /* AppUseCases */; };
 		8B7266D82DE7383800681754 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266D72DE7383800681754 /* FirebaseCore */; };
 		8B7266DA2DE7384400681754 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266D92DE7384400681754 /* FirebaseCore */; };
 		8B7266E62DE7460100681754 /* Analytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266E52DE7460100681754 /* Analytics */; };
 		8B7266E82DE7464700681754 /* Analytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8B7266E72DE7464700681754 /* Analytics */; };
+		8B7ECDC7AACAA7684D8153CB /* AppRootUI in Frameworks */ = {isa = PBXBuildFile; productRef = 13B284A4C900F610F2C19C3E /* AppRootUI */; };
 		8B9E2E2D2DF99A4900D96333 /* Models in Frameworks */ = {isa = PBXBuildFile; productRef = 8B9E2E2C2DF99A4900D96333 /* Models */; };
 		8B9E2E2F2DF99A4E00D96333 /* Models in Frameworks */ = {isa = PBXBuildFile; productRef = 8B9E2E2E2DF99A4E00D96333 /* Models */; };
 		8BED088B2DE100BC00838DD7 /* TabBar in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED088A2DE100BC00838DD7 /* TabBar */; };
 		8BED088D2DE1031900838DD7 /* Login in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED088C2DE1031900838DD7 /* Login */; };
 		8BED089C2DE645E800838DD7 /* Login in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED089B2DE645E800838DD7 /* Login */; };
 		8BED089E2DE645EE00838DD7 /* TabBar in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED089D2DE645EE00838DD7 /* TabBar */; };
+		A599D60460F861AB9A131139 /* AppRootUI in Frameworks */ = {isa = PBXBuildFile; productRef = 5CB495D27BE0413BA0543174 /* AppRootUI */; };
+		C3A021D91E166E0F3E2B104F /* SplashUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9F28FA577035ED6E2F415BBB /* SplashUI */; };
+		D162B4355C824683D308B48A /* IntrospectionKit in Frameworks */ = {isa = PBXBuildFile; productRef = 41E32D2D6302105B1CD09D2B /* IntrospectionKit */; };
+		EF79F950617FFE2A70BC35E9 /* IntrospectionKit in Frameworks */ = {isa = PBXBuildFile; productRef = 388EE5A2F1892434D2EBD870 /* IntrospectionKit */; };
+		F82E34581132B28011447F04 /* AppRoot in Frameworks */ = {isa = PBXBuildFile; productRef = F4C8A9683CB8C386885B5962 /* AppRoot */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		8B0196D1308C012700D96609 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 8BED07E62DE0D68300838DD7 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 8BED083F2DE0DBFB00838DD7;
-			remoteInfo = "BeatRate Development";
-		};
 		8BED07FC2DE0D68500838DD7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 8BED07E62DE0D68300838DD7 /* Project object */;
@@ -49,7 +48,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		8B0196CD308C012700D96609 /* BeatRateDevelopmentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BeatRateDevelopmentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B7268072DEC8C0500681754 /* ci_post_xcodebuild.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = ci_post_xcodebuild.sh; sourceTree = "<group>"; };
 		8BED07EE2DE0D68300838DD7 /* BeatRate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeatRate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BED07FB2DE0D68500838DD7 /* BeatRateTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BeatRateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -57,13 +55,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		8B0196D9308C029400D96609 /* Exceptions for "App" folder in "BeatRateDevelopmentTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Development/BeatRateDevelopmentTests/BeatRateDevelopmentTests.swift,
-			);
-			target = 8B0196CC308C012700D96609 /* BeatRateDevelopmentTests */;
-		};
 		8B3D62CF30B7107E00970F2A /* Exceptions for "Tools" folder in "BeatRate" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -105,7 +96,6 @@
 			membershipExceptions = (
 				"Development/BeatRate-Development-Info.plist",
 				Development/BeatRateDevelopmentTestPlan.xctestplan,
-				Development/BeatRateDevelopmentTests/BeatRateDevelopmentTests.swift,
 				"Development/GoogleService-Info.plist",
 				Development/InfoPlist.xcstrings,
 			);
@@ -116,7 +106,6 @@
 			membershipExceptions = (
 				"Development/BeatRate-Development-Info.plist",
 				Development/BeatRateDevelopmentTestPlan.xctestplan,
-				Development/BeatRateDevelopmentTests/BeatRateDevelopmentTests.swift,
 				Production/BeatRateTestPlan.xctestplan,
 				"Production/GoogleService-Info.plist",
 				Production/InfoPlist.xcstrings,
@@ -228,7 +217,6 @@
 			exceptions = (
 				8BED086B2DE0F71D00838DD7 /* Exceptions for "App" folder in "BeatRate" target */,
 				8BED086C2DE0F71D00838DD7 /* Exceptions for "App" folder in "BeatRate Development" target */,
-				8B0196D9308C029400D96609 /* Exceptions for "App" folder in "BeatRateDevelopmentTests" target */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -272,13 +260,6 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		8B0196CA308C012700D96609 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		8BED07EB2DE0D68300838DD7 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -293,6 +274,9 @@
 				8B7266DA2DE7384400681754 /* FirebaseCore in Frameworks */,
 				8BED089C2DE645E800838DD7 /* Login in Frameworks */,
 				3F823839C9342738B0354F67 /* Composition in Frameworks */,
+				D162B4355C824683D308B48A /* IntrospectionKit in Frameworks */,
+				A599D60460F861AB9A131139 /* AppRootUI in Frameworks */,
+				F82E34581132B28011447F04 /* AppRoot in Frameworks */,
 				3F823839C9342738B0354F68 /* CompositionLive in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -318,6 +302,9 @@
 				8B7266D82DE7383800681754 /* FirebaseCore in Frameworks */,
 				8BED088B2DE100BC00838DD7 /* TabBar in Frameworks */,
 				50CDBB6F0606DAE4A6467399 /* Composition in Frameworks */,
+				EF79F950617FFE2A70BC35E9 /* IntrospectionKit in Frameworks */,
+				8B7ECDC7AACAA7684D8153CB /* AppRootUI in Frameworks */,
+				82CFA5100129A3FCD5AA6B69 /* AppRoot in Frameworks */,
 				50CDBB6F0606DAE4A646739A /* CompositionLive in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -361,7 +348,6 @@
 				8BED07EE2DE0D68300838DD7 /* BeatRate.app */,
 				8BED07FB2DE0D68500838DD7 /* BeatRateTests.xctest */,
 				8BED08462DE0DBFB00838DD7 /* BeatRate Development.app */,
-				8B0196CD308C012700D96609 /* BeatRateDevelopmentTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -369,26 +355,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		8B0196CC308C012700D96609 /* BeatRateDevelopmentTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 8B0196D3308C012700D96609 /* Build configuration list for PBXNativeTarget "BeatRateDevelopmentTests" */;
-			buildPhases = (
-				8B0196C9308C012700D96609 /* Sources */,
-				8B0196CA308C012700D96609 /* Frameworks */,
-				8B0196CB308C012700D96609 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				8B0196D2308C012700D96609 /* PBXTargetDependency */,
-			);
-			name = BeatRateDevelopmentTests;
-			packageProductDependencies = (
-			);
-			productName = BeatRateDevelopmentTests;
-			productReference = 8B0196CD308C012700D96609 /* BeatRateDevelopmentTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 		8BED07ED2DE0D68300838DD7 /* BeatRate */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 8BED080F2DE0D68500838DD7 /* Build configuration list for PBXNativeTarget "BeatRate" */;
@@ -422,6 +388,9 @@
 				9F28FA577035ED6E2F415BBB /* SplashUI */,
 				8B567DD72E79D162007D0AA7 /* AppUseCases */,
 				E892A2244BD399BBA2DB0335 /* Composition */,
+				41E32D2D6302105B1CD09D2B /* IntrospectionKit */,
+				5CB495D27BE0413BA0543174 /* AppRootUI */,
+				F4C8A9683CB8C386885B5962 /* AppRoot */,
 				E892A2244BD399BBA2DB0336 /* CompositionLive */,
 			);
 			productName = BeatRate;
@@ -481,6 +450,9 @@
 				7BEC2C47293A36ABB0F92F07 /* SplashUI */,
 				8B567DD52E79D15B007D0AA7 /* AppUseCases */,
 				5897333DE1D73784FDC2E509 /* Composition */,
+				388EE5A2F1892434D2EBD870 /* IntrospectionKit */,
+				13B284A4C900F610F2C19C3E /* AppRootUI */,
+				5B4C85E564B0F67AEBC00738 /* AppRoot */,
 				5897333DE1D73784FDC2E50A /* CompositionLive */,
 			);
 			productName = BeatRate;
@@ -497,10 +469,6 @@
 				LastSwiftUpdateCheck = 2710;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
-					8B0196CC308C012700D96609 = {
-						CreatedOnToolsVersion = 27.1;
-						TestTargetID = 8BED083F2DE0DBFB00838DD7;
-					};
 					8BED07ED2DE0D68300838DD7 = {
 						CreatedOnToolsVersion = 16.3;
 					};
@@ -531,19 +499,11 @@
 				8BED07ED2DE0D68300838DD7 /* BeatRate */,
 				8BED083F2DE0DBFB00838DD7 /* BeatRate Development */,
 				8BED07FA2DE0D68500838DD7 /* BeatRateTests */,
-				8B0196CC308C012700D96609 /* BeatRateDevelopmentTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		8B0196CB308C012700D96609 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		8BED07EC2DE0D68300838DD7 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -619,13 +579,6 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		8B0196C9308C012700D96609 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		8BED07EA2DE0D68300838DD7 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -650,11 +603,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		8B0196D2308C012700D96609 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
-			targetProxy = 8B0196D1308C012700D96609 /* PBXContainerItemProxy */;
-		};
 		8BED07FD2DE0D68500838DD7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
@@ -663,54 +611,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		8B0196D4308C012700D96609 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 969V354CHJ;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = tomasz.wojtyniak.beat.rate.development.BeatRateDevelopmentTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BeatRate Development.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BeatRate Development";
-			};
-			name = Debug;
-		};
-		8B0196D5308C012700D96609 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 969V354CHJ;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = tomasz.wojtyniak.beat.rate.development.BeatRateDevelopmentTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BeatRate Development.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BeatRate Development";
-			};
-			name = Release;
-		};
 		8BED080D2DE0D68500838DD7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1116,15 +1016,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		8B0196D3308C012700D96609 /* Build configuration list for PBXNativeTarget "BeatRateDevelopmentTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				8B0196D4308C012700D96609 /* Debug */,
-				8B0196D5308C012700D96609 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		8BED07E92DE0D68300838DD7 /* Build configuration list for PBXProject "BeatRate" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -1175,6 +1066,18 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		13B284A4C900F610F2C19C3E /* AppRootUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AppRootUI;
+		};
+		388EE5A2F1892434D2EBD870 /* IntrospectionKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = IntrospectionKit;
+		};
+		41E32D2D6302105B1CD09D2B /* IntrospectionKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = IntrospectionKit;
+		};
 		5897333DE1D73784FDC2E509 /* Composition */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Composition;
@@ -1182,6 +1085,18 @@
 		5897333DE1D73784FDC2E50A /* CompositionLive */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = CompositionLive;
+		};
+		5B4C85E564B0F67AEBC00738 /* AppRoot */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AppRoot;
+		};
+		5CB495D27BE0413BA0543174 /* AppRootUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AppRootUI;
+		};
+		7BEC2C47293A36ABB0F92F07 /* SplashUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SplashUI;
 		};
 		8B1AAAB82E736F4B001D9BC1 /* SwiftDataManager */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1195,17 +1110,9 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = Splash;
 		};
-		9F28FA577035ED6E2F415BBB /* SplashUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = SplashUI;
-		};
 		8B1AAAC02E73797D001D9BC1 /* Splash */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Splash;
-		};
-		7BEC2C47293A36ABB0F92F07 /* SplashUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = SplashUI;
 		};
 		8B567DD52E79D15B007D0AA7 /* AppUseCases */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1257,6 +1164,10 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = TabBar;
 		};
+		9F28FA577035ED6E2F415BBB /* SplashUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SplashUI;
+		};
 		E892A2244BD399BBA2DB0335 /* Composition */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Composition;
@@ -1264,6 +1175,10 @@
 		E892A2244BD399BBA2DB0336 /* CompositionLive */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = CompositionLive;
+		};
+		F4C8A9683CB8C386885B5962 /* AppRoot */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AppRoot;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

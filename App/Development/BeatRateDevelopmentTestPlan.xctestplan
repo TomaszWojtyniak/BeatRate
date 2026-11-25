@@ -243,13 +243,6 @@
         "identifier" : "AlbumDetailsTests",
         "name" : "AlbumDetailsTests"
       }
-    },
-    {
-      "target" : {
-        "containerPath" : "container:BeatRate.xcodeproj",
-        "identifier" : "8B0196CC308C012700D96609",
-        "name" : "BeatRateDevelopmentTests"
-      }
     }
   ],
   "version" : 1

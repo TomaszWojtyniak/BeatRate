@@ -24,6 +24,14 @@ struct FixturesTests {
         #expect(merged.value(at: "db/albums/2/title") as? String == "B")
     }
 
+    @Test func `a null with nothing under it to remove is simply absent`() async throws {
+        let merged = try fixtures(#"{"music":{"albums":{"1":null}},"device":{"defaults":{"x":null}}}"#)
+
+        #expect(merged.value(at: "music/albums") as? [String: Any] != nil)
+        #expect(merged.value(at: "music/albums/1") == nil)
+        _ = try await Edges.fixtures(merged)
+    }
+
     @Test(arguments: [
         (#"{"http":{}}"#, "http"),
         (#"{"device":{"appleIdState":"revoked"}}"#, "device/appleIdState"),

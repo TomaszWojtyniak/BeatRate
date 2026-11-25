@@ -1,0 +1,61 @@
+//
+//  CLI.swift
+//  BeatRateCLI
+//
+
+import AppRoot
+import BeatRateFixtures
+import Composition
+import Foundation
+import IntrospectionKit
+
+/// The headless host: the app's root on fixtures, one command per stdin line, one
+/// answer per stdout line. Adapted from ReflexArchitecture_iOS @ befa64a.
+@main
+enum CLI {
+    static func main() async throws {
+        let arguments = Array(CommandLine.arguments.dropFirst())
+        guard arguments.first == "--fixtures", arguments.count > 1 else {
+            fail("usage: beatrate-cli --fixtures <file.json>...", code: 64)
+        }
+        let edges: Edges
+        do {
+            edges = try await .fixtures(try Fixtures.load(Array(arguments.dropFirst())))
+        } catch {
+            fail("cannot load fixtures: \(error)", code: 66)
+        }
+
+        NetworkGuard.install()
+        let session = IntrospectionSession(root: BeatRateApp(edges: edges))
+        // Async reading lets effects (the view models' Tasks) run between commands, but only
+        // while it waits for input: piped lines arrive at once, so `wait <ms>` gives them time.
+        for try await line in FileHandle.standardInput.bytes.lines
+        where !line.trimmingCharacters(in: .whitespaces).isEmpty {
+            let answer: String
+            if let milliseconds = waitMilliseconds(line) {
+                try await Task.sleep(for: .milliseconds(milliseconds))
+                answer = "ok"
+            } else {
+                answer = session.handle(line)
+            }
+            let violations = NetworkGuard.violations
+            if !violations.isEmpty {
+                fail(violations.map { "network violation: \($0)" }.joined(separator: "\n"), code: 3)
+            }
+            // Unbuffered on purpose: a piped stdout would otherwise hold answers back.
+            FileHandle.standardOutput.write(Data((answer + "\n").utf8))
+        }
+    }
+
+    /// `wait 300` → 300; any other line is a session command.
+    static func waitMilliseconds(_ line: String) -> Int? {
+        let parts = line.split(separator: " ")
+        guard parts.count == 2, parts[0] == "wait" else { return nil }
+        return Int(parts[1])
+    }
+
+    static func fail(_ message: String, code: Int32) -> Never {
+        FileHandle.standardError.write(Data((message + "\n").utf8))
+        exit(code)
+    }
+}

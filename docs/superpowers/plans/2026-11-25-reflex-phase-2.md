@@ -518,4 +518,19 @@ Decyzję GO/NO-GO podejmuje użytkownik na podstawie tej tabeli.
 
 ## Wyniki fazy 2
 
-_(do uzupełnienia)_
+Pomiary z 25.11.2026, gałąź `task/reflex-app-root`.
+
+| Kryterium | Próg | Wynik |
+| --- | --- | --- |
+| Podróże startu bez UI | 8/8 zielone | 8/8 (plus test SDK); najdłuższa 0,98 s (trzy ponowienia po 300 ms), pozostałe 29–116 ms |
+| Te same akcje przez `nc` | ekran podąża | tak: `do Continue`, `do DenyAnalytics` i `do dismiss` zmieniły ekran na symulatorze |
+| `./test` po zmianie jednego pliku | ≤ 30 s | 20,05 s (`./test Presentation/Splash` po dopisaniu jednej linii: testy pakietu, strażnik, build CLI, 9 podróży) |
+| Koszt ekranu | czas i linie Splash, ekstrapolacja × 12 | ok. 16 min na ekran z dwoma przebiegami planu testów; logika 202 → 185 linii, widok 65 → 43, testy 123 → 189; ekstrapolacja ok. 2 h pracy agenta na pozostałe DataModele plus QA użytkownika |
+| Regresje w testach Swift | 0 | 0; 16 testów `AppDataModel` zastąpionych 16 testami `AppNavigator`, 14 testów `SplashDataModel` → 19 testów `SplashViewModel` |
+| QA palcem | start gościa, odmowa MusicKit, logowanie i restart na iPhonie | do zrobienia przed PR-em fazy |
+
+Znaleziska po drodze:
+
+- Pułapka exclusivity: callback do rodzica wołany wewnątrz `update` (rodzic przerysowuje się w `withAnimation` i czyta stan w trakcie zapisu) wywraca aplikację przy starcie. Zasada w CLAUDE.md i skillu `reflex`: callbacki tylko z efektu.
+- Korzeń powstaje przed `didFinishLaunching`, więc `Graph` od razu stosuje zapisaną zgodę na analitykę; inaczej `screen_view` splasha przepadał.
+- Odbudowa zgubionego wiersza logowania w trakcie splasha nie ustawia `userId` do następnego startu. To zachowanie sprzed migracji, zostawione bez zmian.

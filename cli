@@ -1,0 +1,7 @@
+#!/bin/sh
+# The app without UI: its root on fixtures, ls/do on stdin. Without arguments: a fresh guest on the sample catalog.
+set -e
+cd "$(dirname "$0")"
+swift build -q --package-path Tools/BeatRateCLI --scratch-path .build/logic --product beatrate-cli >&2
+[ $# -eq 0 ] && set -- behavior/fixtures/device.guest.json behavior/fixtures/catalog.discovery.json
+exec "$(swift build --package-path Tools/BeatRateCLI --scratch-path .build/logic --show-bin-path)/beatrate-cli" --fixtures "$@"

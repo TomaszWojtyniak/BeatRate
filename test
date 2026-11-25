@@ -1,5 +1,5 @@
 #!/bin/bash
-# Logic packages on macOS, then the architecture guard. `./test Core/Models` runs one package.
+# Logic packages on macOS, the architecture guard, then the behavior journeys. `./test Core/Models` runs one package.
 set -euo pipefail
 cd "$(dirname "$0")"
 PACKAGES=(Core/Models Core/IntrospectionKit Core/Analytics Core/CoreApp Data/Services/SwiftDataManager Data/Services/FirebaseService
@@ -7,7 +7,7 @@ PACKAGES=(Core/Models Core/IntrospectionKit Core/Analytics Core/CoreApp Data/Ser
   Data/Repositories/SearchRepository Data/Repositories/HomeRepository Data/Repositories/LoginRepository
   Data/Repositories/AccountRepository Domain/AppUseCases Domain/ArtistUseCase Domain/HomeUseCases
   Domain/LoginUseCases Domain/SearchUse Domain/AccountUseCases Domain/SettingUseCases Domain/SplashUseCases
-  Domain/Composition Presentation/Splash Tools/BeatRateCLI)
+  Domain/Composition Presentation/Splash Presentation/AppRoot Tools/BeatRateCLI)
 if [ $# -gt 0 ]; then PACKAGES=("$@"); fi
 # One scratch path for all of them: a .build per package would hold its own ~1 GB Firebase checkout.
 # Keep going past a failing package so one run reports all of them.
@@ -19,12 +19,14 @@ done
 # SDK and UI imports belong in …Live and …UI targets and App/ only: the logic must keep building headless.
 # A guarded path that does not exist fails too, so a typo cannot switch the guard off.
 GUARDED=(Core/Models/Sources Core/IntrospectionKit/Sources Core/CoreApp/Sources Core/Analytics/Sources/Analytics
-  Data/*/*/Sources Domain/*/Sources Presentation/Splash/Sources Tools/*/Sources)
+  Data/*/*/Sources Domain/*/Sources Presentation/Splash/Sources Presentation/AppRoot/Sources Tools/*/Sources)
 for dir in "${GUARDED[@]}"; do [ -d "$dir" ] || { echo "import guard: no such directory $dir"; failed+=("import guard"); }; done
 leaks=$(grep -rnE '^(@preconcurrency |@_exported )?import ((struct|class|enum|protocol|func) )?(SwiftUI|UIKit|MusicKit|Firebase(Core|Auth|Database|Analytics|Crashlytics))(\.| *$)' \
   "${GUARDED[@]}" 2>/dev/null | grep -vE '/Sources/[A-Za-z]*(Live|UI)/' || true)
 [ -z "$leaks" ] || { echo "SDK or UI import in logic:"; echo "$leaks"; failed+=("import guard"); }
-# Behavior tests: user journeys against the headless CLI, zero network.
+# Behavior tests: user journeys against the headless CLI, zero network. Built every run,
+# so a change to any logic package reaches the journeys.
+swift build -q --package-path Tools/BeatRateCLI --scratch-path .build/logic --product beatrate-cli || failed+=("beatrate-cli")
 # node passes on a glob that matches nothing, so an empty or moved behavior/ must fail here.
 if compgen -G 'behavior/*.test.mjs' >/dev/null; then
   node --test 'behavior/*.test.mjs' || failed+=("behavior")

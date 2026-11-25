@@ -8,11 +8,14 @@ import Analytics
 import OSLog
 
 /// Why the login prompt was raised. Drives the sheet's headline copy.
-public enum LoginPromptReason: Sendable {
+public enum LoginPromptReason: String, Sendable, Encodable, Identifiable {
     /// The guest opened the locked Account tab.
     case account
     /// The guest tried to rate an album.
     case rating
+
+    /// One sheet per reason, so the sheet keeps its copy while it animates out.
+    public var id: Self { self }
 }
 
 /// App-wide, synchronously-readable session state.

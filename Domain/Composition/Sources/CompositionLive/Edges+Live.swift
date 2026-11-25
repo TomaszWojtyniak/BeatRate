@@ -15,9 +15,11 @@ import SpotifyServiceLive
 import SwiftDataManager
 
 public extension Edges {
-    /// The real SDKs and system stores the app runs on.
+    /// The real SDKs and system stores the app runs on. Configures Firebase first:
+    /// the root is built before `didFinishLaunching` and reads the database at once.
     static func live() -> Edges {
-        Edges(
+        FirebaseSetup.configure(databaseURL: AppEnvironment.current.firebaseDatabaseUrl)
+        return Edges(
             database: FirebaseRealtimeDatabase(url: AppEnvironment.current.firebaseDatabaseUrl),
             firebaseAuth: FirebaseAuthProvider(),
             musicKit: MusicKitService(),
