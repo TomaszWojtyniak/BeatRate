@@ -26,15 +26,14 @@ public protocol LoginRepositoryProtocol: Sendable {
 }
 
 public actor LoginRepository: LoginRepositoryProtocol {
-    public static let shared = LoginRepository()
 
     let authFirebaseService: AuthFirebaseServiceProtocol
     let databaseFirebaseService: DatabaseFirebaseServiceProtocol
 
     var currentNonce: String?
 
-    init(authFirebaseService: AuthFirebaseServiceProtocol = AuthFirebaseService.shared,
-         databaseFirebaseService: DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared) {
+    public init(authFirebaseService: AuthFirebaseServiceProtocol,
+         databaseFirebaseService: DatabaseFirebaseServiceProtocol) {
         self.authFirebaseService = authFirebaseService
         self.databaseFirebaseService = databaseFirebaseService
     }

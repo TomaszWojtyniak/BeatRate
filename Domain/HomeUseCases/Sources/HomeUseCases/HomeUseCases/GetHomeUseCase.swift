@@ -16,7 +16,7 @@ public protocol GetHomeUseCaseProtocol: Sendable {
 public actor GetHomeUseCase: GetHomeUseCaseProtocol {
     private let homeRepository: HomeRepositoryProtocol
     
-    public init(homeRepository: HomeRepositoryProtocol = HomeRepository.shared) {
+    public init(homeRepository: HomeRepositoryProtocol) {
         self.homeRepository = homeRepository
     }
     

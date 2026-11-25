@@ -28,13 +28,12 @@ public protocol DatabaseFirebaseServiceProtocol: Sendable {
 }
 
 public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
-    public static let shared = DatabaseFirebaseService()
     let analyticsManager: AnalyticsManager
     let crashLogger: CrashLogger
     private let database: any RealtimeDatabase
     private let now: @Sendable () -> Date
 
-    private init(analyticsManager: AnalyticsManager = .shared,
+    public init(analyticsManager: AnalyticsManager,
                  crashLogger: CrashLogger = .shared) {
         self.init(
             analyticsManager: analyticsManager,

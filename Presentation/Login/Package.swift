@@ -14,6 +14,7 @@ let package = Package(
             targets: ["Login"]),
     ],
     dependencies: [
+        .package(path: "../../Domain/Composition"),
         .package(path: "../../Domain/LoginUseCases"),
         .package(path: "../../Core/Analytics"),
         .package(path: "../../Core/CoreUI"),
@@ -25,6 +26,7 @@ let package = Package(
         .target(
             name: "Login",
             dependencies: [
+                "Composition",
                 "LoginUseCases",
                 "Analytics",
                 "CoreUI",

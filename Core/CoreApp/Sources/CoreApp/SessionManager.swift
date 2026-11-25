@@ -30,7 +30,6 @@ public enum LoginPromptReason: Sendable {
 @Observable
 @MainActor
 public final class SessionManager {
-    public static let shared = SessionManager()
 
     /// Last known login state. `false` means guest — the app's default on a
     /// fresh install.

@@ -6,6 +6,7 @@
 //'
 
 import SwiftUI
+import Composition
 import Analytics
 import OSLog
 import AppUseCases
@@ -49,11 +50,11 @@ class AppDataModel {
         sessionManager.loginPromptReason
     }
 
-    init(analyticsManager: AnalyticsManager = .shared,
+    init(analyticsManager: AnalyticsManager = Graph.current.analytics,
          crashLogger: CrashLogger = .shared,
-         sessionManager: SessionManager = .shared,
-         musicPlayerManager: MusicPlayerManager = .shared,
-         getAppUseCase: GetAppUseCaseProtocol = GetAppUseCase()) {
+         sessionManager: SessionManager = Graph.current.session,
+         musicPlayerManager: MusicPlayerManager = Graph.current.players,
+         getAppUseCase: GetAppUseCaseProtocol = Graph.current.getApp) {
         self.musicPlayerManager = musicPlayerManager
         self.analyticsManager = analyticsManager
         self.crashLogger = crashLogger

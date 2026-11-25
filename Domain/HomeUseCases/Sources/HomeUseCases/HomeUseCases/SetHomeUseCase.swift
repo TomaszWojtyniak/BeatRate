@@ -18,8 +18,8 @@ public actor SetHomeUseCase: SetHomeUseCaseProtocol {
     private let musicKitService: MusicKitServiceProtocol
     private let swiftDataManager: SwiftDataManagerProtocol
     
-    public init(musicKitService: MusicKitServiceProtocol = MusicKitService.shared,
-                swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared) {
+    public init(musicKitService: MusicKitServiceProtocol,
+                swiftDataManager: SwiftDataManagerProtocol) {
         self.musicKitService = musicKitService
         self.swiftDataManager = swiftDataManager
     }

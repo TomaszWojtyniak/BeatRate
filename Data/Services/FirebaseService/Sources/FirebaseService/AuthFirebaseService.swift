@@ -28,16 +28,15 @@ public protocol AuthFirebaseServiceProtocol: Sendable {
 }
 
 public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
-    public static let shared = AuthFirebaseService()
     let analyticsManager: AnalyticsManager
     let crashLogger: CrashLogger
     let databaseService: DatabaseFirebaseServiceProtocol
     let keychainManager: KeychainManager
 
-    init(analyticsManager: AnalyticsManager = .shared,
+    public init(analyticsManager: AnalyticsManager,
          crashLogger: CrashLogger = .shared,
-         databaseService: any DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared,
-         keychainManager: KeychainManager = .shared) {
+         databaseService: any DatabaseFirebaseServiceProtocol,
+         keychainManager: KeychainManager) {
         self.analyticsManager = analyticsManager
         self.crashLogger = crashLogger
         self.databaseService = databaseService

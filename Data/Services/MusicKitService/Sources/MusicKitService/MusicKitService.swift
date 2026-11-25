@@ -11,7 +11,6 @@ import MusicKit
 import Models
 
 public actor MusicKitService: MusicKitServiceProtocol {
-    public static let shared = MusicKitService()
 
     let analyticsManager: AnalyticsManager
     private let dataSource: any AppleMusicDataSource
@@ -20,7 +19,7 @@ public actor MusicKitService: MusicKitServiceProtocol {
     /// The user's storefront country code, cached for the actor's lifetime.
     private var cachedStorefront: String?
 
-    public init(analyticsManager: AnalyticsManager = .shared) {
+    public init(analyticsManager: AnalyticsManager) {
         self.init(analyticsManager: analyticsManager, dataSource: MusicKitDataSource())
     }
 

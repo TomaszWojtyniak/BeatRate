@@ -24,11 +24,11 @@ public actor GetSettingsUseCase: GetSettingsUseCaseProtocol {
     private let musicPlayerManager: MusicPlayerManager
     private let userDefaultsManager: UserDefaultsManager
 
-    public init(getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),
-                swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared,
-                musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
-                musicPlayerManager: MusicPlayerManager = .shared,
-                userDefaultsManager: UserDefaultsManager = .shared) {
+    public init(getLoginUseCase: GetLoginUseCaseProtocol,
+                swiftDataManager: SwiftDataManagerProtocol,
+                musicRepository: MusicRepositoryProtocol,
+                musicPlayerManager: MusicPlayerManager,
+                userDefaultsManager: UserDefaultsManager) {
         self.getLoginUseCase = getLoginUseCase
         self.swiftDataManager = swiftDataManager
         self.musicRepository = musicRepository

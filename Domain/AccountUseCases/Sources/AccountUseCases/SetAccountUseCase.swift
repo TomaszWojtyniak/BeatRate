@@ -15,7 +15,7 @@ public protocol SetAccountUseCaseProtocol: Sendable {
 public actor SetAccountUseCase: SetAccountUseCaseProtocol {
     private let accountRepository: AccountRepositoryProtocol
 
-    public init(accountRepository: AccountRepositoryProtocol = AccountRepository.shared) {
+    public init(accountRepository: AccountRepositoryProtocol) {
         self.accountRepository = accountRepository
     }
 

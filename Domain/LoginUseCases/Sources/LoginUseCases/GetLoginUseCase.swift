@@ -18,7 +18,7 @@ public protocol GetLoginUseCaseProtocol: Sendable {
 public actor GetLoginUseCase: GetLoginUseCaseProtocol {
     private let loginRepository: LoginRepositoryProtocol
 
-    public init(loginRepository: LoginRepositoryProtocol = LoginRepository.shared) {
+    public init(loginRepository: LoginRepositoryProtocol) {
         self.loginRepository = loginRepository
     }
 

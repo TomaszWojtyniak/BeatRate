@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Composition
 import SearchUse
 import Models
 import Analytics
@@ -31,11 +32,11 @@ public final class SearchDataModel {
     }
 
     public init(
-        getSearchUseCase: GetSearchUseCaseProtocol = GetSearchUseCase(),
-        getRecentAlbumsUseCase: GetRecentAlbumsUseCaseProtocol = GetRecentAlbumsUseCase(),
-        saveRecentAlbumUseCase: SaveRecentAlbumUseCaseProtocol = SaveRecentAlbumUseCase(),
-        clearRecentAlbumsUseCase: ClearRecentAlbumsUseCaseProtocol = ClearRecentAlbumsUseCase(),
-        analyticsManager: AnalyticsManager = .shared,
+        getSearchUseCase: GetSearchUseCaseProtocol = Graph.current.getSearch,
+        getRecentAlbumsUseCase: GetRecentAlbumsUseCaseProtocol = Graph.current.getRecentAlbums,
+        saveRecentAlbumUseCase: SaveRecentAlbumUseCaseProtocol = Graph.current.saveRecentAlbum,
+        clearRecentAlbumsUseCase: ClearRecentAlbumsUseCaseProtocol = Graph.current.clearRecentAlbums,
+        analyticsManager: AnalyticsManager = Graph.current.analytics,
         debounce: Duration = .milliseconds(500)
     ) {
         self.debounce = debounce

@@ -1,3 +1,4 @@
+import Foundation
 import Models
 import Testing
 @testable import FirebaseService
@@ -6,7 +7,9 @@ import Testing
 struct AuthProfileTests {
 
     private func service(_ database: StubDatabaseFirebaseService) -> AuthFirebaseService {
-        AuthFirebaseService(databaseService: database)
+        // Profile creation never touches the keychain or analytics, so plain instances do.
+        AuthFirebaseService(analyticsManager: .init(defaults: UserDefaults(suiteName: "FirebaseServiceTests.\(UUID())")!),
+                            databaseService: database, keychainManager: .init())
     }
 
     @Test func `first sign in creates a profile from apple's details`() async {

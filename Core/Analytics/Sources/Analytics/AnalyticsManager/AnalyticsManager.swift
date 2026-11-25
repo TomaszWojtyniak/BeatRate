@@ -11,7 +11,6 @@ import OSLog
 
 @MainActor
 public final class AnalyticsManager {
-    public static let shared = AnalyticsManager()
     
     // Off until the user opts in: GDPR needs consent before any analytics
     // identifier is stored. Info.plist's FIREBASE_ANALYTICS_COLLECTION_ENABLED
@@ -22,7 +21,7 @@ public final class AnalyticsManager {
     private let defaults: UserDefaults
     private let backend: AnalyticsBackend
 
-    convenience init(defaults: UserDefaults = .standard) {
+    public convenience init(defaults: UserDefaults = .standard) {
         self.init(defaults: defaults, backend: FirebaseAnalyticsBackend())
     }
 

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Composition
 import Models
 import ArtistUseCase
 import Analytics
@@ -34,8 +35,8 @@ final class ArtistDetailsDataModel {
 
     init(
         source: Source,
-        getArtistDetailsUseCase: GetArtistDetailsUseCaseProtocol = GetArtistDetailsUseCase(),
-        analyticsManager: AnalyticsManager = .shared
+        getArtistDetailsUseCase: GetArtistDetailsUseCaseProtocol = Graph.current.getArtistDetails,
+        analyticsManager: AnalyticsManager = Graph.current.analytics
     ) {
         self.source = source
         self.getArtistDetailsUseCase = getArtistDetailsUseCase

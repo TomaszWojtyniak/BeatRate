@@ -37,8 +37,8 @@ public actor SetLoginUseCase: SetLoginUseCaseProtocol {
     private let loginRepository: LoginRepositoryProtocol
     private let swiftDataManager: SwiftDataManagerProtocol
     
-    public init(loginRepository: LoginRepositoryProtocol = LoginRepository.shared,
-                swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared) {
+    public init(loginRepository: LoginRepositoryProtocol,
+                swiftDataManager: SwiftDataManagerProtocol) {
         self.loginRepository = loginRepository
         self.swiftDataManager = swiftDataManager
     }

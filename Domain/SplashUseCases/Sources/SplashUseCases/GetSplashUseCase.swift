@@ -59,15 +59,15 @@ public actor GetSplashUseCase: GetSplashUseCaseProtocol {
     private let userDefaultsManager: UserDefaultsManager
 
     public init(
-        musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
-        homeRepository: HomeRepositoryProtocol = HomeRepository.shared,
-        loginRepository: LoginRepositoryProtocol = LoginRepository.shared,
-        swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared,
-        getLoginUseCase: GetLoginUseCaseProtocol = GetLoginUseCase(),
-        sessionManager: SessionManager = .shared,
-        musicPlayerManager: MusicPlayerManager = .shared,
-        userDefaultsManager: UserDefaultsManager = .shared,
-        keychainManager: KeychainManager = .shared
+        musicRepository: MusicRepositoryProtocol,
+        homeRepository: HomeRepositoryProtocol,
+        loginRepository: LoginRepositoryProtocol,
+        swiftDataManager: SwiftDataManagerProtocol,
+        getLoginUseCase: GetLoginUseCaseProtocol,
+        sessionManager: SessionManager,
+        musicPlayerManager: MusicPlayerManager,
+        userDefaultsManager: UserDefaultsManager,
+        keychainManager: KeychainManager
     ) {
         self.init(
             musicRepository: musicRepository,

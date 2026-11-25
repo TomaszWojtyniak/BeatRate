@@ -14,6 +14,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(path: "../../Domain/Composition"),
         .package(path: "../../Core/Models"),
         .package(path: "../../Core/CoreApp"),
         .package(path: "../../Core/CoreUI"),
@@ -24,6 +25,7 @@ let package = Package(
         .target(
             name: "Onboarding",
             dependencies: [
+                "Composition",
                 "Models",
                 "CoreApp",
                 "CoreUI",

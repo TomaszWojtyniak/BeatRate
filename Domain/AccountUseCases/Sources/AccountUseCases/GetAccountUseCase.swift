@@ -22,8 +22,8 @@ public actor GetAccountUseCase: GetAccountUseCaseProtocol {
     private let accountRepository: AccountRepositoryProtocol
     private let swiftDataManager: SwiftDataManagerProtocol
 
-    public init(accountRepository: AccountRepositoryProtocol = AccountRepository.shared,
-                swiftDataManager: SwiftDataManagerProtocol = SwiftDataManager.shared) {
+    public init(accountRepository: AccountRepositoryProtocol,
+                swiftDataManager: SwiftDataManagerProtocol) {
         self.accountRepository = accountRepository
         self.swiftDataManager = swiftDataManager
     }

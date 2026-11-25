@@ -29,7 +29,6 @@ public protocol HomeRepositoryProtocol: Sendable {
 }
 
 public actor HomeRepository: HomeRepositoryProtocol {
-    public static let shared = HomeRepository()
 
     let databaseFirebaseService: DatabaseFirebaseServiceProtocol
     let musicRepository: MusicRepositoryProtocol
@@ -43,9 +42,9 @@ public actor HomeRepository: HomeRepositoryProtocol {
     private let userIdCacheDuration: TimeInterval = 300 // 5 minutes
     private let now: @Sendable () -> Date
 
-    public init(databaseFirebaseService: DatabaseFirebaseServiceProtocol = DatabaseFirebaseService.shared,
-                musicRepository: MusicRepositoryProtocol = MusicRepository.shared,
-                swiftDataManager: SwiftDataManager = .shared,
+    public init(databaseFirebaseService: DatabaseFirebaseServiceProtocol,
+                musicRepository: MusicRepositoryProtocol,
+                swiftDataManager: SwiftDataManager,
                 now: @escaping @Sendable () -> Date = Date.init) {
         self.databaseFirebaseService = databaseFirebaseService
         self.musicRepository = musicRepository

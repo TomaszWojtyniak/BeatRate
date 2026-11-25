@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import Composition
 import Models
 import CoreApp
 import SettingUseCases
@@ -29,10 +30,10 @@ final class MusicPlayerPickerDataModel {
     private let appleMusicStatus: () -> MusicAuthorization.Status
 
     init(mode: MusicPlayerPickerMode,
-         setSettingsUseCase: SetSettingsUseCaseProtocol = SetSettingsUseCase(),
-         getSettingsUseCase: GetSettingsUseCaseProtocol = GetSettingsUseCase(),
-         musicPlayerManager: MusicPlayerManager = .shared,
-         analyticsManager: AnalyticsManager = .shared,
+         setSettingsUseCase: SetSettingsUseCaseProtocol = Graph.current.setSettings,
+         getSettingsUseCase: GetSettingsUseCaseProtocol = Graph.current.getSettings,
+         musicPlayerManager: MusicPlayerManager = Graph.current.players,
+         analyticsManager: AnalyticsManager = Graph.current.analytics,
          appleMusicStatus: @escaping () -> MusicAuthorization.Status = { MusicAuthorization.currentStatus }) {
         self.mode = mode
         self.appleMusicStatus = appleMusicStatus
