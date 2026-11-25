@@ -8,7 +8,7 @@ import Analytics
 import OSLog
 
 /// Why the login prompt was raised. Drives the sheet's headline copy.
-public enum LoginPromptReason: Sendable {
+public enum LoginPromptReason: String, Sendable, Encodable {
     /// The guest opened the locked Account tab.
     case account
     /// The guest tried to rate an album.
