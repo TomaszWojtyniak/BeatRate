@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3F823839C9342738B0354F67 /* Composition in Frameworks */ = {isa = PBXBuildFile; productRef = E892A2244BD399BBA2DB0335 /* Composition */; };
+		3F823839C9342738B0354F68 /* CompositionLive in Frameworks */ = {isa = PBXBuildFile; productRef = E892A2244BD399BBA2DB0336 /* CompositionLive */; };
+		50CDBB6F0606DAE4A6467399 /* Composition in Frameworks */ = {isa = PBXBuildFile; productRef = 5897333DE1D73784FDC2E509 /* Composition */; };
+		50CDBB6F0606DAE4A646739A /* CompositionLive in Frameworks */ = {isa = PBXBuildFile; productRef = 5897333DE1D73784FDC2E50A /* CompositionLive */; };
 		8B1AAAB92E736F4B001D9BC1 /* SwiftDataManager in Frameworks */ = {isa = PBXBuildFile; productRef = 8B1AAAB82E736F4B001D9BC1 /* SwiftDataManager */; };
 		8B1AAABB2E736F51001D9BC1 /* SwiftDataManager in Frameworks */ = {isa = PBXBuildFile; productRef = 8B1AAABA2E736F51001D9BC1 /* SwiftDataManager */; };
 		8B1AAABF2E737978001D9BC1 /* Splash in Frameworks */ = {isa = PBXBuildFile; productRef = 8B1AAABE2E737978001D9BC1 /* Splash */; };
@@ -23,10 +27,6 @@
 		8BED088D2DE1031900838DD7 /* Login in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED088C2DE1031900838DD7 /* Login */; };
 		8BED089C2DE645E800838DD7 /* Login in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED089B2DE645E800838DD7 /* Login */; };
 		8BED089E2DE645EE00838DD7 /* TabBar in Frameworks */ = {isa = PBXBuildFile; productRef = 8BED089D2DE645EE00838DD7 /* TabBar */; };
-		3F823839C9342738B0354F67 /* Composition in Frameworks */ = {isa = PBXBuildFile; productRef = E892A2244BD399BBA2DB0335 /* Composition */; };
-		3F823839C9342738B0354F68 /* CompositionLive in Frameworks */ = {isa = PBXBuildFile; productRef = E892A2244BD399BBA2DB0336 /* CompositionLive */; };
-		50CDBB6F0606DAE4A6467399 /* Composition in Frameworks */ = {isa = PBXBuildFile; productRef = 5897333DE1D73784FDC2E509 /* Composition */; };
-		50CDBB6F0606DAE4A646739A /* CompositionLive in Frameworks */ = {isa = PBXBuildFile; productRef = 5897333DE1D73784FDC2E50A /* CompositionLive */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -62,12 +62,27 @@
 			);
 			target = 8B0196CC308C012700D96609 /* BeatRateDevelopmentTests */;
 		};
+		8B3D62CF30B7107E00970F2A /* Exceptions for "Tools" folder in "BeatRate" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				BeatRateCLI,
+			);
+			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
+		};
+		8B3D62D030B7107E00970F2A /* Exceptions for "Tools" folder in "BeatRate Development" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				BeatRateCLI,
+			);
+			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
+		};
 		8B613DF42DE71A69000782EB /* Exceptions for "Core" folder in "BeatRate" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Analytics,
 				CoreApp,
 				CoreUI,
+				IntrospectionKit,
 				Models,
 			);
 			target = 8BED07ED2DE0D68300838DD7 /* BeatRate */;
@@ -78,6 +93,7 @@
 				Analytics,
 				CoreApp,
 				CoreUI,
+				IntrospectionKit,
 				Models,
 			);
 			target = 8BED083F2DE0DBFB00838DD7 /* BeatRate Development */;
@@ -110,6 +126,7 @@
 			membershipExceptions = (
 				Account,
 				AlbumDetails,
+				AppRoot,
 				ArtistDetails,
 				Home,
 				Login,
@@ -126,6 +143,7 @@
 			membershipExceptions = (
 				Account,
 				AlbumDetails,
+				AppRoot,
 				ArtistDetails,
 				Home,
 				Login,
@@ -194,6 +212,15 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		8B3D62CD30B7103200970F2A /* Tools */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8B3D62CF30B7107E00970F2A /* Exceptions for "Tools" folder in "BeatRate" target */,
+				8B3D62D030B7107E00970F2A /* Exceptions for "Tools" folder in "BeatRate Development" target */,
+			);
+			path = Tools;
+			sourceTree = "<group>";
+		};
 		8BED07F02DE0D68300838DD7 /* App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -312,6 +339,7 @@
 		8BED07E52DE0D68300838DD7 = {
 			isa = PBXGroup;
 			children = (
+				8B3D62CD30B7103200970F2A /* Tools */,
 				8B7268062DEC8BE600681754 /* ci_scripts */,
 				8BED07F02DE0D68300838DD7 /* App */,
 				8BED085D2DE0F6B500838DD7 /* Core */,
@@ -371,6 +399,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				8B3D62CD30B7103200970F2A /* Tools */,
 				8BED07F02DE0D68300838DD7 /* App */,
 				8BED085D2DE0F6B500838DD7 /* Core */,
 				8BED085E2DE0F6C500838DD7 /* Data */,
@@ -428,6 +457,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				8B3D62CD30B7103200970F2A /* Tools */,
 				8BED07F02DE0D68300838DD7 /* App */,
 				8BED085D2DE0F6B500838DD7 /* Core */,
 				8BED085E2DE0F6C500838DD7 /* Data */,
@@ -1139,6 +1169,14 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5897333DE1D73784FDC2E509 /* Composition */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Composition;
+		};
+		5897333DE1D73784FDC2E50A /* CompositionLive */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CompositionLive;
+		};
 		8B1AAAB82E736F4B001D9BC1 /* SwiftDataManager */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SwiftDataManager;
@@ -1210,14 +1248,6 @@
 			productName = Composition;
 		};
 		E892A2244BD399BBA2DB0336 /* CompositionLive */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = CompositionLive;
-		};
-		5897333DE1D73784FDC2E509 /* Composition */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Composition;
-		};
-		5897333DE1D73784FDC2E50A /* CompositionLive */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = CompositionLive;
 		};
