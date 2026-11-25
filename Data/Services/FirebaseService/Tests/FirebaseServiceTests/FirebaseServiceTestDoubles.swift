@@ -1,6 +1,8 @@
 import Analytics
+import CoreApp
 import Foundation
 import Models
+import Security
 @testable import FirebaseService
 
 struct StubError: Error {}
@@ -18,8 +20,59 @@ final class StubAnalyticsBackend: AnalyticsBackend {
 }
 
 @MainActor
-func makeAnalytics() -> AnalyticsManager {
-    AnalyticsManager(defaults: UserDefaults(suiteName: "FirebaseServiceTests.\(UUID())")!, backend: StubAnalyticsBackend())
+func makeAnalytics(_ backend: StubAnalyticsBackend = StubAnalyticsBackend()) -> AnalyticsManager {
+    AnalyticsManager(defaults: UserDefaults(suiteName: "FirebaseServiceTests.\(UUID())")!, backend: backend)
+}
+
+/// Scripted Firebase Auth: canned sign-in result and signed-in user; records what the service asks of it.
+actor StubFirebaseAuth: FirebaseAuthProviding {
+    private let signInResult: FirebaseSignIn
+    private let currentUser: String?
+    private let revokeError: (any Error)?
+    private let signOutError: (any Error)?
+    private(set) var signOutCount = 0
+    private(set) var deleteCount = 0
+    private(set) var revokedCodes: [String] = []
+    private(set) var reauthenticatedTokens: [String] = []
+
+    init(signInResult: FirebaseSignIn = .init(userId: "u1", email: nil, isNewUser: false), currentUser: String? = "u1",
+         revokeError: (any Error)? = nil, signOutError: (any Error)? = nil) {
+        self.signInResult = signInResult
+        self.currentUser = currentUser
+        self.revokeError = revokeError
+        self.signOutError = signOutError
+    }
+
+    func currentUserId() -> String? { currentUser }
+    func signIn(idToken: String, rawNonce: String, fullName: PersonNameComponents?) -> FirebaseSignIn { signInResult }
+
+    func signOut() throws {
+        signOutCount += 1
+        if let signOutError { throw signOutError }
+    }
+
+    func reauthenticate(idToken: String, rawNonce: String, fullName: PersonNameComponents?) {
+        reauthenticatedTokens.append(idToken)
+    }
+
+    func revokeToken(authorizationCode: String) throws {
+        revokedCodes.append(authorizationCode)
+        if let revokeError { throw revokeError }
+    }
+
+    func deleteCurrentUser() { deleteCount += 1 }
+}
+
+/// Keychain that stores nothing; with `failing`, every write and delete fails with `errSecIO`.
+struct StubKeychainBackend: KeychainBackend {
+    let failing: Bool
+
+    private var status: OSStatus { failing ? errSecIO : errSecSuccess }
+
+    func update(_ query: [String: Any], attributes: [String: Any]) -> OSStatus { status }
+    func add(_ attributes: [String: Any]) -> OSStatus { status }
+    func copyMatching(_ query: [String: Any]) -> (OSStatus, AnyObject?) { (errSecItemNotFound, nil) }
+    func delete(_ query: [String: Any]) -> OSStatus { status }
 }
 
 /// In-memory Realtime Database tree with Firebase's write semantics: `nil`,

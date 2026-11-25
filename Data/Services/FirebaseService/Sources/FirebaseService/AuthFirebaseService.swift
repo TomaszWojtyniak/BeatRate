@@ -5,15 +5,11 @@
 //  Created by Tomasz Wojtyniak on 11/06/2025.
 //
 
-import SwiftUI
+import Foundation
 import OSLog
 import Analytics
 import Models
 import CoreApp
-// FIXME: Remove @preconcurrency once Firebase SDK adopts Swift 6 Sendable conformance
-// Safety: FirebaseAuth operations are internally thread-safe, though not marked Sendable
-// Tracking: Firebase SDK Swift 6 migration (https://github.com/firebase/firebase-ios-sdk/issues)
-@preconcurrency import FirebaseAuth
 
 public enum AuthFirebaseServiceError: Error {
     case noCurrentUser
@@ -28,15 +24,18 @@ public protocol AuthFirebaseServiceProtocol: Sendable {
 }
 
 public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
+    let auth: any FirebaseAuthProviding
     let analyticsManager: AnalyticsManager
     let crashLogger: CrashLogger
     let databaseService: DatabaseFirebaseServiceProtocol
     let keychainManager: KeychainManager
 
-    public init(analyticsManager: AnalyticsManager,
-         crashLogger: CrashLogger = .shared,
-         databaseService: any DatabaseFirebaseServiceProtocol,
-         keychainManager: KeychainManager) {
+    public init(auth: any FirebaseAuthProviding,
+                analyticsManager: AnalyticsManager,
+                crashLogger: CrashLogger = .shared,
+                databaseService: any DatabaseFirebaseServiceProtocol,
+                keychainManager: KeychainManager) {
+        self.auth = auth
         self.analyticsManager = analyticsManager
         self.crashLogger = crashLogger
         self.databaseService = databaseService
@@ -47,12 +46,14 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
     /// row this survives a cache-store reset, so it is the durable answer to
     /// "who is signed in".
     public func currentUserId() async -> String? {
-        Auth.auth().currentUser?.uid
+        await auth.currentUserId()
     }
 
     public func setLoginData(idTokenString: String, nonce: String, credential: AppleSignInCredential) async throws -> String {
-        let authResult = try await signInWithFirebase(idTokenString: idTokenString, nonce: nonce, fullName: credential.fullName)
-        let userId = authResult.user.uid
+        Logger.firebaseService.debug("Sign in with Firebase")
+        let signIn = try await auth.signIn(idToken: idTokenString, rawNonce: nonce, fullName: credential.fullName)
+        Logger.firebaseService.debug("Firebase auth login successful")
+        let userId = signIn.userId
 
         // CRITICAL: Save Apple user ID to Keychain for credential validation
         // This is a hard requirement - if it fails, we must not continue
@@ -66,7 +67,7 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
             // Rollback Firebase authentication since we can't save credentials
             CrashLogger.log("Rolling back Firebase authentication due to Keychain failure", to: .firebaseService)
             do {
-                try Auth.auth().signOut()
+                try await auth.signOut()
                 Logger.firebaseService.debug("Successfully rolled back Firebase authentication")
             } catch {
                 CrashLogger.log("Failed to rollback Firebase auth: \(error.localizedDescription)", to: .firebaseService)
@@ -79,21 +80,20 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
         // Apple sends the email and name only on the very first sign-in.
         await createUserProfileIfNeeded(
             userId: userId,
-            email: credential.email ?? authResult.user.email,
+            email: credential.email ?? signIn.email,
             firstName: credential.fullName?.givenName,
             lastName: credential.fullName?.familyName
         )
 
-        let isNewUser = authResult.additionalUserInfo?.isNewUser ?? false
         await analyticsManager.setUserId(userId)
-        await analyticsManager.log(isNewUser ? .signUp : .login)
+        await analyticsManager.log(signIn.isNewUser ? .signUp : .login)
 
         return userId
     }
 
     public func signOut() async throws {
         Logger.firebaseService.debug("Signing out from Firebase")
-        try Auth.auth().signOut()
+        try await auth.signOut()
         Logger.firebaseService.debug("Firebase sign out successful")
 
         // Clean up Keychain
@@ -109,15 +109,7 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
     /// Proves recent login with a fresh Apple credential — Firebase requires this
     /// before `delete()`, otherwise it throws `requiresRecentLogin`.
     public func reauthenticate(idTokenString: String, nonce: String, fullName: PersonNameComponents?) async throws {
-        guard let user = Auth.auth().currentUser else {
-            throw AuthFirebaseServiceError.noCurrentUser
-        }
-        let credential = OAuthProvider.appleCredential(
-            withIDToken: idTokenString,
-            rawNonce: nonce,
-            fullName: fullName
-        )
-        try await user.reauthenticate(with: credential)
+        try await auth.reauthenticate(idToken: idTokenString, rawNonce: nonce, fullName: fullName)
         Logger.firebaseService.debug("Reauthenticated user for account deletion")
     }
 
@@ -125,13 +117,13 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
     /// settings — App Review requires this for Sign in with Apple) and then
     /// deletes the Firebase auth user. Must run while still authenticated.
     public func revokeAndDeleteUser(authorizationCode: String?) async throws {
-        guard let user = Auth.auth().currentUser else {
+        guard await auth.currentUserId() != nil else {
             throw AuthFirebaseServiceError.noCurrentUser
         }
 
         if let authorizationCode {
             do {
-                try await Auth.auth().revokeToken(withAuthorizationCode: authorizationCode)
+                try await auth.revokeToken(authorizationCode: authorizationCode)
                 Logger.firebaseService.debug("Revoked Apple token")
             } catch {
                 // Non-fatal: still delete the account even if revocation fails,
@@ -141,23 +133,8 @@ public actor AuthFirebaseService: AuthFirebaseServiceProtocol {
             }
         }
 
-        try await user.delete()
+        try await auth.deleteCurrentUser()
         Logger.firebaseService.info("Deleted Firebase auth user")
-    }
-
-    private func signInWithFirebase(idTokenString: String, nonce: String, fullName: PersonNameComponents?) async throws -> AuthDataResult {
-        Logger.firebaseService.debug("Initialize a Firebase credential")
-        let credential = OAuthProvider.appleCredential(
-            withIDToken: idTokenString,
-            rawNonce: nonce,
-            fullName: fullName
-        )
-
-        Logger.firebaseService.debug("Sign in with Firebase")
-        let authResult = try await Auth.auth().signIn(with: credential)
-        Logger.firebaseService.debug("Firebase auth login successful")
-
-        return authResult
     }
 
     func createUserProfileIfNeeded(userId: String, email: String?, firstName: String?, lastName: String?) async {

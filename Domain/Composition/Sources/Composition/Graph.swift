@@ -7,6 +7,7 @@ import AppUseCases
 import ArtistUseCase
 import CoreApp
 import FirebaseService
+import FirebaseServiceLive
 import HomeRepository
 import HomeUseCases
 import LoginRepository
@@ -57,8 +58,10 @@ public final class Graph {
         let players = MusicPlayerManager(userDefaultsManager: userDefaults)
         let swiftData = SwiftDataManager(container: SwiftDataManager.makeContainer(), appleUserIDStore: keychain)
 
-        let database = DatabaseFirebaseService(analyticsManager: analytics)
-        let auth = AuthFirebaseService(analyticsManager: analytics, databaseService: database, keychainManager: keychain)
+        let database = DatabaseFirebaseService(analyticsManager: analytics, crashLogger: .shared,
+                                               database: FirebaseRealtimeDatabase(url: AppEnvironment.current.firebaseDatabaseUrl))
+        let auth = AuthFirebaseService(auth: FirebaseAuthProvider(), analyticsManager: analytics,
+                                       databaseService: database, keychainManager: keychain)
         let musicKit = MusicKitService()
         let spotify = SpotifyService(keychainManager: keychain)
 

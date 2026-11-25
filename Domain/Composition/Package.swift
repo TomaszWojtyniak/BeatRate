@@ -48,6 +48,7 @@ let package = Package(
                 "MusicRepository",
                 "SearchRepository",
                 "FirebaseService",
+                .product(name: "FirebaseServiceLive", package: "FirebaseService"),
                 "MusicKitService",
                 "SpotifyService",
                 "SwiftDataManager",

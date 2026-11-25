@@ -5,11 +5,10 @@
 //  Created by Tomasz Wojtyniak on 29/07/2025.
 //
 
-import SwiftUI
+import Foundation
 import Analytics
 import OSLog
 import Models
-import CoreApp
 
 public protocol DatabaseFirebaseServiceProtocol: Sendable {
     func fetchSections() async throws -> [FirebaseAlbumSection]
@@ -34,15 +33,6 @@ public actor DatabaseFirebaseService: DatabaseFirebaseServiceProtocol {
     private let now: @Sendable () -> Date
 
     public init(analyticsManager: AnalyticsManager,
-                 crashLogger: CrashLogger = .shared) {
-        self.init(
-            analyticsManager: analyticsManager,
-            crashLogger: crashLogger,
-            database: FirebaseRealtimeDatabase(url: AppEnvironment.current.firebaseDatabaseUrl)
-        )
-    }
-
-    init(analyticsManager: AnalyticsManager,
          crashLogger: CrashLogger,
          database: any RealtimeDatabase,
          now: @escaping @Sendable () -> Date = Date.init) {
